@@ -1,17 +1,9 @@
-# ============================================
-# Development Docker Compose Configuration
-# - Backend runs with --reload for hot reloading
-# - Frontend runs separately: npm run dev (port 5173)
-# - For production: Use docker-compose.prod.yml
-# ============================================
-
 services:
   # PostgreSQL Database
   db:
     image: postgres:16-alpine
     container_name: homemanager_db
     restart: unless-stopped
-    # Static IP for DockerMate network isolation
     networks:
       homemanager_network:
         ipv4_address: 172.28.0.2
@@ -29,25 +21,20 @@ services:
       timeout: 5s
       retries: 5
 
-  # FastAPI Application
+  # FastAPI Application + React Frontend
   app:
     build:
-      context: ./backend
-      dockerfile: Dockerfile.dev
+      context: .
+      dockerfile: ./backend/Dockerfile
     container_name: homemanager_app
     restart: unless-stopped
-    # Only expose port 8000 for Cloudflare Tunnel access
-    # All other container communication happens via internal network
     ports:
       - "8000:8000"
-    # Static IP for DockerMate network isolation
     networks:
       homemanager_network:
         ipv4_address: 172.28.0.3
     environment:
-      # Database connection (using service name for DNS resolution)
-      # Service name 'db' resolves to 172.28.0.2 via Docker DNS
-      # Using postgresql+psycopg:// for psycopg3 driver
+      # Database connection
       DATABASE_URL: postgresql+psycopg://homeuser@db:5432/homedb
       DB_PASSWORD_FILE: /run/secrets/db_password
 
@@ -55,10 +42,10 @@ services:
       JWT_SECRET_FILE: /run/secrets/jwt_secret
       MFA_ENCRYPTION_KEY_FILE: /run/secrets/mfa_encryption_key
 
-      # Application settings
-      ENVIRONMENT: development
-      DEBUG: "true"
-      ALLOWED_ORIGINS: http://localhost:3000,http://localhost:8000
+      # Application settings (PRODUCTION)
+      ENVIRONMENT: production
+      DEBUG: "false"
+      ALLOWED_ORIGINS: https://yourdomain.com
 
       # Session settings
       SESSION_EXPIRY_HOURS: 1
@@ -73,8 +60,8 @@ services:
       - jwt_secret
       - mfa_encryption_key
     volumes:
+      # Only mount uploads volume (no source code mounting)
       - uploads_data:/app/uploads
-      - ./backend:/app
     depends_on:
       db:
         condition: service_healthy
@@ -110,6 +97,3 @@ networks:
       config:
         - subnet: 172.28.0.0/29
           gateway: 172.28.0.1
-    # For DockerMate: Use external network managed by DockerMate
-    # external: true
-    # name: homemanager_net

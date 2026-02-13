@@ -2,9 +2,13 @@
 Home Management Platform - Main FastAPI Application
 """
 
+import os
+from pathlib import Path
+
 from fastapi import FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from app.core.config import settings, is_development
 
@@ -47,29 +51,54 @@ async def health_check():
     )
 
 
-# Root endpoint
-@app.get("/", status_code=status.HTTP_200_OK)
-async def root():
-    """
-    API root endpoint
-
-    Returns:
-        Welcome message and API information
-    """
-    return JSONResponse(
-        content={
-            "message": "Home Management Platform API",
-            "version": "0.1.0",
-            "docs": "/docs" if is_development() else "disabled",
-            "health": "/health"
-        }
-    )
-
-
 # Include API v1 router
 from app.api.v1 import api_router
 
 app.include_router(api_router, prefix="/api/v1")
+
+
+# Serve React frontend (production only)
+# In development, frontend runs separately on port 5173 with HMR
+STATIC_DIR = Path("/app/static")
+if STATIC_DIR.exists() and not is_development():
+    # Mount static assets (JS, CSS, images)
+    app.mount("/assets", StaticFiles(directory=str(STATIC_DIR / "assets")), name="assets")
+
+    # Serve index.html for all other routes (SPA fallback)
+    from fastapi.responses import FileResponse
+
+    @app.get("/{full_path:path}")
+    async def serve_spa(full_path: str):
+        """
+        Serve React SPA for all non-API routes
+        This enables client-side routing to work correctly
+        """
+        # If file exists in static dir, serve it
+        file_path = STATIC_DIR / full_path
+        if file_path.is_file():
+            return FileResponse(file_path)
+
+        # Otherwise, serve index.html (SPA entry point)
+        return FileResponse(STATIC_DIR / "index.html")
+else:
+    # Development mode: API only, frontend runs separately
+    @app.get("/", status_code=status.HTTP_200_OK)
+    async def root():
+        """
+        API root endpoint (development mode)
+
+        Returns:
+            Welcome message and API information
+        """
+        return JSONResponse(
+            content={
+                "message": "Home Management Platform API",
+                "version": "0.1.0",
+                "docs": "/docs" if is_development() else "disabled",
+                "health": "/health",
+                "mode": "development - frontend runs separately on port 5173"
+            }
+        )
 
 
 # Startup event
@@ -80,6 +109,12 @@ async def startup_event():
     print(f"📍 Environment: {settings.ENVIRONMENT}")
     print(f"🔒 CORS Origins: {settings.allowed_origins_list}")
     print(f"💾 Database: Connected to PostgreSQL")
+
+    # Check if serving frontend
+    if STATIC_DIR.exists() and not is_development():
+        print(f"🎨 Serving React frontend from {STATIC_DIR}")
+    else:
+        print(f"⚙️  Development mode: Frontend runs separately on port 5173")
 
     # Future: Initialize database connection pool, cache, etc.
 

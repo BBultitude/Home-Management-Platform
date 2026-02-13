@@ -1,0 +1,149 @@
+# ============================================
+# Docker Build Context Exclusions
+# Build context: Project root (includes both backend and frontend)
+# ============================================
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# Docker files (don't copy into container)
+docker-compose.yml
+docker-compose.*.yml
+Dockerfile.dev
+.dockerignore
+
+# Secrets (use Docker secrets instead)
+secrets/
+*.pem
+*.key
+*.crt
+
+# Backups
+backups/
+*.bak
+*.backup
+*.sql
+*.sql.gz
+*.dump
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ============================================
+# Backend Exclusions
+# ============================================
+
+# Python cache
+**/__pycache__/
+**/*.py[cod]
+**/*$py.class
+**/*.so
+
+# Virtual environments
+backend/venv/
+backend/env/
+backend/ENV/
+backend/.venv
+
+# Python build
+backend/build/
+backend/dist/
+backend/*.egg-info/
+
+# Testing
+backend/.pytest_cache/
+backend/.coverage
+backend/htmlcov/
+backend/.tox/
+backend/tests/
+backend/test_*.py
+backend/*_test.py
+backend/coverage/
+backend/pytest.ini
+
+# Environment files
+backend/.env
+backend/.env.*
+!backend/.env.example
+
+# Uploads (use volume)
+backend/uploads/
+
+# Database files
+backend/*.db
+backend/*.sqlite3
+
+# Logs
+backend/*.log
+backend/logs/
+
+# Static analysis
+backend/.mypy_cache/
+backend/.ruff_cache/
+
+# Alembic cache
+backend/alembic/versions/__pycache__/
+
+# Temporary
+backend/tmp/
+backend/temp/
+backend/*.tmp
+backend/.cache/
+
+# ============================================
+# Frontend Exclusions
+# ============================================
+
+# Node modules (will be installed during build)
+frontend/node_modules/
+
+# Build output (will be generated during build)
+frontend/dist/
+frontend/build/
+
+# Frontend cache
+frontend/.vite/
+frontend/.turbo/
+frontend/.cache/
+
+# Testing
+frontend/coverage/
+frontend/.nyc_output/
+
+# Environment files
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+
+# Logs
+frontend/*.log
+frontend/logs/
+
+# Temporary
+frontend/tmp/
+frontend/temp/
+frontend/*.tmp
+
+# OS files
+frontend/.DS_Store
