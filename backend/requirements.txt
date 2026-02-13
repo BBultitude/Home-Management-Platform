@@ -5,7 +5,7 @@
 # Web Framework
 fastapi==0.109.2
 uvicorn[standard]==0.27.1
-python-multipart==0.0.9  # For file uploads
+python-multipart==0.0.22  # For file uploads
 
 # Database
 sqlalchemy==2.0.36
@@ -19,7 +19,7 @@ passlib[argon2]==1.7.4  # Password hashing with Argon2
 python-jose[cryptography]==3.3.0  # JWT tokens
 pyotp==2.9.0  # TOTP for MFA
 qrcode[pil]==7.4.2  # QR code generation for MFA setup
-cryptography==42.0.2  # Fernet encryption for MFA secrets
+cryptography==46.0.5  # Fernet encryption for MFA secrets
 
 # Validation & Serialization
 pydantic==2.10.5
@@ -43,7 +43,7 @@ pytest-cov==4.1.0
 faker==22.6.0  # Test data generation
 
 # Code Quality (development)
-black==24.1.1
+black==24.3.0
 flake8==7.0.0
 mypy==1.8.0
 isort==5.13.2
