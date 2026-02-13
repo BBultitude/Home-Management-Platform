@@ -1,0 +1,108 @@
+# Docker Compose configuration for DockerMate deployment
+# This version uses an external network managed by DockerMate
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:16-alpine
+    container_name: homemanager_db
+    restart: unless-stopped
+    # Static IP within DockerMate-managed network
+    networks:
+      homemanager_net:
+        ipv4_address: 10.20.30.2
+    environment:
+      POSTGRES_DB: homedb
+      POSTGRES_USER: homeuser
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+    secrets:
+      - db_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U homeuser -d homedb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # FastAPI Application
+  app:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: homemanager_app
+    restart: unless-stopped
+    # Only expose port 8000 for Cloudflare Tunnel
+    ports:
+      - "8000:8000"
+    # Static IP within DockerMate-managed network
+    networks:
+      homemanager_net:
+        ipv4_address: 10.20.30.3
+    environment:
+      # Database connection (using service name for DNS)
+      DATABASE_URL: postgresql://homeuser@db:5432/homedb
+      DB_PASSWORD_FILE: /run/secrets/db_password
+
+      # Security secrets
+      JWT_SECRET_FILE: /run/secrets/jwt_secret
+      MFA_ENCRYPTION_KEY_FILE: /run/secrets/mfa_encryption_key
+
+      # Application settings
+      ENVIRONMENT: production
+      DEBUG: "false"
+      ALLOWED_ORIGINS: https://home.yourdomain.com
+
+      # Session settings
+      SESSION_EXPIRY_HOURS: 1
+      TRUSTED_DEVICE_EXPIRY_DAYS: 30
+
+      # File upload settings
+      MAX_FILE_SIZE_MB: 20
+      MAX_STORAGE_PER_USER_MB: 200
+      UPLOAD_DIR: /app/uploads
+    secrets:
+      - db_password
+      - jwt_secret
+      - mfa_encryption_key
+    volumes:
+      - uploads_data:/app/uploads
+      # Mount source code for development (remove in production)
+      # - ./backend:/app
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+# Docker Secrets (mapped from files)
+secrets:
+  db_password:
+    file: ./secrets/db_password.txt
+  jwt_secret:
+    file: ./secrets/jwt_secret.txt
+  mfa_encryption_key:
+    file: ./secrets/mfa_encryption_key.txt
+
+# Named Volumes
+volumes:
+  postgres_data:
+    driver: local
+  uploads_data:
+    driver: local
+
+# External Network (managed by DockerMate)
+networks:
+  homemanager_net:
+    external: true
+    name: homemanager_net
+    # DockerMate creates this network with:
+    # docker network create \
+    #   --driver bridge \
+    #   --subnet 10.20.30.0/29 \
+    #   --gateway 10.20.30.1 \
+    #   homemanager_net

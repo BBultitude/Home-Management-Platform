@@ -1,0 +1,108 @@
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:16-alpine
+    container_name: homemanager_db
+    restart: unless-stopped
+    # Static IP for DockerMate network isolation
+    networks:
+      homemanager_network:
+        ipv4_address: 172.28.0.2
+    environment:
+      POSTGRES_DB: homedb
+      POSTGRES_USER: homeuser
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+    secrets:
+      - db_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U homeuser -d homedb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # FastAPI Application
+  app:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: homemanager_app
+    restart: unless-stopped
+    # Only expose port 8000 for Cloudflare Tunnel access
+    # All other container communication happens via internal network
+    ports:
+      - "8000:8000"
+    # Static IP for DockerMate network isolation
+    networks:
+      homemanager_network:
+        ipv4_address: 172.28.0.3
+    environment:
+      # Database connection (using service name for DNS resolution)
+      # Service name 'db' resolves to 172.28.0.2 via Docker DNS
+      # Using postgresql+psycopg:// for psycopg3 driver
+      DATABASE_URL: postgresql+psycopg://homeuser@db:5432/homedb
+      DB_PASSWORD_FILE: /run/secrets/db_password
+
+      # Security secrets
+      JWT_SECRET_FILE: /run/secrets/jwt_secret
+      MFA_ENCRYPTION_KEY_FILE: /run/secrets/mfa_encryption_key
+
+      # Application settings
+      ENVIRONMENT: development
+      DEBUG: "true"
+      ALLOWED_ORIGINS: http://localhost:3000,http://localhost:8000
+
+      # Session settings
+      SESSION_EXPIRY_HOURS: 1
+      TRUSTED_DEVICE_EXPIRY_DAYS: 30
+
+      # File upload settings
+      MAX_FILE_SIZE_MB: 20
+      MAX_STORAGE_PER_USER_MB: 200
+      UPLOAD_DIR: /app/uploads
+    secrets:
+      - db_password
+      - jwt_secret
+      - mfa_encryption_key
+    volumes:
+      - uploads_data:/app/uploads
+      - ./backend:/app
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+# Docker Secrets (mapped from files)
+secrets:
+  db_password:
+    file: ./secrets/db_password.txt
+  jwt_secret:
+    file: ./secrets/jwt_secret.txt
+  mfa_encryption_key:
+    file: ./secrets/mfa_encryption_key.txt
+
+# Named Volumes
+volumes:
+  postgres_data:
+    driver: local
+  uploads_data:
+    driver: local
+
+# Network
+networks:
+  homemanager_network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.28.0.0/29
+          gateway: 172.28.0.1
+    # For DockerMate: Use external network managed by DockerMate
+    # external: true
+    # name: homemanager_net

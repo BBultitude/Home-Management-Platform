@@ -2,12 +2,22 @@
 
 ## Project Information
 
-**Project Name:** Home Management Platform  
-**Current Version:** v0.1.0 (Pre-release / Development)  
-**Active Design Document:** Design-v1.md (Draft - Pending Approval)  
-**Project Phase:** Planning & Architecture  
-**Started:** 2025-02-01  
-**Target v1.0 Release:** TBD (After Design-v1.md approval)
+**Project Name:** Home Management Platform
+**Current Version:** v0.1.0 (Pre-release / Development)
+**Active Design Document:** Design-v1.md (Approved)
+**Project Phase:** Development - Sprint 1
+**Started:** 2025-02-01
+**Target v1.0 Release:** TBD
+
+## ⚠️ Existing Codebases Available for Porting
+
+Two modules have existing implementations that will be ported during later sprints:
+
+1. **Cost-Benefit Decision** (Sprint 5): https://github.com/BBultitude/Cost-Benefit-Decision
+   - Node.js/Express + JSON → Port to Python/FastAPI + PostgreSQL
+
+2. **Meal Planner** (Sprint 7): https://github.com/BBultitude/Meal-Planner
+   - Node.js/Express + JSON → Port to Python/FastAPI + PostgreSQL
 
 ---
 
@@ -19,22 +29,28 @@
 
 ---
 
-## Current Sprint: Sprint 0 - Foundation & Planning
+## Current Sprint: Sprint 4 - Assets & Documents Module
 
-**Sprint Goal:** Complete architecture design and establish project foundation  
-**Sprint Duration:** TBD  
-**Sprint Status:** 🟡 In Progress
+**Sprint Goal:** Implement insurance vault and document storage
+**Sprint Duration:** TBD
+**Sprint Status:** ⚪ Not Started
+
+### Previous Sprints
+- **Sprint 0:** Foundation & Planning - 🟢 Completed (2026-02-02)
+- **Sprint 1:** Core Platform Services - 🟢 Completed (2026-02-02 to 2026-02-12)
+- **Sprint 2:** Tax Records Module (Backend) - 🟢 Completed (2026-02-13)
+- **Sprint 3:** Financial Management Module (Backend) - 🟢 Completed (2026-02-13)
 
 ### Sprint Tasks
 
-| Task ID | Task | Status | Assignee | Priority | Blockers |
-|---------|------|--------|----------|----------|----------|
-| S0-T1 | Review and approve Design-v1.md | 🟡 In Progress | User | High | None |
-| S0-T2 | Set up development environment | ⚪ Not Started | Developer | High | S0-T1 |
-| S0-T3 | Initialize Git repository | ⚪ Not Started | Developer | High | S0-T1 |
-| S0-T4 | Set up Docker Compose stack (skeleton) | ⚪ Not Started | Developer | High | S0-T2 |
-| S0-T5 | Generate secrets (DB, JWT, MFA key) | ⚪ Not Started | Developer | High | S0-T4 |
-| S0-T6 | Configure Cloudflare Tunnel | ⚪ Not Started | User/Developer | Medium | S0-T4 |
+| Task ID | Task | Status | Assignee | Priority | Blockers | Completed |
+|---------|------|--------|----------|----------|----------|-----------|
+| S0-T1 | Review and approve Design-v1.md | 🟢 Completed | User | High | None | 2026-02-02 |
+| S0-T2 | Set up development environment | 🟢 Completed | Developer | High | S0-T1 | 2026-02-11 |
+| S0-T3 | Initialize Git repository | 🟢 Completed | Developer | High | S0-T1 | 2026-02-02 |
+| S0-T4 | Set up Docker Compose stack (skeleton) | 🟢 Completed | Developer | High | S0-T2 | 2026-02-11 |
+| S0-T5 | Generate secrets (DB, JWT, MFA key) | 🟢 Completed | Developer | High | S0-T4 | 2026-02-11 |
+| S0-T6 | Configure Cloudflare Tunnel | ⚪ Not Started | User/Developer | Medium | S0-T4 | - |
 
 **Legend:**
 - ⚪ Not Started
@@ -47,93 +63,128 @@
 
 ## Upcoming Sprints (Tentative)
 
-### Sprint 1 - Core Platform Services
+### Sprint 1 - Core Platform Services ✅
 
-**Sprint Goal:** Implement authentication, RBAC, and file upload services  
-**Estimated Duration:** 2-3 weeks  
-**Status:** ⚪ Not Started
+**Sprint Goal:** Implement authentication, RBAC, and file upload services
+**Duration:** 11 days (2026-02-02 to 2026-02-12)
+**Status:** 🟢 **COMPLETED**
 
 **Key Deliverables:**
-- User registration and login (password + MFA)
-- Session management (HTTP-only cookies)
-- RBAC implementation (Admin, Editor, Reader)
-- File upload service with validation
-- Database schema for users, trusted devices, files
-- Basic audit logging
+- ✅ User registration and login (password + MFA)
+- ✅ Session management (HTTP-only cookies)
+- ✅ RBAC implementation (Admin, Editor, Reader)
+- ✅ File upload service with validation
+- ✅ Database schema for users, trusted devices, files, audit logs
+- ✅ Comprehensive audit logging
 
-**Tasks:**
-- [ ] Set up FastAPI project structure
-- [ ] Configure PostgreSQL connection
-- [ ] Implement user model and authentication (FastAPI-Users)
-- [ ] Implement MFA (PyOTP + encrypted secrets)
-- [ ] Implement trusted device functionality
-- [ ] Implement RBAC decorators and permissions
-- [ ] Implement file upload endpoint with validation
-- [ ] Create database migrations (Alembic)
-- [ ] Write unit tests for authentication and RBAC
-- [ ] Set up React project structure
-- [ ] Create login/MFA forms
-- [ ] Create protected route wrapper (auth check)
+**Backend Tasks:**
+- [x] IMP-005: Database schema (users, trusted_devices, files, audit_logs)
+- [x] IMP-006: User authentication service and endpoints
+- [x] IMP-007: MFA implementation (PyOTP + Fernet encryption)
+- [x] IMP-007: Trusted device functionality
+- [x] IMP-008: RBAC with permission matrix (30+ permissions)
+- [x] IMP-009: Audit logging service (40+ event types, 5-year retention for tax/auth)
+- [x] IMP-010: File upload service (validation, quota management, UUID-based storage)
+- [x] Database migrations (Alembic)
+- [x] Comprehensive test coverage:
+  - 186 tests passing
+  - 88% code coverage
+  - 100% coverage on auth, MFA, and audit services
+
+**Frontend Tasks:**
+- [ ] DEFERRED: Set up React project structure (moved to Sprint 1.5)
+- [ ] DEFERRED: Create login/MFA forms (moved to Sprint 1.5)
+- [ ] DEFERRED: Create protected route wrapper (moved to Sprint 1.5)
+
+**Notes:**
+- Frontend deferred to allow backend stabilization first
+- File service adapted to existing File model (no soft delete)
+- All acceptance criteria met for backend services
 
 ---
 
-### Sprint 2 - Tax Records Module
+### Sprint 2 - Tax Records Module ✅
 
-**Sprint Goal:** Implement per-user tax tracking (WFH + Work Travel)  
-**Estimated Duration:** 2 weeks  
-**Status:** ⚪ Not Started
+**Sprint Goal:** Implement per-user tax tracking (WFH + Work Travel)
+**Duration:** 1 day (2026-02-13)
+**Status:** 🟢 **COMPLETED** (Backend only)
 
 **Key Deliverables:**
-- WFH entry CRUD (with per-user isolation)
-- Work Travel entry CRUD (with per-user isolation)
-- Tax summary calculations (FY totals)
-- ATO-compliant export (CSV/PDF)
-- Calendar view (read-only) for WFH entries
-- Quick-add widgets for dashboard
+- ✅ WFH entry CRUD (with per-user isolation)
+- ✅ Work Travel entry CRUD (with per-user isolation)
+- ✅ Tax summary calculations (FY totals)
+- ✅ ATO-compliant export (CSV/Text)
+- 🔵 Calendar view (deferred - UI pending)
+- 🔵 Quick-add widgets (deferred - UI pending)
 
-**Tasks:**
-- [ ] Create tax_wfh_entries and tax_travel_entries tables
-- [ ] Implement WFH API endpoints (CRUD + summary)
-- [ ] Implement Work Travel API endpoints (CRUD + summary)
-- [ ] Implement per-user isolation checks (RBAC)
-- [ ] Implement export functionality (CSV format)
-- [ ] Create WFH entry form (React)
-- [ ] Create Work Travel entry form (React)
-- [ ] Create tax summary view (FY totals)
-- [ ] Create calendar view component
-- [ ] Write integration tests for tax endpoints
-- [ ] Implement audit logging for tax operations
+**Backend Tasks:**
+- [x] IMP-013: Database schema (tax_wfh_entries, tax_travel_entries)
+- [x] IMP-014: WFH API endpoints (7 endpoints: CRUD + summary + export)
+- [x] IMP-015: Work Travel API endpoints (7 endpoints: CRUD + summary + export)
+- [x] IMP-016: FY summary calculations (July 1 - June 30)
+- [x] IMP-017: ATO export functionality (CSV + text formats)
+- [x] Per-user isolation enforced (RBAC)
+- [x] Audit logging for all tax operations
+- [x] Comprehensive test coverage:
+  - 57 tax module tests passing (100%)
+  - WFH: 17 service + 14 API tests
+  - Travel: 15 service + 13 API tests
+
+**Frontend Tasks:**
+- [ ] IMP-018: WFH entry UI (DEFERRED)
+- [ ] IMP-019: Travel entry UI (DEFERRED)
+- [ ] IMP-020: Export UI buttons (DEFERRED)
+
+**Notes:**
+- Backend fully functional and tested
+- All API endpoints ready for UI integration
+- UI deferred - will be built when frontend structure is ready
+- Can test via FastAPI Swagger UI at `/docs`
 
 ---
 
-### Sprint 3 - Financial Management Module
+### Sprint 3 - Financial Management Module ✅
 
-**Sprint Goal:** Implement budget planner and utility cost tracking  
-**Estimated Duration:** 2-3 weeks  
-**Status:** ⚪ Not Started
+**Sprint Goal:** Implement budget planner and utility cost tracking
+**Duration:** 1 day (2026-02-13)
+**Status:** 🟢 **COMPLETED** (Backend only)
 
 **Key Deliverables:**
-- Household members and income sources management
-- Bank accounts and expense categories management
-- Budget calculation logic (transfer requirements)
-- Utility cost entry and tracking
-- Utility cost graphs (Chart.js/Recharts)
-- Budget summary for dashboard
+- ✅ Income sources CRUD with frequency management
+- ✅ Bank accounts CRUD (checking/savings/offset)
+- ✅ Expense categories CRUD (linked to accounts)
+- ✅ Expenses CRUD with frequency tracking
+- ✅ Budget calculation algorithm (frequency normalization, transfer requirements)
+- ✅ Utility cost entry and tracking
+- ✅ Utility statistics aggregation
+- 🔵 Budget planner UI (deferred)
+- 🔵 Utility tracking UI (deferred)
+- 🔵 Utility cost graphs (deferred)
 
-**Tasks:**
-- [ ] Create financial module database schema
-- [ ] Implement household members CRUD
-- [ ] Implement income sources CRUD
-- [ ] Implement bank accounts CRUD
-- [ ] Implement expense categories CRUD
-- [ ] Implement budget calculation algorithm
-- [ ] Implement utility entries CRUD
-- [ ] Implement utility graph data aggregation
-- [ ] Create budget planner UI
-- [ ] Create utility tracking UI
-- [ ] Create utility cost graphs (Recharts)
-- [ ] Write unit tests for budget calculations
-- [ ] Integration with Insurance module (read renewal costs)
+**Backend Tasks:**
+- [x] Database schema (5 tables: income_sources, bank_accounts, expense_categories, expenses, utilities)
+- [x] Income sources API (5 endpoints: CRUD)
+- [x] Bank accounts API (5 endpoints: CRUD)
+- [x] Expense categories API (5 endpoints: CRUD with bank account filtering)
+- [x] Expenses API (5 endpoints: CRUD with category filtering)
+- [x] Budget calculation service (frequency normalization: daily/weekly/fortnightly/monthly/yearly)
+- [x] Budget calculation API (2 endpoints: calculate by frequency, monthly summary)
+- [x] Utilities API (6 endpoints: CRUD + statistics aggregation)
+- [x] Per-user permission enforcement (financial:read, financial:write)
+- [x] Services: IncomeSourceService, BankAccountService, ExpenseCategoryService, ExpenseService, BudgetService, UtilityService
+
+**Frontend Tasks:**
+- [ ] Budget planner UI (DEFERRED)
+- [ ] Utility tracking UI (DEFERRED)
+- [ ] Utility cost graphs (DEFERRED)
+
+**Notes:**
+- Backend fully functional with 23 financial endpoints
+- Budget calculation supports all pay frequencies (daily through yearly)
+- Automatic cost-per-unit calculation for utilities
+- Utility stats include avg cost, total usage, aggregation by type
+- UI deferred - will be built when frontend structure is ready
+- Can test via FastAPI Swagger UI at `/docs`
 
 ---
 
@@ -474,5 +525,5 @@ _None yet_
 
 ---
 
-**Last Updated:** 2025-02-01  
-**Next Review:** After Design-v1.md approval
+**Last Updated:** 2026-02-13
+**Next Review:** After Sprint 4 completion
