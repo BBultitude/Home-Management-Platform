@@ -112,3 +112,64 @@ Desktop.ini
 *~
 .directory
 .Trash-*
+
+# Application-specific
+# Logs
+*.log
+logs/
+*.log.*
+
+# Test reports
+test-results/
+coverage/
+junit.xml
+test-output/
+
+# Cloudflare Tunnel
+.cloudflared/
+*.cloudflared
+
+# Nginx
+nginx/logs/
+*.nginx.conf.backup
+
+# Certificates
+*.crt
+*.key
+*.pem
+*.csr
+*.pfx
+*.p12
+
+# Backups (all formats)
+backups/
+*.sql.gz
+*.dump
+*.tar.gz
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Lock files
+*.lock
+.~lock.*
+
+# Session files
+.session_*
+sessions/
+
+# Cache
+.cache/
+*.cache
+
+# Docker volumes (if mounted locally)
+.docker/
+docker-data/
+
+# Development databases
+dev.db
+test.db
+local.db

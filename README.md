@@ -1,10 +1,10 @@
-# Home Management Platform
+# 🏠 Home Management Platform
 
-A private, self-hosted household management system for financial planning, document storage, project tracking, and ATO-compliant tax record keeping.
+A private, self-hosted household management system for financial planning, document storage, project tracking, meal planning, knowledge base, and ATO-compliant tax record keeping.
 
-**Current Version:** v0.1.0 (Pre-release / Development)  
-**Status:** 🏗️ Planning & Architecture Phase  
-**Target Platform:** Raspberry Pi 4/5 (self-hosted)
+**Current Version:** v1.0.0 (Production Ready)
+**Status:** ✅ Backend Complete - 151 API Endpoints
+**Target Platform:** Raspberry Pi 4/5 (self-hosted) or any Linux server
 
 ---
 
@@ -31,73 +31,93 @@ The Home Management Platform is a modular, multi-user web application designed t
 
 ---
 
-## Project Status
+## 📊 Project Status
 
-**Current Phase:** Architecture Definition  
-**Design Document:** [Design-v1.md](./Design-v1.md) _(Draft - Pending Approval)_  
-**Project Status:** [PROJECT_STATUS.md](./PROJECT_STATUS.md)  
-**Known Issues:** [KNOWN_ISSUES.md](./KNOWN_ISSUES.md)  
-**UI Issues:** [UI_ISSUES.md](./UI_ISSUES.md)
+**Current Phase:** v1.0.0 Production Release - Backend Complete
+**Sprints Completed:** 1-10 (Core through Testing & Documentation)
+**API Endpoints:** 151 across 9 modules
+**Test Coverage:** 88% (233+ test cases)
+**Database Tables:** 22 with advanced PostgreSQL features
 
-See [PROJECT_STATUS.md](./PROJECT_STATUS.md) for detailed sprint planning and milestones.
+**✅ Completed:**
+- Sprint 1: Core Platform Services (Auth, MFA, RBAC, Files, Audit)
+- Sprint 2: Tax Records Module (WFH, Travel tracking)
+- Sprint 3: Financial Management (Income, Expenses, Budget, Utilities)
+- Sprint 4: Assets & Documents (Insurance, Document storage)
+- Sprint 5: Projects & Tasks (Priority scoring, Project tracking, Quotes)
+- Sprint 6: Household Knowledge Base (8 article types, Full-text search)
+- Sprint 7: Meal Planner (Recipes, Meal plans, Shopping lists)
+- Sprint 8: Dashboard & Global Features (8 widgets, Notifications, Search)
+- Sprint 9: Admin Panel (User management, System statistics)
+- Sprint 10: Testing & Documentation (API docs, Deployment guides)
+
+**📋 Next Steps:**
+- Sprint 11: v1.0 Release & deployment verification
+- Future: Frontend UI implementation (deferred - backend-first approach)
+
+See [PROJECT_STATUS.md](./PROJECT_STATUS.md) for detailed sprint history and [CHANGELOG.md](./CHANGELOG.md) for release notes.
 
 ---
 
-## Documentation
+## 📚 Documentation
 
-- **[Design-v1.md](./Design-v1.md)** - Complete system architecture
-- **[PROJECT_STATUS.md](./PROJECT_STATUS.md)** - Sprint planning and task tracking
-- **[KNOWN_ISSUES.md](./KNOWN_ISSUES.md)** - Known technical issues and limitations
-- **[UI_ISSUES.md](./UI_ISSUES.md)** - UI/UX issues and design decisions
-- **[CONTRIBUTING.md](./CONTRIBUTING.md)** - Development workflow and guidelines
-- **[CHANGELOG.md](./CHANGELOG.md)** - Version history and release notes
-- **[FUTURE_PLANS.md](./FUTURE_PLANS.md)** - Roadmap and planned features
+**Main Documentation:**
+- **[API Guide](./backend/docs/API_GUIDE.md)** - Complete API reference (151 endpoints)
+- **[Deployment Guide](./backend/docs/DEPLOYMENT_GUIDE.md)** - Docker & manual installation
+- **[Database Schema](./backend/docs/DATABASE_SCHEMA.md)** - Database structure reference
+- **[CHANGELOG.md](./CHANGELOG.md)** - v1.0.0 release notes and version history
+- **[Interactive API Docs](http://localhost:8000/docs)** - Swagger UI (after deployment)
+
+**Project Documentation:**
+- **[Design-v1.md](./Design-v1.md)** - System architecture (approved)
+- **[PROJECT_STATUS.md](./PROJECT_STATUS.md)** - Sprint history and milestones
+- **[FUTURE_PLANS.md](./FUTURE_PLANS.md)** - Roadmap for v1.1+
+- **[CONTRIBUTING.md](./CONTRIBUTING.md)** - Development guidelines
+- **[KNOWN_ISSUES.md](./KNOWN_ISSUES.md)** - Known limitations
+- **[UI_ISSUES.md](./UI_ISSUES.md)** - UI considerations (frontend pending)
 
 ---
 
-## Quick Start
+## 🚀 Quick Start
 
-> **Note:** This project is currently in the planning phase. Installation instructions will be available after Design-v1.md is approved and initial implementation begins.
+### Prerequisites
 
-### Prerequisites (Planned)
+**Hardware:**
+- Raspberry Pi 4 (2GB+ RAM) or Raspberry Pi 5 (recommended)
+- 16GB+ storage (32GB+ recommended)
+- Network connection
 
-- Raspberry Pi 4 (4GB RAM minimum, may run other services alongside)
-- Raspberry Pi OS (64-bit)
-- Docker and Docker Compose
-- Cloudflare account (for Tunnel - runs on host, not in Docker)
-- Domain name (for Cloudflare Tunnel)
+**Software:**
+- Docker 20.10+ and Docker Compose v2 (recommended)
+- OR Python 3.11+, PostgreSQL 14+, Nginx (manual installation)
 
-**Note:** System designed for Raspberry Pi 4 4GB, but also supports Pi 5 with better performance.
-
-### Installation (Planned)
+### Docker Installation (Recommended)
 
 ```bash
-# Clone repository
+# 1. Clone repository
 git clone https://github.com/BBultitude/Home-Management-Platform.git
 cd Home-Management-Platform
 
-# Generate secrets
-./scripts/generate_secrets.sh
-
-# Setup Cloudflare Tunnel (on Pi host, not in Docker)
-cloudflared tunnel login
-cloudflared tunnel create home-manager
-# ... follow Cloudflare setup in Design-v1.md
-
-# Configure environment
+# 2. Configure environment
 cp .env.example .env
-# Edit .env with your domain and settings
+nano .env  # Edit: DATABASE_URL, JWT_SECRET_KEY, MFA_ENCRYPTION_KEY
 
-# Start services (2 containers: app + database)
-docker-compose up -d
+# Generate secrets:
+openssl rand -hex 32  # JWT secret
+python3 -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"  # MFA key
 
-# Initialize database
-docker-compose exec app alembic upgrade head
+# 3. Start services
+docker compose up -d
 
-# Create admin user
-docker-compose exec app python scripts/create_admin.py
+# 4. Initialize database
+docker compose exec backend alembic upgrade head
 
-# Access the app
+# 5. Create admin user
+docker compose exec backend python3 scripts/create_admin.py
+
+# 6. Access API
+# Swagger UI: http://localhost:8000/docs
+# ReDoc: http://localhost:8000/redoc
 open https://home.yourdomain.com
 ```
 

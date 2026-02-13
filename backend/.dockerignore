@@ -52,3 +52,83 @@ uploads/
 
 # Logs
 *.log
+logs/
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# Documentation (not needed in runtime)
+docs/
+*.md
+!README.md
+
+# Tests (not needed in production)
+tests/
+test_*.py
+*_test.py
+.pytest_cache/
+coverage/
+htmlcov/
+.coverage
+.coverage.*
+pytest.ini
+.tox/
+
+# Development files
+.env.example
+.env.development
+.env.test
+docker-compose.yml
+docker-compose.override.yml
+Dockerfile.dev
+Makefile
+
+# Backups
+backups/
+*.bak
+*.backup
+*.sql
+*.sql.gz
+*.dump
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+.cache/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Alembic (keep migrations, exclude cache)
+alembic/versions/__pycache__/
+
+# Static analysis
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.ruff_cache/
+
+# Node (if accidentally present)
+node_modules/
+package.json
+package-lock.json
+
+# Certificates (use secrets management)
+*.pem
+*.key
+*.crt
+
+# Session/cache
+sessions/
+.session_*

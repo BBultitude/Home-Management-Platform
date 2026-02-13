@@ -9,9 +9,246 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Planned for v1.0.0
-- Initial release with core functionality
-- See PROJECT_STATUS.md for detailed sprint plan
+### Planned for v1.1
+- Email notifications (SMTP integration)
+- Automated backups to cloud storage
+- PWA support with offline capability
+- Performance optimizations
+
+---
+
+## [1.0.0] - 2026-02-13
+
+### 🎉 Initial Production Release
+
+First production-ready release of the Home Management Platform with complete backend API implementation.
+
+### Added
+
+#### Core Platform Services (Sprint 1)
+- User authentication with username/password
+- Multi-factor authentication (MFA) with TOTP (PyOTP)
+- Role-based access control (RBAC): Admin, Editor, Reader roles
+- 30+ granular permissions across modules
+- Session management with HTTP-only secure cookies
+- Trusted device tracking with device fingerprinting
+- Comprehensive audit logging (40+ event types, 5-year retention for tax/auth)
+- File upload service with validation (10MB limit, mime type validation)
+- UUID-based file storage
+- Database migrations with Alembic
+
+#### Tax Records Module (Sprint 2)
+- Work From Home (WFH) entry tracking
+- Work Travel expense tracking with distance calculation
+- Financial Year summary (July 1 - June 30)
+- ATO-compliant export formats (CSV and text)
+- Per-user data isolation
+- 14 API endpoints (7 WFH, 7 Travel)
+
+#### Financial Management Module (Sprint 3)
+- Income source management with 5 frequency types
+- Bank account management (checking, savings, offset types)
+- Expense category management with bank account linking
+- Expense tracking with frequency support
+- Budget calculation with frequency normalization
+- Utility cost tracking (electricity, gas, water, internet)
+- Utility statistics aggregation
+- 28 API endpoints
+
+#### Assets & Documents Module (Sprint 4)
+- Insurance policy management (10 policy types)
+- Document storage and categorization (9 document types)
+- Renewal alerts (30-day and 7-day thresholds)
+- Expiry tracking for documents
+- File upload integration
+- Tag-based organization (ARRAY type)
+- Search functionality
+- 18 API endpoints
+
+#### Projects & Tasks Module (Sprint 5)
+- Priority item tracking with cost-benefit scoring algorithm
+- Automated benefit_score = severity + frequency (2-10)
+- Automated cost_score = log10(cost) + 1 (1-5)
+- Net score calculation for prioritization
+- Convert priority item to project workflow
+- Project management with 5-status lifecycle
+- Quote tracking with contractor details
+- Quote comparison and selection
+- Quote expiry notifications
+- 21 API endpoints
+
+#### Household Knowledge Base (Sprint 6)
+- Structured knowledge articles with 8 types
+- Flexible JSONB schemas for type-specific data
+- Full-text search with PostgreSQL TSVECTOR/GIN indexes
+- Password encryption for TechDevice articles (Fernet)
+- File attachment support via junction table
+- Tag-based organization
+- Search indexing with to_tsvector
+- 10 API endpoints
+
+#### Meal Planner Module (Sprint 7)
+- Recipe management with HTML-formatted steps
+- Ingredient management with sort ordering
+- Weekly meal planning (Monday-Sunday)
+- Shopping list generation with ingredient consolidation
+- Pantry staples detection ("As needed" marking)
+- Australian measurement conversions (cups, tbsp, tsp)
+- Quantity summing for same-unit ingredients
+- Recipe search by name or ingredient
+- Current week plan retrieval
+- 13 API endpoints
+
+#### Dashboard & Global Features (Sprint 8)
+- Dashboard data aggregation with 8 widgets
+- Alerts widget (insurance renewals, document expiries, quote expiries)
+- Priorities widget (top 10 by net_score)
+- Projects widget (status counts, active projects list)
+- Meal plan widget (current week with meals)
+- Financial widget (monthly expenses, utilities, upcoming premiums)
+- Tax summary widget (current FY deductions)
+- Notifications widget (recent + unread count)
+- Quick stats widget (header counts across all modules)
+- Notifications system (5 types, 7 categories)
+- Automatic notification generation for renewals/expiries
+- Global search across 6 modules (recipes, knowledge, projects, priorities, assets, financial)
+- PostgreSQL FTS for knowledge articles
+- Quick search for autocomplete
+- Relevance scoring (exact match, starts with, contains)
+- 22 API endpoints
+
+#### Admin Panel & User Management (Sprint 9)
+- User management (list, get, update, delete)
+- Role management with protection against last admin removal
+- User activation/deactivation
+- MFA reset functionality (generates new secret and QR code)
+- System statistics (users, security, activity)
+- Per-user activity statistics
+- Enhanced audit log queries (by user, module, action)
+- Protection against self-modification
+- 14 API endpoints
+
+### Testing & Documentation (Sprint 10)
+- 47 new test cases for Sprints 8-9
+- Notification service tests (16 tests)
+- Admin service tests (22 tests)
+- Dashboard service tests (9 tests)
+- Comprehensive API Guide (151 endpoints documented)
+- Deployment Guide (Docker Compose + manual installation)
+- Database Schema Reference (22 tables)
+- Security best practices documentation
+- Backup/restore procedures
+- Troubleshooting guide
+
+### Security
+- JWT-based session authentication with configurable expiry
+- MFA with TOTP (RFC 6238 compliant)
+- Fernet encryption for sensitive data (MFA secrets, passwords)
+- Password strength validation (12-128 chars, complexity requirements)
+- HTTP-only secure cookies with SameSite=Strict
+- CSRF protection via SameSite cookies
+- SQL injection prevention (SQLAlchemy parameterized queries)
+- XSS prevention (Pydantic input validation)
+- Comprehensive audit logging for all actions
+- Permission-based authorization for all endpoints
+- Secure file upload validation (mime type, size, extension)
+- Protection against common attacks (OWASP Top 10)
+
+### Database
+- PostgreSQL 14+ with advanced features
+- 22 tables across 9 modules
+- UUID primary keys (gen_random_uuid)
+- JSONB for flexible schemas
+- ARRAY types for tags
+- TSVECTOR for full-text search
+- GIN indexes for JSONB and TSVECTOR
+- B-tree indexes for foreign keys and common queries
+- Composite indexes for optimized filtering
+- Foreign key constraints with CASCADE/SET NULL
+- Check constraints for data validation
+- Unique constraints for business rules
+- Alembic migrations for version control
+- Migration history tracking
+
+### API Endpoints
+- **Total:** 151 endpoints across 10 modules
+- **Authentication:** 6 endpoints
+- **Tax Records:** 14 endpoints
+- **Financial:** 28 endpoints
+- **Assets & Documents:** 18 endpoints
+- **Projects & Tasks:** 21 endpoints
+- **Knowledge Base:** 10 endpoints
+- **Meal Planner:** 13 endpoints
+- **Dashboard:** 22 endpoints
+- **Admin:** 14 endpoints
+- **Audit Logs:** 5 endpoints
+
+### Documentation
+- API Guide with usage examples
+- Deployment Guide (Docker + manual)
+- Database Schema Reference
+- Interactive Swagger UI at `/docs`
+- ReDoc UI at `/redoc`
+- OpenAPI 3.0 specification
+- Security best practices
+- Permission matrix
+- Error handling guide
+- Backup/restore procedures
+- Troubleshooting guide
+- Configuration reference
+
+### Deployment
+- Docker Compose configuration
+- Multi-stage Dockerfile for optimization
+- Systemd service files
+- Nginx reverse proxy configuration
+- SSL/TLS setup with Let's Encrypt
+- Cloudflare Tunnel support
+- Automated database backups
+- Log rotation with journald
+- Environment variable management
+- Production-ready settings
+- Health check endpoints
+
+### Performance
+- Database indexes for common queries
+- Pagination for large result sets
+- Efficient aggregation queries for dashboard
+- Query optimization for search
+- Connection pooling with SQLAlchemy
+- Lazy loading for relationships
+- Selective eager loading where needed
+
+### Known Limitations
+- Frontend UI not implemented (backend-first approach)
+- No automated task scheduling (cron/Celery not configured)
+- No email notifications (SMTP not configured)
+- No real-time updates (WebSocket not implemented)
+- Single-household deployment (no multi-tenancy)
+- No mobile app (API-only)
+- No PWA/offline support
+
+### Technical Stack
+- **Python:** 3.11+
+- **Framework:** FastAPI 0.109+
+- **Database:** PostgreSQL 14+
+- **ORM:** SQLAlchemy 2.0
+- **Migrations:** Alembic
+- **Authentication:** PyJWT, PyOTP, Cryptography
+- **Validation:** Pydantic v2
+- **Testing:** Pytest
+- **Server:** Uvicorn
+- **Documentation:** OpenAPI/Swagger
+
+### Statistics
+- **Lines of Code:** ~15,000 (backend)
+- **Test Files:** 17 (14 from Sprint 1-2, 3 new)
+- **Test Cases:** 233+ (186 from Sprint 1-2, 47 new)
+- **Code Coverage:** 88% (Sprint 1-2 modules)
+- **Database Tables:** 22
+- **Migrations:** 10
+- **Documentation Pages:** 6
+- **API Endpoints:** 151
 
 ---
 
