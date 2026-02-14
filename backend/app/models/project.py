@@ -30,7 +30,6 @@ class Project(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     project_name = Column(String(255), nullable=False)
     description = Column(Text, nullable=True)
-    priority_item_id = Column(UUID(as_uuid=True), ForeignKey("priority_items.id", ondelete="SET NULL"), nullable=True)
     status = Column(String(50), nullable=False, default=ProjectStatus.PLANNED.value)
     start_date = Column(Date, nullable=True)
     completion_date = Column(Date, nullable=True)
@@ -41,7 +40,7 @@ class Project(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     # Relationships
-    priority_item = relationship("PriorityItem", foreign_keys=[priority_item_id], back_populates="project")
+    priority_item = relationship("PriorityItem", back_populates="project", uselist=False)
     quotes = relationship("Quote", back_populates="project", cascade="all, delete-orphan")
 
     def to_dict(self) -> dict:
@@ -50,7 +49,7 @@ class Project(Base):
             "id": str(self.id),
             "project_name": self.project_name,
             "description": self.description,
-            "priority_item_id": str(self.priority_item_id) if self.priority_item_id else None,
+            "priority_item_id": str(self.priority_item.id) if self.priority_item else None,
             "status": self.status,
             "start_date": self.start_date.isoformat() if self.start_date else None,
             "completion_date": self.completion_date.isoformat() if self.completion_date else None,

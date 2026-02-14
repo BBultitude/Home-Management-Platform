@@ -506,6 +506,78 @@ Create login form, MFA setup flow, and protected route wrapper.
 
 ---
 
+#### IMP-011B: Password Reset Flow (Forgot Password)
+
+**Category:** Feature
+**Priority:** Medium
+**Status:** ⚪ Not Started
+
+**Description:**
+Implement "Forgot Password" functionality with secure token-based reset flow.
+
+**Motivation:**
+- Users may forget passwords and need self-service reset
+- Reduces admin burden for password resets
+- Security best practice for user account recovery
+
+**Impact:**
+- Users can reset forgotten passwords without admin intervention
+- Secure token sent via email (if email configured) or displayed for admin
+- Time-limited reset tokens prevent abuse
+
+**Dependencies:**
+- IMP-006 (Authentication) ✅
+- Email service (optional - v1.1 feature)
+
+**Risks:**
+- Email not configured in v1 (tokens must be provided by admin)
+- Token timing attacks (mitigated with constant-time comparison)
+- Account enumeration (mitigated by consistent responses)
+
+**Acceptance Criteria:**
+
+**Backend:**
+- [ ] POST /api/auth/password-reset/request endpoint
+  - Input: email or username
+  - Generate secure reset token (UUID + timestamp)
+  - Store token in database with expiry (15 minutes)
+  - Return generic success message (don't reveal if user exists)
+  - If email configured: send reset link
+  - If no email: admin must retrieve token from database
+- [ ] POST /api/auth/password-reset/verify endpoint
+  - Input: token, new password
+  - Validate token exists and not expired
+  - Validate new password policy
+  - Update user password
+  - Invalidate token
+  - Return success message
+- [ ] GET /api/admin/password-reset-tokens endpoint (admin-only)
+  - List active reset tokens (for manual delivery in v1)
+  - Include username, email, token, expiry
+- [ ] PasswordResetToken model (table for tokens)
+- [ ] Unit tests for reset service
+- [ ] Integration tests for reset flow
+
+**Frontend:**
+- [ ] "Forgot Password?" link on login page
+- [ ] Password reset request form (email/username input)
+- [ ] Success message with instructions
+- [ ] Password reset page (token + new password × 2)
+- [ ] Validation and error handling
+- [ ] Link to login after successful reset
+
+**Workaround for v1 (no email):**
+- Admin retrieves token via GET /api/admin/password-reset-tokens
+- Admin provides token to user manually (e.g., via phone)
+- User enters token on reset page
+
+**Future Enhancement (v1.1):**
+- Email service integration
+- Automatic email delivery of reset links
+- Email templates
+
+---
+
 #### IMP-012: Frontend - Admin Panel (User Management)
 
 **Category:** Feature  
@@ -1267,5 +1339,5 @@ Additional modules (Assets & Documents, Projects, Knowledge Base, Meal Planner) 
 
 ---
 
-**Last Updated:** 2026-02-13
-**Next Review:** After Sprint 4 completion
+**Last Updated:** 2026-02-14
+**Next Review:** After Sprint 13 completion (Admin & User Management UI)

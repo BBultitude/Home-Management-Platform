@@ -10,7 +10,7 @@ from sqlalchemy.orm import relationship
 import uuid
 import enum
 
-from app.db.base_class import Base
+from app.db.database import Base
 
 
 class NotificationType(str, enum.Enum):

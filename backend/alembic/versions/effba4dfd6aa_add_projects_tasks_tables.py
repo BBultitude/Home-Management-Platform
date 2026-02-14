@@ -24,7 +24,6 @@ def upgrade() -> None:
         sa.Column('id', UUID(as_uuid=True), primary_key=True, server_default=sa.text('gen_random_uuid()')),
         sa.Column('project_name', sa.String(255), nullable=False),
         sa.Column('description', sa.Text, nullable=True),
-        sa.Column('priority_item_id', UUID(as_uuid=True), nullable=True),
         sa.Column('status', sa.String(50), nullable=False, server_default='Planned'),
         sa.Column('start_date', sa.Date, nullable=True),
         sa.Column('completion_date', sa.Date, nullable=True),
@@ -64,10 +63,6 @@ def upgrade() -> None:
     op.create_index('idx_priority_items_net_score', 'priority_items', ['net_score'], postgresql_ops={'net_score': 'DESC'})
     op.create_index('idx_priority_items_project', 'priority_items', ['project_id'])
 
-    # Add foreign key from projects to priority_items (circular reference)
-    op.create_foreign_key('fk_projects_priority_item_id', 'projects', 'priority_items', ['priority_item_id'], ['id'], ondelete='SET NULL')
-    op.create_index('idx_projects_priority_item', 'projects', ['priority_item_id'])
-
     # Create quotes table
     op.create_table(
         'quotes',
@@ -81,7 +76,7 @@ def upgrade() -> None:
         sa.Column('expiry_date', sa.Date, nullable=True),
         sa.Column('scope_of_work', sa.Text, nullable=True),
         sa.Column('selected', sa.Boolean, server_default='false', nullable=False),
-        sa.Column('document_id', UUID(as_uuid=True), nullable=True),
+        sa.Column('document_id', sa.Integer, nullable=True),
         sa.Column('notes', sa.Text, nullable=True),
         sa.Column('created_at', sa.DateTime, server_default=sa.text('NOW()'), nullable=False),
         sa.ForeignKeyConstraint(['project_id'], ['projects.id'], ondelete='CASCADE'),
@@ -98,9 +93,6 @@ def downgrade() -> None:
     op.drop_index('idx_quotes_expiry', table_name='quotes')
     op.drop_index('idx_quotes_project', table_name='quotes')
     op.drop_table('quotes')
-
-    op.drop_index('idx_projects_priority_item', table_name='projects')
-    op.drop_constraint('fk_projects_priority_item_id', 'projects', type_='foreignkey')
 
     op.drop_index('idx_priority_items_project', table_name='priority_items')
     op.drop_index('idx_priority_items_net_score', table_name='priority_items')

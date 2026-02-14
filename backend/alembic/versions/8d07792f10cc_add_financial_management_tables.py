@@ -17,11 +17,8 @@ depends_on = None
 
 
 def upgrade() -> None:
-    # Create enum types
-    op.execute("CREATE TYPE income_frequency AS ENUM ('daily', 'weekly', 'fortnightly', 'monthly', 'yearly')")
-    op.execute("CREATE TYPE account_type AS ENUM ('checking', 'savings', 'offset')")
-    op.execute("CREATE TYPE expense_frequency AS ENUM ('daily', 'weekly', 'fortnightly', 'monthly', 'yearly')")
-    op.execute("CREATE TYPE utility_type AS ENUM ('electricity', 'gas', 'water', 'internet', 'mobile')")
+    # Note: Enum types are created automatically by SQLAlchemy when creating tables
+    # No need to manually create them here
 
     # Create income_sources table
     op.create_table(

@@ -5,7 +5,7 @@ Tracks important household documents
 
 from datetime import date, datetime
 from enum import Enum
-from sqlalchemy import Column, String, Date, Text, ForeignKey, DateTime, ARRAY
+from sqlalchemy import Column, String, Date, Text, ForeignKey, DateTime, ARRAY, Integer
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 import uuid
@@ -38,7 +38,7 @@ class Document(Base):
     tags = Column(ARRAY(String), nullable=True, default=[])
     uploaded_date = Column(Date, default=date.today, nullable=False)
     expiry_date = Column(Date, nullable=True)
-    file_id = Column(UUID(as_uuid=True), ForeignKey("files.id", ondelete="CASCADE"), nullable=False)
+    file_id = Column(Integer, ForeignKey("files.id", ondelete="CASCADE"), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     # Relationships

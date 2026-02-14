@@ -6,7 +6,7 @@ Tracks household insurance policies with renewal dates
 from datetime import date, datetime
 from decimal import Decimal
 from enum import Enum
-from sqlalchemy import Column, String, Numeric, Date, Text, ForeignKey, DateTime
+from sqlalchemy import Column, String, Numeric, Date, Text, ForeignKey, DateTime, Integer
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 import uuid
@@ -48,7 +48,7 @@ class InsurancePolicy(Base):
     excess = Column(Numeric(10, 2), nullable=True)
     renewal_date = Column(Date, nullable=False)
     coverage_notes = Column(Text, nullable=True)
-    document_id = Column(UUID(as_uuid=True), ForeignKey("files.id", ondelete="SET NULL"), nullable=True)
+    document_id = Column(Integer, ForeignKey("files.id", ondelete="SET NULL"), nullable=True)
     vehicle_id = Column(UUID(as_uuid=True), nullable=True)  # FK to knowledge_articles when implemented
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)

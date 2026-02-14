@@ -5,7 +5,7 @@ Tracks contractor quotes for projects
 
 from datetime import date, datetime
 from decimal import Decimal
-from sqlalchemy import Column, String, Text, Date, Numeric, Boolean, ForeignKey, DateTime
+from sqlalchemy import Column, String, Text, Date, Numeric, Boolean, ForeignKey, DateTime, Integer
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 import uuid
@@ -27,7 +27,7 @@ class Quote(Base):
     expiry_date = Column(Date, nullable=True)
     scope_of_work = Column(Text, nullable=True)
     selected = Column(Boolean, default=False, nullable=False)
-    document_id = Column(UUID(as_uuid=True), ForeignKey("files.id", ondelete="SET NULL"), nullable=True)
+    document_id = Column(Integer, ForeignKey("files.id", ondelete="SET NULL"), nullable=True)
     notes = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 

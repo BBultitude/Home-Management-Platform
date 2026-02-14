@@ -27,7 +27,7 @@ def upgrade() -> None:
         sa.Column('data', JSONB, nullable=False),
         sa.Column('tags', ARRAY(sa.String), nullable=True),
         sa.Column('search_vector', TSVECTOR, nullable=True),
-        sa.Column('created_by', UUID(as_uuid=True), nullable=True),
+        sa.Column('created_by', sa.Integer, nullable=True),
         sa.Column('created_at', sa.DateTime, server_default=sa.text('NOW()'), nullable=False),
         sa.Column('updated_at', sa.DateTime, server_default=sa.text('NOW()'), nullable=False),
         sa.CheckConstraint(
@@ -46,7 +46,7 @@ def upgrade() -> None:
         'knowledge_attachments',
         sa.Column('id', UUID(as_uuid=True), primary_key=True, server_default=sa.text('gen_random_uuid()')),
         sa.Column('article_id', UUID(as_uuid=True), nullable=False),
-        sa.Column('file_id', UUID(as_uuid=True), nullable=False),
+        sa.Column('file_id', sa.Integer, nullable=False),
         sa.ForeignKeyConstraint(['article_id'], ['knowledge_articles.id'], ondelete='CASCADE'),
         sa.ForeignKeyConstraint(['file_id'], ['files.id'], ondelete='CASCADE'),
     )

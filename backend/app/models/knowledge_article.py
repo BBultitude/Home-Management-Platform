@@ -5,7 +5,7 @@ Stores structured household reference information using JSONB
 
 from datetime import datetime
 from enum import Enum
-from sqlalchemy import Column, String, ForeignKey, DateTime, Text, ARRAY
+from sqlalchemy import Column, String, ForeignKey, DateTime, Text, ARRAY, Integer
 from sqlalchemy.dialects.postgresql import UUID, JSONB, TSVECTOR
 from sqlalchemy.orm import relationship
 import uuid
@@ -35,7 +35,7 @@ class KnowledgeArticle(Base):
     data = Column(JSONB, nullable=False)
     tags = Column(ARRAY(String), nullable=True, default=[])
     search_vector = Column(TSVECTOR, nullable=True)
-    created_by = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    created_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
@@ -64,7 +64,7 @@ class KnowledgeAttachment(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     article_id = Column(UUID(as_uuid=True), ForeignKey("knowledge_articles.id", ondelete="CASCADE"), nullable=False)
-    file_id = Column(UUID(as_uuid=True), ForeignKey("files.id", ondelete="CASCADE"), nullable=False)
+    file_id = Column(Integer, ForeignKey("files.id", ondelete="CASCADE"), nullable=False)
 
     # Relationships
     article = relationship("KnowledgeArticle", back_populates="attachments")

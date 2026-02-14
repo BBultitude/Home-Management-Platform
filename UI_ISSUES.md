@@ -21,7 +21,102 @@ _None currently identified_
 
 ## High Priority UI Issues
 
-_To be populated during development and user testing_
+_None currently - UI-AUTH-0 has been resolved_
+
+---
+
+### UI-AUTH-1: No Admin User Management Interface
+
+**Priority:** 🟡 High
+**Category:** Admin Features
+**Affects:** Admin users
+**Reported:** 2026-02-14
+**Planned Fix:** Sprint 13 (Admin Panel)
+
+**Description:**
+- Backend endpoints exist for user management (POST/GET/PUT/DELETE /api/admin/users)
+- No UI for admins to:
+  - View list of users
+  - Create new users
+  - Edit existing users (change role, deactivate)
+  - Reset user MFA if locked out
+- Admin must use API directly (via curl/Postman) to manage users
+
+**Backend Status:** ✅ Complete (endpoints exist in auth.py)
+
+**Plan:**
+- Create admin-only route `/admin/users`
+- User list table with search/filter
+- Create user form (username, email, password, full_name, role)
+- Edit user modal
+- Delete/deactivate confirmation dialog
+- MFA reset button with confirmation
+
+---
+
+### UI-AUTH-2: No MFA Setup Interface
+
+**Priority:** 🟡 High
+**Category:** Security
+**Affects:** All users
+**Reported:** 2026-02-14
+**Planned Fix:** Sprint 13 (User Settings)
+
+**Description:**
+- Backend MFA endpoints exist (setup, enable, disable, verify)
+- No UI for users to:
+  - Enable MFA (view QR code, verify TOTP)
+  - Disable MFA (requires password confirmation)
+  - View/manage trusted devices
+  - Revoke trusted devices
+- Users cannot enable MFA without API access
+
+**Backend Status:** ✅ Complete (MFA endpoints exist)
+
+**Plan:**
+- Add "Security" section to user settings page
+- MFA setup flow:
+  1. Click "Enable MFA"
+  2. Display QR code (from POST /api/auth/mfa/setup)
+  3. Input 6-digit code to verify
+  4. Show backup codes (future)
+- MFA disable flow (require password)
+- Trusted devices list with revoke buttons
+
+---
+
+### UI-AUTH-3: No User Profile/Settings Page
+
+**Priority:** 🟡 High
+**Category:** User Management
+**Affects:** All users
+**Reported:** 2026-02-14
+**Planned Fix:** Sprint 13 (User Settings)
+
+**Description:**
+- Backend password change endpoint exists (POST /api/auth/change-password)
+- No UI for users to:
+  - Change their own password
+  - View their profile information
+  - Update email or full name (if allowed)
+  - See account settings
+- Current dashboard shows user info but no edit capability
+
+**Backend Status:** ✅ Password change complete, profile edit may need endpoint
+
+**Plan:**
+- Create `/settings` or `/profile` route
+- User profile form:
+  - View username (read-only)
+  - View/edit email
+  - View/edit full name
+  - View role (read-only)
+- Change password form (current password + new password × 2)
+- Link from dashboard header (user menu)
+
+---
+
+_Additional UI issues to be populated during development and user testing_
 
 ---
 
@@ -507,9 +602,38 @@ _To be populated during development and user testing_
 
 ## Resolved UI Issues
 
-_None yet - this is a new project_
+### ✅ UI-AUTH-0: Login Error Not Displayed on Failed Authentication
+
+**Status:** Resolved
+**Resolved Date:** 2026-02-14
+**Category:** Authentication / Error Handling
+**Affects:** Login page
+
+**Issue:**
+When entering incorrect credentials, the login page would redirect/refresh without showing an error message to the user.
+
+**Root Cause:**
+Axios response interceptor was catching ALL 401 errors (including failed login attempts) and executing `window.location.href = '/'`, causing a full page reload that cleared the error state before it could be displayed.
+
+**Solution:**
+1. Updated Axios interceptor to exclude `/auth/login` endpoint from automatic 401 redirects
+2. Enhanced Alert component destructive variant styling (prominent red background)
+3. Fixed authStore to explicitly manage `isAuthenticated` state on login success/failure
+4. Added `onRehydrateStorage` to correctly set `isAuthenticated` when hydrating from localStorage
+
+**Files Modified:**
+- `frontend/src/lib/api.ts` - Fixed 401 interceptor to exclude login endpoint
+- `frontend/src/stores/authStore.ts` - Explicit `isAuthenticated` management
+- `frontend/src/components/ui/alert.tsx` - Enhanced destructive variant styling
+- `frontend/src/pages/Login.tsx` - Already had proper error handling, no changes needed
+
+**Result:**
+- ✅ Failed login displays prominent red error message
+- ✅ Error persists without flickering or navigation
+- ✅ Successful login redirects to dashboard correctly
+- ✅ Logout clears session properly (both frontend and backend)
 
 ---
 
-**Last Updated:** 2025-02-01  
-**Next Review:** After each sprint, especially Sprint 9 (Testing)
+**Last Updated:** 2026-02-14
+**Next Review:** After Sprint 13 (Admin & User Management UI), then Sprint 9 (Testing)

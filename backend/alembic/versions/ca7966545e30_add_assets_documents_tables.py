@@ -31,7 +31,7 @@ def upgrade() -> None:
         sa.Column('excess', sa.Numeric(10, 2), nullable=True),
         sa.Column('renewal_date', sa.Date, nullable=False),
         sa.Column('coverage_notes', sa.Text, nullable=True),
-        sa.Column('document_id', UUID(as_uuid=True), nullable=True),
+        sa.Column('document_id', sa.Integer, nullable=True),
         sa.Column('vehicle_id', UUID(as_uuid=True), nullable=True),
         sa.Column('created_at', sa.DateTime, server_default=sa.text('NOW()'), nullable=False),
         sa.Column('updated_at', sa.DateTime, server_default=sa.text('NOW()'), nullable=False),
@@ -52,7 +52,7 @@ def upgrade() -> None:
         sa.Column('tags', ARRAY(sa.String), nullable=True),
         sa.Column('uploaded_date', sa.Date, server_default=sa.text('CURRENT_DATE'), nullable=False),
         sa.Column('expiry_date', sa.Date, nullable=True),
-        sa.Column('file_id', UUID(as_uuid=True), nullable=False),
+        sa.Column('file_id', sa.Integer, nullable=False),
         sa.Column('created_at', sa.DateTime, server_default=sa.text('NOW()'), nullable=False),
         sa.ForeignKeyConstraint(['file_id'], ['files.id'], ondelete='CASCADE'),
     )

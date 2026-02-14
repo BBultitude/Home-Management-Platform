@@ -57,7 +57,11 @@ class Settings(BaseSettings):
         """Construct full database URL with password from secret"""
         password = read_secret(self.DB_PASSWORD_FILE, "DB_PASSWORD")
         # Replace password placeholder in URL (psycopg dialect)
-        return self.DATABASE_URL.replace("@db:", f":{password}@db:")
+        # Handle both @db: and @database: for dev and prod
+        if "@database:" in self.DATABASE_URL:
+            return self.DATABASE_URL.replace("@database:", f":{password}@database:")
+        else:
+            return self.DATABASE_URL.replace("@db:", f":{password}@db:")
 
     # Security Secrets (loaded from Docker secrets)
     JWT_SECRET_FILE: str = "/run/secrets/jwt_secret"

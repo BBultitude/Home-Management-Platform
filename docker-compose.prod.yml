@@ -1,12 +1,19 @@
+# ============================================
+# Production Docker Compose Configuration
+# 3-Container Architecture:
+# - Frontend (Nginx) - PUBLIC FACING
+# - Backend (FastAPI) - INTERNAL ONLY
+# - Database (PostgreSQL) - INTERNAL ONLY
+# ============================================
+
 services:
-  # PostgreSQL Database
-  db:
+  # PostgreSQL Database - INTERNAL ONLY
+  database:
     image: postgres:16-alpine
-    container_name: homemanager_db
+    container_name: homemanager_db_prod
     restart: unless-stopped
     networks:
-      homemanager_network:
-        ipv4_address: 172.28.0.2
+      - internal
     environment:
       POSTGRES_DB: homedb
       POSTGRES_USER: homeuser
@@ -20,32 +27,32 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    # NO PORTS EXPOSED - internal network only
 
-  # FastAPI Application + React Frontend
-  app:
+  # FastAPI Backend - INTERNAL ONLY
+  backend:
     build:
-      context: .
-      dockerfile: ./backend/Dockerfile
-    container_name: homemanager_app
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    container_name: homemanager_backend_prod
     restart: unless-stopped
-    ports:
-      - "8000:8000"
     networks:
-      homemanager_network:
-        ipv4_address: 172.28.0.3
+      - internal
     environment:
-      # Database connection
-      DATABASE_URL: postgresql+psycopg://homeuser@db:5432/homedb
+      # Database connection (internal network) - uses service name 'database'
+      DATABASE_URL: postgresql+psycopg://homeuser@database:5432/homedb
       DB_PASSWORD_FILE: /run/secrets/db_password
 
       # Security secrets
       JWT_SECRET_FILE: /run/secrets/jwt_secret
       MFA_ENCRYPTION_KEY_FILE: /run/secrets/mfa_encryption_key
 
-      # Application settings (PRODUCTION)
+      # Application settings
       ENVIRONMENT: production
       DEBUG: "false"
-      ALLOWED_ORIGINS: https://yourdomain.com
+
+      # CORS - only allow frontend container
+      ALLOWED_ORIGINS: http://frontend,http://localhost
 
       # Session settings
       SESSION_EXPIRY_HOURS: 1
@@ -60,10 +67,9 @@ services:
       - jwt_secret
       - mfa_encryption_key
     volumes:
-      # Only mount uploads volume (no source code mounting)
       - uploads_data:/app/uploads
     depends_on:
-      db:
+      database:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
@@ -71,6 +77,34 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    # NO PORTS EXPOSED - internal network only
+
+  # Nginx Frontend - PUBLIC FACING
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: homemanager_frontend_prod
+    restart: unless-stopped
+    networks:
+      - internal
+    environment:
+      # API URL for runtime config injection
+      VITE_API_URL: /api
+    ports:
+      # ONLY frontend is exposed to host/internet
+      # Using port 8001 (port 80 was already in use)
+      - "8001:80"
+      # For HTTPS (when Cloudflare/Let's Encrypt is configured)
+      # - "443:443"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 # Docker Secrets (mapped from files)
 secrets:
@@ -81,19 +115,17 @@ secrets:
   mfa_encryption_key:
     file: ./secrets/mfa_encryption_key.txt
 
-# Named Volumes
+# Named Volumes (Production - separate from dev)
 volumes:
   postgres_data:
+    name: homemanager_postgres_prod
     driver: local
   uploads_data:
+    name: homemanager_uploads_prod
     driver: local
 
-# Network
+# Internal Network - NO EXTERNAL ACCESS except via frontend
 networks:
-  homemanager_network:
+  internal:
     driver: bridge
-    ipam:
-      driver: default
-      config:
-        - subnet: 172.28.0.0/29
-          gateway: 172.28.0.1
+    internal: false  # Set to true for complete isolation (no internet access for containers)
