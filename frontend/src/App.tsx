@@ -9,6 +9,7 @@ import Dashboard from '@/pages/Dashboard';
 import Settings from '@/pages/Settings';
 import AdminUsers from '@/pages/AdminUsers';
 import TaxRecords from '@/pages/Tax/TaxRecords';
+import FinancialManagement from '@/pages/Financial/FinancialManagement';
 
 // Protected Route Component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -82,6 +83,15 @@ function App() {
           element={
             <ProtectedRoute>
               <TaxRecords />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/financial"
+          element={
+            <ProtectedRoute>
+              <FinancialManagement />
             </ProtectedRoute>
           }
         />

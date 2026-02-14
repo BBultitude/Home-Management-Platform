@@ -36,16 +36,16 @@ export function WFHTab({ financialYear }: WFHTabProps) {
 
   // Summary stats
   const totalHours = entries.reduce((sum, e) => sum + e.hours, 0);
-  const totalDeduction = entries.reduce((sum, e) => sum + e.deduction_amount, 0);
 
   // Fetch entries
   const fetchEntries = async () => {
     setLoading(true);
     try {
-      // Calculate FY date range
-      const [startYear] = financialYear.split('-').map(Number);
+      // Calculate FY date range - financialYear format: "2024-2025"
+      // FY 2024-2025 = July 1, 2024 to June 30, 2025
+      const [startYear, endYear] = financialYear.split('-').map(Number);
       const start_date = `${startYear}-07-01`;
-      const end_date = `${startYear + 1}-06-30`;
+      const end_date = `${endYear}-06-30`;
 
       const response = await taxService.wfh.list({ start_date, end_date });
       setEntries(response.entries);
@@ -143,7 +143,7 @@ export function WFHTab({ financialYear }: WFHTabProps) {
   return (
     <div className="space-y-6">
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
           <CardHeader className="pb-3">
             <CardDescription>Total Entries</CardDescription>
@@ -154,12 +154,6 @@ export function WFHTab({ financialYear }: WFHTabProps) {
           <CardHeader className="pb-3">
             <CardDescription>Total Hours</CardDescription>
             <CardTitle className="text-3xl">{totalHours.toFixed(1)}</CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <CardDescription>Total Deduction</CardDescription>
-            <CardTitle className="text-3xl">${totalDeduction.toFixed(2)}</CardTitle>
           </CardHeader>
         </Card>
       </div>
@@ -194,7 +188,6 @@ export function WFHTab({ financialYear }: WFHTabProps) {
                 <TableRow>
                   <TableHead>Date</TableHead>
                   <TableHead>Hours</TableHead>
-                  <TableHead>Deduction</TableHead>
                   <TableHead>Notes</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -204,7 +197,6 @@ export function WFHTab({ financialYear }: WFHTabProps) {
                   <TableRow key={entry.id}>
                     <TableCell>{format(new Date(entry.date), 'PPP')}</TableCell>
                     <TableCell>{entry.hours.toFixed(1)}</TableCell>
-                    <TableCell>${entry.deduction_amount.toFixed(2)}</TableCell>
                     <TableCell className="max-w-xs truncate">{entry.notes || '-'}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">

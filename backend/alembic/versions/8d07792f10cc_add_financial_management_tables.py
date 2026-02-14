@@ -82,7 +82,7 @@ def upgrade() -> None:
     op.create_table(
         'utilities',
         sa.Column('id', sa.Integer(), nullable=False),
-        sa.Column('utility_type', sa.Enum('electricity', 'gas', 'water', 'internet', 'mobile', name='utility_type'), nullable=False),
+        sa.Column('utility_type', sa.Enum('electricity', 'gas', 'water', 'internet', 'mobile', 'rates', name='utility_type'), nullable=False),
         sa.Column('provider', sa.String(length=255), nullable=False),
         sa.Column('billing_period_start', sa.Date(), nullable=False),
         sa.Column('billing_period_end', sa.Date(), nullable=False),

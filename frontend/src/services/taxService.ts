@@ -124,18 +124,19 @@ export const taxService = {
       return await apiClient.delete(`/tax/wfh/${id}`) as { message: string; entry_id: number };
     },
 
-    summary: async (financialYear: string): Promise<WFHSummary> => {
-      // financialYear format: "2024-2025"
-      const [startYear] = financialYear.split('-').map(Number);
-      return await apiClient.get(`/tax/wfh/summary`, {
-        params: { financial_year: startYear }
-      }) as WFHSummary;
+    summary: async (financialYear: string, ratePerHour?: number): Promise<WFHSummary> => {
+      // financialYear format: "2024-2025" - backend expects END year (2025)
+      const [, endYear] = financialYear.split('-').map(Number);
+      const params = ratePerHour !== undefined ? { rate_per_hour: ratePerHour } : {};
+      return await apiClient.get(`/tax/wfh/summary/fy/${endYear}`, { params }) as WFHSummary;
     },
 
-    export: async (financialYear: string): Promise<Blob> => {
-      const [startYear] = financialYear.split('-').map(Number);
-      return await apiClient.get(`/tax/wfh/export`, {
-        params: { financial_year: startYear },
+    export: async (financialYear: string, ratePerHour?: number): Promise<Blob> => {
+      // financialYear format: "2024-2025" - backend expects END year (2025)
+      const [, endYear] = financialYear.split('-').map(Number);
+      const params = ratePerHour !== undefined ? { rate_per_hour: ratePerHour } : {};
+      return await apiClient.get(`/tax/wfh/export/fy/${endYear}/csv`, {
+        params,
         responseType: 'blob'
       }) as Blob;
     },
@@ -163,17 +164,19 @@ export const taxService = {
       return await apiClient.delete(`/tax/travel/${id}`) as { message: string; entry_id: number };
     },
 
-    summary: async (financialYear: string): Promise<TravelSummary> => {
-      const [startYear] = financialYear.split('-').map(Number);
-      return await apiClient.get(`/tax/travel/summary`, {
-        params: { financial_year: startYear }
-      }) as TravelSummary;
+    summary: async (financialYear: string, ratePerKm?: number): Promise<TravelSummary> => {
+      // financialYear format: "2024-2025" - backend expects END year (2025)
+      const [, endYear] = financialYear.split('-').map(Number);
+      const params = ratePerKm !== undefined ? { rate_per_km: ratePerKm } : {};
+      return await apiClient.get(`/tax/travel/summary/fy/${endYear}`, { params }) as TravelSummary;
     },
 
-    export: async (financialYear: string): Promise<Blob> => {
-      const [startYear] = financialYear.split('-').map(Number);
-      return await apiClient.get(`/tax/travel/export`, {
-        params: { financial_year: startYear },
+    export: async (financialYear: string, ratePerKm?: number): Promise<Blob> => {
+      // financialYear format: "2024-2025" - backend expects END year (2025)
+      const [, endYear] = financialYear.split('-').map(Number);
+      const params = ratePerKm !== undefined ? { rate_per_km: ratePerKm } : {};
+      return await apiClient.get(`/tax/travel/export/fy/${endYear}/csv`, {
+        params,
         responseType: 'blob'
       }) as Blob;
     },

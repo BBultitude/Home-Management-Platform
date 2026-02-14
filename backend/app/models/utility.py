@@ -19,6 +19,10 @@ class UtilityType(str, Enum):
     WATER = "water"
     INTERNET = "internet"
     MOBILE = "mobile"
+    RATES = "rates"  # Council rates/land tax
+
+    def __str__(self) -> str:
+        return self.value
 
 
 class Utility(Base):
@@ -44,7 +48,7 @@ class Utility(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     utility_type: Mapped[UtilityType] = mapped_column(
-        SQLEnum(UtilityType, name="utility_type"),
+        SQLEnum(UtilityType, values_callable=lambda x: [e.value for e in x], name="utility_type"),
         nullable=False,
         index=True
     )

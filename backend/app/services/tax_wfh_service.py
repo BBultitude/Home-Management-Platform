@@ -248,7 +248,8 @@ class TaxWFHService:
     def get_financial_year_summary(
         db: Session,
         user_id: int,
-        fy_year: int
+        fy_year: int,
+        rate_per_hour: Decimal = None
     ) -> dict:
         """
         Calculate financial year summary for WFH entries
@@ -260,10 +261,15 @@ class TaxWFHService:
             db: Database session
             user_id: User ID
             fy_year: Financial year (e.g., 2024)
+            rate_per_hour: Optional custom rate per hour (defaults to ATO rate)
 
         Returns:
             Dictionary with summary statistics
         """
+        # Use provided rate or default ATO rate
+        if rate_per_hour is None:
+            rate_per_hour = TaxWFHService.ATO_RATE_PER_HOUR
+
         # Calculate FY date range
         fy_start = date(fy_year - 1, 7, 1)
         fy_end = date(fy_year, 6, 30)
@@ -280,7 +286,7 @@ class TaxWFHService:
         # Calculate totals
         total_days = len(entries)
         total_hours = sum(entry.hours for entry in entries)
-        total_deduction = total_hours * TaxWFHService.ATO_RATE_PER_HOUR
+        total_deduction = total_hours * rate_per_hour
 
         return {
             "financial_year": fy_year,
@@ -288,7 +294,7 @@ class TaxWFHService:
             "fy_end_date": fy_end.isoformat(),
             "total_days": total_days,
             "total_hours": float(total_hours),
-            "ato_rate_per_hour": float(TaxWFHService.ATO_RATE_PER_HOUR),
+            "ato_rate_per_hour": float(rate_per_hour),
             "total_deduction": float(total_deduction),
             "entries": [entry.to_dict() for entry in entries]
         }
@@ -313,7 +319,8 @@ class TaxWFHService:
     def export_fy_to_csv(
         db: Session,
         user_id: int,
-        fy_year: int
+        fy_year: int,
+        rate_per_hour: Decimal = None
     ) -> str:
         """
         Export financial year WFH entries to CSV format
@@ -322,12 +329,13 @@ class TaxWFHService:
             db: Database session
             user_id: User ID
             fy_year: Financial year
+            rate_per_hour: Optional custom rate per hour
 
         Returns:
             CSV string
         """
         # Get FY summary
-        summary = TaxWFHService.get_financial_year_summary(db, user_id, fy_year)
+        summary = TaxWFHService.get_financial_year_summary(db, user_id, fy_year, rate_per_hour)
 
         # Build CSV
         lines = []
@@ -356,7 +364,8 @@ class TaxWFHService:
     def export_fy_to_text(
         db: Session,
         user_id: int,
-        fy_year: int
+        fy_year: int,
+        rate_per_hour: Decimal = None
     ) -> str:
         """
         Export financial year WFH entries to plain text format
@@ -365,12 +374,13 @@ class TaxWFHService:
             db: Database session
             user_id: User ID
             fy_year: Financial year
+            rate_per_hour: Optional custom rate per hour
 
         Returns:
             Plain text string
         """
         # Get FY summary
-        summary = TaxWFHService.get_financial_year_summary(db, user_id, fy_year)
+        summary = TaxWFHService.get_financial_year_summary(db, user_id, fy_year, rate_per_hour)
 
         # Build text
         lines = []

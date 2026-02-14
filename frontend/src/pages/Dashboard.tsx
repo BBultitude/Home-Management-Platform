@@ -1,8 +1,30 @@
+import { useEffect, useState } from 'react';
 import { useAuthStore } from '@/stores/authStore';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { financialService } from '@/services/financialService';
+import type { BudgetSummaryResponse } from '@/services/financialService';
+import { formatCurrency } from '@/lib/frequencyUtils';
+import { TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
 
 export default function Dashboard() {
   const { user } = useAuthStore();
+  const [budgetSummary, setBudgetSummary] = useState<BudgetSummaryResponse | null>(null);
+  const [budgetLoading, setBudgetLoading] = useState(true);
+
+  useEffect(() => {
+    loadBudgetSummary();
+  }, []);
+
+  const loadBudgetSummary = async () => {
+    try {
+      const data = await financialService.budget.summary();
+      setBudgetSummary(data);
+    } catch (error) {
+      console.error('Failed to load budget summary:', error);
+    } finally {
+      setBudgetLoading(false);
+    }
+  };
 
   return (
     <div>
@@ -34,13 +56,48 @@ export default function Dashboard() {
         <Card>
           <CardHeader>
             <CardTitle>Financial Overview</CardTitle>
-            <CardDescription>Income, expenses, and budgets</CardDescription>
+            <CardDescription>Monthly budget summary</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-gray-600 mb-4">
-              Manage your household finances
-            </p>
-            <div className="text-2xl font-bold text-gray-900">Coming Soon</div>
+            {budgetLoading ? (
+              <div className="text-sm text-gray-600">Loading budget data...</div>
+            ) : budgetSummary ? (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <TrendingUp className="h-4 w-4 text-green-600" />
+                    <span>Income</span>
+                  </div>
+                  <div className="font-semibold text-green-700">
+                    {formatCurrency(budgetSummary.total_monthly_income)}
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <TrendingDown className="h-4 w-4 text-red-600" />
+                    <span>Expenses</span>
+                  </div>
+                  <div className="font-semibold text-red-700">
+                    {formatCurrency(budgetSummary.total_monthly_expenses)}
+                  </div>
+                </div>
+                <div className="border-t pt-3 mt-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-sm font-medium">
+                      <DollarSign className={`h-4 w-4 ${budgetSummary.monthly_surplus >= 0 ? 'text-green-600' : 'text-red-600'}`} />
+                      <span>{budgetSummary.monthly_surplus >= 0 ? 'Surplus' : 'Deficit'}</span>
+                    </div>
+                    <div className={`text-xl font-bold ${budgetSummary.monthly_surplus >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+                      {formatCurrency(Math.abs(budgetSummary.monthly_surplus))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="text-sm text-gray-600">
+                No financial data yet. <a href="/financial" className="text-blue-600 hover:underline">Add income & expenses</a>
+              </div>
+            )}
           </CardContent>
         </Card>
 

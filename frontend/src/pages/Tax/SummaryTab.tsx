@@ -3,6 +3,7 @@ import { format } from 'date-fns';
 import { Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { PageLoader } from '@/components/common/PageLoader';
 import { taxService } from '@/services/taxService';
 import type { WFHSummary, TravelSummary } from '@/services/taxService';
@@ -20,14 +21,27 @@ export function SummaryTab({ financialYear }: SummaryTabProps) {
   const [exportingWFH, setExportingWFH] = useState(false);
   const [exportingTravel, setExportingTravel] = useState(false);
 
+  // ATO Rate state (not saved, just for calculation)
+  const [wfhRate, setWfhRate] = useState<string>('0.67');
+  const [travelRate, setTravelRate] = useState<string>('0.85');
+
   // Fetch summaries
   const fetchSummaries = async () => {
     setLoading(true);
     try {
+      const wfhRateNum = parseFloat(wfhRate) || 0.67;
+      const travelRateNum = parseFloat(travelRate) || 0.85;
+
+      console.log('[Summary] Fetching for FY:', financialYear, 'WFH rate:', wfhRateNum, 'Travel rate:', travelRateNum);
+
       const [wfh, travel] = await Promise.all([
-        taxService.wfh.summary(financialYear).catch(() => null),
-        taxService.travel.summary(financialYear).catch(() => null),
+        taxService.wfh.summary(financialYear, wfhRateNum).catch((err) => { console.error('[Summary] WFH error:', err); return null; }),
+        taxService.travel.summary(financialYear, travelRateNum).catch((err) => { console.error('[Summary] Travel error:', err); return null; }),
       ]);
+
+      console.log('[Summary] WFH data:', wfh);
+      console.log('[Summary] Travel data:', travel);
+
       setWfhSummary(wfh);
       setTravelSummary(travel);
     } catch (error) {
@@ -42,10 +56,15 @@ export function SummaryTab({ financialYear }: SummaryTabProps) {
     fetchSummaries();
   }, [financialYear]);
 
+  const handleRecalculate = () => {
+    fetchSummaries();
+  };
+
   const handleExportWFH = async () => {
     setExportingWFH(true);
     try {
-      const blob = await taxService.wfh.export(financialYear);
+      const wfhRateNum = parseFloat(wfhRate) || 0.67;
+      const blob = await taxService.wfh.export(financialYear, wfhRateNum);
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -65,7 +84,8 @@ export function SummaryTab({ financialYear }: SummaryTabProps) {
   const handleExportTravel = async () => {
     setExportingTravel(true);
     try {
-      const blob = await taxService.travel.export(financialYear);
+      const travelRateNum = parseFloat(travelRate) || 0.85;
+      const blob = await taxService.travel.export(financialYear, travelRateNum);
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -93,8 +113,15 @@ export function SummaryTab({ financialYear }: SummaryTabProps) {
       {/* Grand Total */}
       <Card className="border-primary">
         <CardHeader>
-          <CardDescription>Total Tax Deductions - FY {financialYear}</CardDescription>
-          <CardTitle className="text-4xl">${grandTotal.toFixed(2)}</CardTitle>
+          <div className="flex justify-between items-start">
+            <div>
+              <CardDescription>Total Tax Deductions - FY {financialYear}</CardDescription>
+              <CardTitle className="text-4xl">${grandTotal.toFixed(2)}</CardTitle>
+            </div>
+            <Button onClick={handleRecalculate} disabled={loading}>
+              {loading ? 'Calculating...' : 'Recalculate'}
+            </Button>
+          </div>
         </CardHeader>
       </Card>
 
@@ -133,8 +160,19 @@ export function SummaryTab({ financialYear }: SummaryTabProps) {
               </div>
             </div>
             <div>
-              <p className="text-sm text-gray-600">ATO Rate</p>
-              <p className="text-lg font-medium">${wfhSummary ? wfhSummary.ato_rate_per_hour.toFixed(2) : '0.00'} per hour</p>
+              <p className="text-sm text-gray-600 mb-2">ATO Rate ($/hour)</p>
+              <div className="flex items-center gap-2">
+                <span className="text-lg font-medium">$</span>
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={wfhRate}
+                  onChange={(e) => setWfhRate(e.target.value)}
+                  className="w-24"
+                />
+                <span className="text-sm text-gray-500">per hour</span>
+              </div>
             </div>
             <div className="pt-2 border-t">
               <p className="text-sm text-gray-600">Total Deduction</p>
@@ -176,8 +214,19 @@ export function SummaryTab({ financialYear }: SummaryTabProps) {
               </div>
             </div>
             <div>
-              <p className="text-sm text-gray-600">ATO Rate</p>
-              <p className="text-lg font-medium">${travelSummary ? travelSummary.rate_per_km.toFixed(2) : '0.00'} per km</p>
+              <p className="text-sm text-gray-600 mb-2">ATO Rate ($/km)</p>
+              <div className="flex items-center gap-2">
+                <span className="text-lg font-medium">$</span>
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={travelRate}
+                  onChange={(e) => setTravelRate(e.target.value)}
+                  className="w-24"
+                />
+                <span className="text-sm text-gray-500">per km</span>
+              </div>
             </div>
             <div className="pt-2 border-t">
               <p className="text-sm text-gray-600">Total Deduction</p>

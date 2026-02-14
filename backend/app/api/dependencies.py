@@ -168,11 +168,15 @@ PERMISSION_MATRIX = {
     "audit:view_all": [UserRole.ADMIN],  # Admin sees all audit logs
     "audit:view_own_tax": [UserRole.ADMIN, UserRole.EDITOR, UserRole.READER],  # All see own tax logs
 
-    # Finance (Future modules)
+    # Finance (Future modules - legacy keys)
     "finance:create": [UserRole.ADMIN, UserRole.EDITOR],
     "finance:update": [UserRole.ADMIN, UserRole.EDITOR],
     "finance:delete": [UserRole.ADMIN],
     "finance:view": [UserRole.ADMIN, UserRole.EDITOR, UserRole.READER],
+
+    # Financial Management (Active)
+    "financial:write": [UserRole.ADMIN, UserRole.EDITOR],
+    "financial:read": [UserRole.ADMIN, UserRole.EDITOR, UserRole.READER],
 
     # Insurance (Future modules)
     "insurance:create": [UserRole.ADMIN, UserRole.EDITOR],

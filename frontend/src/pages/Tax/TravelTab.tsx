@@ -40,15 +40,16 @@ export function TravelTab({ financialYear }: TravelTabProps) {
   // Summary stats
   const totalTrips = entries.length;
   const totalKm = entries.reduce((sum, e) => sum + e.distance_km, 0);
-  const totalDeduction = entries.reduce((sum, e) => sum + (e.deduction_amount || 0), 0);
 
   // Fetch entries
   const fetchEntries = async () => {
     setLoading(true);
     try {
-      const [startYear] = financialYear.split('-').map(Number);
+      // Calculate FY date range - financialYear format: "2024-2025"
+      // FY 2024-2025 = July 1, 2024 to June 30, 2025
+      const [startYear, endYear] = financialYear.split('-').map(Number);
       const start_date = `${startYear}-07-01`;
-      const end_date = `${startYear + 1}-06-30`;
+      const end_date = `${endYear}-06-30`;
 
       const response = await taxService.travel.list({ start_date, end_date });
       setEntries(response.entries);
@@ -161,7 +162,7 @@ export function TravelTab({ financialYear }: TravelTabProps) {
   return (
     <div className="space-y-6">
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
           <CardHeader className="pb-3">
             <CardDescription>Total Trips</CardDescription>
@@ -172,12 +173,6 @@ export function TravelTab({ financialYear }: TravelTabProps) {
           <CardHeader className="pb-3">
             <CardDescription>Total Distance</CardDescription>
             <CardTitle className="text-3xl">{totalKm.toFixed(1)} km</CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <CardDescription>Total Deduction</CardDescription>
-            <CardTitle className="text-3xl">${totalDeduction.toFixed(2)}</CardTitle>
           </CardHeader>
         </Card>
       </div>
@@ -214,7 +209,6 @@ export function TravelTab({ financialYear }: TravelTabProps) {
                   <TableHead>From → To</TableHead>
                   <TableHead>Purpose</TableHead>
                   <TableHead>Distance</TableHead>
-                  <TableHead>Deduction</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -230,7 +224,6 @@ export function TravelTab({ financialYear }: TravelTabProps) {
                     </TableCell>
                     <TableCell className="max-w-xs truncate">{entry.purpose}</TableCell>
                     <TableCell>{entry.distance_km.toFixed(1)} km</TableCell>
-                    <TableCell>${(entry.deduction_amount || 0).toFixed(2)}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         <Button

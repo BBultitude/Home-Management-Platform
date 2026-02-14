@@ -3,9 +3,10 @@ Home Management Platform - Main FastAPI Application
 """
 
 import os
+import traceback
 from pathlib import Path
 
-from fastapi import FastAPI, status
+from fastapi import FastAPI, status, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -31,6 +32,31 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# Global exception handler for debugging
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """
+    Catch all unhandled exceptions and log them with full traceback
+    """
+    print("=" * 80)
+    print(f"🔴 UNHANDLED EXCEPTION in {request.method} {request.url.path}")
+    print(f"Exception type: {type(exc).__name__}")
+    print(f"Exception message: {str(exc)}")
+    print("-" * 80)
+    print("Full traceback:")
+    traceback.print_exc()
+    print("=" * 80)
+
+    return JSONResponse(
+        status_code=500,
+        content={
+            "detail": f"{type(exc).__name__}: {str(exc)}",
+            "path": request.url.path,
+            "method": request.method
+        }
+    )
 
 
 # Health check endpoint

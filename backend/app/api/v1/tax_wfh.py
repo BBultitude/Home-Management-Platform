@@ -3,6 +3,7 @@ Tax WFH Entry API endpoints
 """
 
 from datetime import date
+from decimal import Decimal
 from typing import Optional
 from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import Response
@@ -302,6 +303,7 @@ async def delete_wfh_entry(
 @router.get("/summary/fy/{fy_year}", response_model=TaxWFHFYSummaryResponse)
 async def get_fy_summary(
     fy_year: int,
+    rate_per_hour: Decimal = Query(Decimal("0.67"), description="Rate per hour for deduction calculation"),
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
@@ -314,7 +316,8 @@ async def get_fy_summary(
     summary = TaxWFHService.get_financial_year_summary(
         db=db,
         user_id=current_user.id,
-        fy_year=fy_year
+        fy_year=fy_year,
+        rate_per_hour=rate_per_hour
     )
 
     return TaxWFHFYSummaryResponse(**summary)
@@ -324,6 +327,7 @@ async def get_fy_summary(
 async def export_fy_csv(
     request: Request,
     fy_year: int,
+    rate_per_hour: Decimal = Query(Decimal("0.67"), description="Rate per hour for deduction calculation"),
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
@@ -333,7 +337,7 @@ async def export_fy_csv(
     Returns ATO-compliant CSV file for tax lodgement.
     """
     # Generate CSV
-    csv_content = TaxWFHService.export_fy_to_csv(db, current_user.id, fy_year)
+    csv_content = TaxWFHService.export_fy_to_csv(db, current_user.id, fy_year, rate_per_hour)
 
     # Log audit event
     ip_address, user_agent = get_client_info(request)
@@ -365,6 +369,7 @@ async def export_fy_csv(
 async def export_fy_text(
     request: Request,
     fy_year: int,
+    rate_per_hour: Decimal = Query(Decimal("0.67"), description="Rate per hour for deduction calculation"),
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
@@ -374,7 +379,7 @@ async def export_fy_text(
     Returns ATO-compliant text file for tax lodgement.
     """
     # Generate text
-    text_content = TaxWFHService.export_fy_to_text(db, current_user.id, fy_year)
+    text_content = TaxWFHService.export_fy_to_text(db, current_user.id, fy_year, rate_per_hour)
 
     # Log audit event
     ip_address, user_agent = get_client_info(request)

@@ -20,6 +20,9 @@ class ExpenseFrequency(str, Enum):
     MONTHLY = "monthly"
     YEARLY = "yearly"
 
+    def __str__(self) -> str:
+        return self.value
+
 
 class Expense(Base):
     """
@@ -41,7 +44,7 @@ class Expense(Base):
     expense_name: Mapped[str] = mapped_column(String(255), nullable=False)
     amount: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
     frequency: Mapped[ExpenseFrequency] = mapped_column(
-        SQLEnum(ExpenseFrequency, name="expense_frequency"),
+        SQLEnum(ExpenseFrequency, values_callable=lambda x: [e.value for e in x], name="expense_frequency"),
         nullable=False
     )
     category_id: Mapped[int] = mapped_column(

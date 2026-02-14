@@ -668,5 +668,71 @@ Created comprehensive Settings page at `/settings` with:
 
 ---
 
+### ✅ UI-TAX-1: Tax Module Modal Dialog Transparency Issue
+
+**Status:** Resolved
+**Resolved Date:** 2026-02-14
+**Category:** UI Components / Dialogs
+**Affects:** Tax module (WFH and Travel entry modals)
+
+**Issue:**
+When adding an entry in the Tax module, the modal dialog appeared as just outlines with a transparent/grey background. The modal content was hard to read because it lacked a solid white background, and the background page text was visible through the modal.
+
+**Root Cause:**
+The DialogContent component in `dialog.tsx` had `bg-white` in the className, but it wasn't being applied consistently or was being overridden. The component needed more explicit background styling to ensure it displays as a solid white modal.
+
+**Solution:**
+Updated the DialogContent component to include:
+- `bg-white dark:bg-white` for explicit white background in both light and dark modes
+- `border-border` for consistent border styling
+- Ensures modal has solid white background with properly greyed overlay
+
+**Files Modified:**
+- `frontend/src/components/ui/dialog.tsx` - Enhanced background styling for DialogContent
+
+**Result:**
+- ✅ Modal dialogs now display with solid white background
+- ✅ Grey overlay properly dims background content
+- ✅ Modal content is clearly readable
+- ✅ Consistent styling across all dialog instances
+
+---
+
+### ✅ UI-TAX-2: Tax Summary API 422 Error - Invalid Parameters
+
+**Status:** Resolved
+**Resolved Date:** 2026-02-14
+**Category:** API Integration / Tax Module
+**Affects:** Tax module Summary tab
+
+**Issue:**
+When navigating to the Tax Summary tab, toast error appeared: "entry_id: Input should be a valid integer, unable to parse string as an integer" with console errors showing 422 (Unprocessable Entity) for:
+- `/api/v1/tax/wfh/summary?financial_year=2025`
+- `/api/v1/tax/travel/summary?financial_year=2025`
+
+**Root Cause:**
+Mismatch between frontend and backend API parameter types:
+- **Backend endpoints** expect: `/summary/fy/{fy_year}` - with `fy_year` as a PATH parameter
+- **Frontend was sending**: `/summary?financial_year=2025` - as a QUERY parameter
+- Backend received unexpected query parameter and failed validation
+
+**Solution:**
+Updated taxService.ts to match backend API endpoint structure:
+1. **WFH Summary**: Changed from `/tax/wfh/summary?financial_year=X` to `/tax/wfh/summary/fy/{year}`
+2. **WFH Export**: Changed from `/tax/wfh/export?financial_year=X` to `/tax/wfh/export/fy/{year}/csv`
+3. **Travel Summary**: Changed from `/tax/travel/summary?financial_year=X` to `/tax/travel/summary/fy/{year}`
+4. **Travel Export**: Changed from `/tax/travel/export?financial_year=X` to `/tax/travel/export/fy/{year}/csv`
+
+**Files Modified:**
+- `frontend/src/services/taxService.ts` - Fixed API endpoints for summary and export calls
+
+**Result:**
+- ✅ Summary tab loads without errors
+- ✅ WFH and Travel summaries display correctly
+- ✅ Export functionality works for both WFH and Travel
+- ✅ Proper API parameter handling matching backend expectations
+
+---
+
 **Last Updated:** 2026-02-14
-**Next Review:** After Sprint 13 (Admin & User Management UI), then Sprint 9 (Testing)
+**Next Review:** After Sprint 16 (Financial Management UI), then Sprint 9 (Testing)

@@ -73,5 +73,5 @@ class UtilityStatsResponse(BaseModel):
     total_usage: float
     total_cost: float
     entry_count: int
-    period_start: date
-    period_end: date
+    period_start: Optional[date] = None
+    period_end: Optional[date] = None

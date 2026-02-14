@@ -18,6 +18,9 @@ class AccountType(str, Enum):
     SAVINGS = "savings"
     OFFSET = "offset"
 
+    def __str__(self) -> str:
+        return self.value
+
 
 class BankAccount(Base):
     """
@@ -36,7 +39,7 @@ class BankAccount(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     account_name: Mapped[str] = mapped_column(String(255), nullable=False)
     account_type: Mapped[AccountType] = mapped_column(
-        SQLEnum(AccountType, name="account_type"),
+        SQLEnum(AccountType, values_callable=lambda x: [e.value for e in x], name="account_type"),
         nullable=False
     )
     current_balance: Mapped[Decimal | None] = mapped_column(Numeric(12, 2), nullable=True)

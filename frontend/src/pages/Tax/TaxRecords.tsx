@@ -5,6 +5,17 @@ import { WFHTab } from './WFHTab';
 import { TravelTab } from './TravelTab';
 import { SummaryTab } from './SummaryTab';
 
+// Product started in FY 2025-2026
+const PRODUCT_START_FY = '2025-2026';
+
+// Calculate how many years back to show based on product start
+function calculateYearsBack(): number {
+  const currentFY = getCurrentFinancialYear();
+  const [currentStart] = currentFY.split('-').map(Number);
+  const [productStart] = PRODUCT_START_FY.split('-').map(Number);
+  return currentStart - productStart; // 0 in 2026, 3 in 2029, etc.
+}
+
 export default function TaxRecords() {
   const [selectedFY, setSelectedFY] = useState(getCurrentFinancialYear());
 
@@ -21,7 +32,7 @@ export default function TaxRecords() {
       {/* Financial Year Selector */}
       <div className="mb-6">
         <div className="w-64">
-          <FinancialYearPicker value={selectedFY} onChange={setSelectedFY} />
+          <FinancialYearPicker value={selectedFY} onChange={setSelectedFY} yearsBack={calculateYearsBack()} yearsForward={3} />
         </div>
       </div>
 
