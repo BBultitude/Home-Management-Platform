@@ -1,7 +1,14 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
+import { AppShell } from '@/components/layout/AppShell';
+import { ErrorBoundary } from '@/components/common/ErrorBoundary';
+import { Toaster } from '@/components/ui/sonner';
 import Login from '@/pages/Login';
+import MFAVerify from '@/pages/MFAVerify';
 import Dashboard from '@/pages/Dashboard';
+import Settings from '@/pages/Settings';
+import AdminUsers from '@/pages/AdminUsers';
+import TaxRecords from '@/pages/Tax/TaxRecords';
 
 // Protected Route Component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -11,7 +18,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     return <Navigate to="/" replace />;
   }
 
-  return <>{children}</>;
+  return <AppShell>{children}</AppShell>;
 }
 
 // Public Route Component (redirect to dashboard if already logged in)
@@ -27,8 +34,9 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <Routes>
         {/* Public Routes */}
         <Route
           path="/"
@@ -38,6 +46,8 @@ function App() {
             </PublicRoute>
           }
         />
+
+        <Route path="/mfa" element={<MFAVerify />} />
 
         {/* Protected Routes */}
         <Route
@@ -49,10 +59,39 @@ function App() {
           }
         />
 
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <Settings />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/users"
+          element={
+            <ProtectedRoute>
+              <AdminUsers />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/tax"
+          element={
+            <ProtectedRoute>
+              <TaxRecords />
+            </ProtectedRoute>
+          }
+        />
+
         {/* Catch all - redirect to login */}
         <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </BrowserRouter>
+        </Routes>
+        <Toaster position="top-right" />
+      </BrowserRouter>
+    </ErrorBoundary>
   );
 }
 

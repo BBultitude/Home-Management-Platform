@@ -492,3 +492,28 @@ _None yet - this is a new project_
 
 **Last Updated:** 2025-02-01  
 **Next Review:** After each sprint
+
+
+## MFA-001: Trusted Devices Not Implemented
+
+**Status:** Known Limitation
+**Reported:** 2026-02-14
+**Affects:** MFA Login Flow
+
+**Description:**
+The "Trust this device for 30 days" checkbox appears in the MFA verification UI but is not functional. The backend has a TODO placeholder for this feature.
+
+**Impact:**
+- Users must enter MFA code on every login
+- Trusted device feature advertised but not working
+
+**Workaround:**
+None - MFA required on every login
+
+**Fix Status:**
+- Frontend: Checkbox now disabled with "Coming soon" label
+- Backend: Requires implementation of trusted device creation and verification
+- See backend TODO in auth.py verify_mfa endpoint
+
+**Priority:** Medium (UX convenience, not security issue)
+

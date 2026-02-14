@@ -21,102 +21,7 @@ _None currently identified_
 
 ## High Priority UI Issues
 
-_None currently - UI-AUTH-0 has been resolved_
-
----
-
-### UI-AUTH-1: No Admin User Management Interface
-
-**Priority:** 🟡 High
-**Category:** Admin Features
-**Affects:** Admin users
-**Reported:** 2026-02-14
-**Planned Fix:** Sprint 13 (Admin Panel)
-
-**Description:**
-- Backend endpoints exist for user management (POST/GET/PUT/DELETE /api/admin/users)
-- No UI for admins to:
-  - View list of users
-  - Create new users
-  - Edit existing users (change role, deactivate)
-  - Reset user MFA if locked out
-- Admin must use API directly (via curl/Postman) to manage users
-
-**Backend Status:** ✅ Complete (endpoints exist in auth.py)
-
-**Plan:**
-- Create admin-only route `/admin/users`
-- User list table with search/filter
-- Create user form (username, email, password, full_name, role)
-- Edit user modal
-- Delete/deactivate confirmation dialog
-- MFA reset button with confirmation
-
----
-
-### UI-AUTH-2: No MFA Setup Interface
-
-**Priority:** 🟡 High
-**Category:** Security
-**Affects:** All users
-**Reported:** 2026-02-14
-**Planned Fix:** Sprint 13 (User Settings)
-
-**Description:**
-- Backend MFA endpoints exist (setup, enable, disable, verify)
-- No UI for users to:
-  - Enable MFA (view QR code, verify TOTP)
-  - Disable MFA (requires password confirmation)
-  - View/manage trusted devices
-  - Revoke trusted devices
-- Users cannot enable MFA without API access
-
-**Backend Status:** ✅ Complete (MFA endpoints exist)
-
-**Plan:**
-- Add "Security" section to user settings page
-- MFA setup flow:
-  1. Click "Enable MFA"
-  2. Display QR code (from POST /api/auth/mfa/setup)
-  3. Input 6-digit code to verify
-  4. Show backup codes (future)
-- MFA disable flow (require password)
-- Trusted devices list with revoke buttons
-
----
-
-### UI-AUTH-3: No User Profile/Settings Page
-
-**Priority:** 🟡 High
-**Category:** User Management
-**Affects:** All users
-**Reported:** 2026-02-14
-**Planned Fix:** Sprint 13 (User Settings)
-
-**Description:**
-- Backend password change endpoint exists (POST /api/auth/change-password)
-- No UI for users to:
-  - Change their own password
-  - View their profile information
-  - Update email or full name (if allowed)
-  - See account settings
-- Current dashboard shows user info but no edit capability
-
-**Backend Status:** ✅ Password change complete, profile edit may need endpoint
-
-**Plan:**
-- Create `/settings` or `/profile` route
-- User profile form:
-  - View username (read-only)
-  - View/edit email
-  - View/edit full name
-  - View role (read-only)
-- Change password form (current password + new password × 2)
-- Link from dashboard header (user menu)
-
----
-
-_Additional UI issues to be populated during development and user testing_
+_None currently - All auth UI tasks completed_
 
 ---
 
@@ -632,6 +537,134 @@ Axios response interceptor was catching ALL 401 errors (including failed login a
 - ✅ Error persists without flickering or navigation
 - ✅ Successful login redirects to dashboard correctly
 - ✅ Logout clears session properly (both frontend and backend)
+
+---
+
+### ✅ UI-AUTH-1: Admin User Management Interface
+
+**Status:** Resolved
+**Resolved Date:** 2026-02-14
+**Category:** Admin Features
+**Affects:** Admin users
+
+**Issue:**
+No UI existed for admins to manage users (view, create, edit, delete). Admins had to use API directly.
+
+**Solution:**
+Created complete admin user management interface at `/admin/users` with:
+- User list table showing all users with role, email, MFA status
+- Create new user form with validation (username, email, password, full_name, role)
+- Edit user functionality (update role, email, full name)
+- Delete user with confirmation dialog
+- MFA reset capability for locked-out users
+- Proper error handling for Pydantic validation errors
+- Admin-only access control
+
+**Files Created:**
+- `frontend/src/pages/AdminUsers.tsx` - Complete admin user management UI
+- Added route in `frontend/src/App.tsx` for `/admin/users`
+- Added "Admin Panel" button in Dashboard header for admin users
+
+**Result:**
+- ✅ Admins can view all users
+- ✅ Create new users with proper validation
+- ✅ Edit user roles and information
+- ✅ Delete users (with retention warnings)
+- ✅ Reset MFA for locked-out users
+- ✅ Proper error display for validation failures
+
+---
+
+### ✅ UI-AUTH-2: MFA Setup Interface
+
+**Status:** Resolved
+**Resolved Date:** 2026-02-14
+**Category:** Security / MFA
+**Affects:** All users
+
+**Issue:**
+No UI for users to enable/disable MFA or verify TOTP codes during login. Backend endpoints existed but were inaccessible to regular users.
+
+**Solution:**
+Implemented complete MFA workflow:
+
+**MFA Setup (Settings Page):**
+1. "Enable MFA" button in security section
+2. QR code generation and display
+3. 6-digit verification code input
+4. MFA enable/disable toggle with confirmation
+5. Visual MFA status indicator
+
+**MFA Login Verification:**
+1. Created `/mfa` route with MFAVerify page
+2. 6-digit code input with auto-formatting
+3. Bearer token authentication flow
+4. Trusted device checkbox (disabled - backend TODO documented in KNOWN_ISSUES.md)
+5. Proper error handling and user feedback
+
+**Files Created/Modified:**
+- `frontend/src/pages/Settings.tsx` - Added MFA setup UI
+- `frontend/src/pages/MFAVerify.tsx` - MFA login verification page
+- `frontend/src/stores/authStore.ts` - Added mfaToken handling
+- `KNOWN_ISSUES.md` - Documented MFA-001: Trusted device feature not implemented
+
+**Result:**
+- ✅ Users can enable MFA from settings
+- ✅ QR code displays for authenticator app setup
+- ✅ MFA verification required on login
+- ✅ Proper error messages for invalid codes
+- ✅ MFA status visible in user profile
+- ✅ Graceful handling of missing backend feature (trusted devices)
+
+---
+
+### ✅ UI-AUTH-3: User Profile/Settings Page
+
+**Status:** Resolved
+**Resolved Date:** 2026-02-14
+**Category:** User Management
+**Affects:** All users
+
+**Issue:**
+No UI for users to view their profile or change their password. Dashboard showed user info but was read-only.
+
+**Solution:**
+Created comprehensive Settings page at `/settings` with:
+
+**User Profile Section:**
+- Display username (read-only)
+- Display email
+- Display full name
+- Display role
+- Display MFA status
+
+**Password Change Section:**
+- Current password input
+- New password input with NIST validation (12-128 chars, complexity requirements)
+- Confirm password input
+- Real-time validation matching backend requirements:
+  - Length 12-128 characters
+  - Upper/lowercase/digit requirements
+  - No weak patterns (password123, admin2024, etc.)
+  - No sequential patterns (12345, qwerty)
+  - No repeated characters (aaaa, 1111)
+- Proper error display for Pydantic validation
+- Auto-logout after successful password change
+
+**Security Section:**
+- MFA setup and management (see UI-AUTH-2)
+
+**Files Created:**
+- `frontend/src/pages/Settings.tsx` - Complete user settings page
+- Added route in `frontend/src/App.tsx` for `/settings`
+- Added "Settings" button in Dashboard header
+
+**Result:**
+- ✅ Users can view their profile information
+- ✅ Change password with NIST-compliant validation
+- ✅ Enable/disable MFA
+- ✅ Clear error messages for validation failures
+- ✅ Secure flow (logout after password change)
 
 ---
 

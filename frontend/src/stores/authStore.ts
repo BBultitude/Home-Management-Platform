@@ -14,6 +14,7 @@ interface User {
 interface AuthState {
   user: User | null;
   token: string | null;
+  mfaToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (username: string, password: string) => Promise<any>;
@@ -26,6 +27,7 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       user: null,
       token: null,
+      mfaToken: null,
       isAuthenticated: false,
       isLoading: false,
 
@@ -35,7 +37,7 @@ export const useAuthStore = create<AuthState>()(
           const response: any = await apiClient.post('/auth/login', { username, password });
 
           if (response.requires_mfa) {
-            set({ isLoading: false });
+            set({ isLoading: false, mfaToken: response.mfa_token });
             return response;
           }
 
