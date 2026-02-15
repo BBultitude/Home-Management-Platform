@@ -6,22 +6,21 @@ Usage: python reset_password.py <username> <new_password>
 
 import sys
 import os
-from argon2 import PasswordHasher
 
 # Add app directory to Python path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'app'))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from app.models.user import User
-
-# Get database URL from environment or use default
-DATABASE_URL = os.getenv('DATABASE_URL', 'postgresql://homeuser:homepassword@localhost:5432/homedb')
+from app.core.security import hash_password
+from app.core.config import settings
 
 def reset_password(username: str, new_password: str):
     """Reset password for a user"""
-    # Create database connection
-    engine = create_engine(DATABASE_URL)
+    # Create database connection using the same config as the app
+    # This properly reads the password from Docker secrets
+    engine = create_engine(settings.database_url_with_password)
     SessionLocal = sessionmaker(bind=engine)
     db = SessionLocal()
 
@@ -33,9 +32,8 @@ def reset_password(username: str, new_password: str):
             print(f"❌ User '{username}' not found")
             return False
 
-        # Hash new password
-        ph = PasswordHasher()
-        user.password_hash = ph.hash(new_password)
+        # Hash new password using the same function as the rest of the app
+        user.hashed_password = hash_password(new_password)
 
         # Commit changes
         db.commit()
