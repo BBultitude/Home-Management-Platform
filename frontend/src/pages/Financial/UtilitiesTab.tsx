@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EmptyState } from '@/components/common/EmptyState';
 import { PageLoader } from '@/components/common/PageLoader';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
@@ -19,6 +20,7 @@ import type { Utility, UtilityCreate, UtilityType, UtilityStatsResponse } from '
 import { getErrorMessage } from '@/lib/errorMessages';
 import { toast } from 'sonner';
 import { formatCurrency } from '@/lib/frequencyUtils';
+import UtilityGraphs from './UtilityGraphs';
 
 export function UtilitiesTab() {
   const [utilities, setUtilities] = useState<Utility[]>([]);
@@ -226,7 +228,13 @@ export function UtilitiesTab() {
   }
 
   return (
-    <div className="space-y-6">
+    <Tabs defaultValue="data" className="space-y-6">
+      <TabsList className="grid w-full max-w-md grid-cols-2">
+        <TabsTrigger value="data">Data Entry</TabsTrigger>
+        <TabsTrigger value="graphs">Graphs & Analytics</TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="data" className="space-y-6">
       {/* Filters */}
       <Card>
         <CardHeader>
@@ -495,6 +503,11 @@ export function UtilitiesTab() {
           variant="destructive"
         />
       )}
-    </div>
+      </TabsContent>
+
+      <TabsContent value="graphs">
+        <UtilityGraphs selectedType={typeFilter !== 'all' ? (typeFilter as UtilityType) : null} />
+      </TabsContent>
+    </Tabs>
   );
 }

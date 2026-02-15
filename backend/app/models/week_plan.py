@@ -3,7 +3,7 @@ Week Plan Model
 Stores weekly meal planning assignments
 """
 
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from sqlalchemy import Column, Date, DateTime, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
@@ -58,5 +58,5 @@ class WeekPlan(Base):
         """Get the Monday of the week for a given date"""
         # Python weekday(): Monday=0, Sunday=6
         days_since_monday = target_date.weekday()
-        monday = target_date - datetime.timedelta(days=days_since_monday)
+        monday = target_date - timedelta(days=days_since_monday)
         return monday

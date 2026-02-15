@@ -23,7 +23,7 @@ class InsurancePolicyCreate(BaseModel):
     excess: Optional[Decimal] = Field(None, ge=0, description="Excess/deductible amount")
     renewal_date: date = Field(..., description="Policy renewal date")
     coverage_notes: Optional[str] = Field(None, max_length=5000, description="Coverage details and notes")
-    document_id: Optional[UUID] = Field(None, description="ID of attached policy document")
+    document_id: Optional[int] = Field(None, description="ID of attached policy document")
     vehicle_id: Optional[UUID] = Field(None, description="ID of associated vehicle (if applicable)")
 
     model_config = ConfigDict(from_attributes=True)
@@ -40,7 +40,7 @@ class InsurancePolicyUpdate(BaseModel):
     excess: Optional[Decimal] = Field(None, ge=0)
     renewal_date: Optional[date] = None
     coverage_notes: Optional[str] = Field(None, max_length=5000)
-    document_id: Optional[UUID] = None
+    document_id: Optional[int] = None
     vehicle_id: Optional[UUID] = None
 
     model_config = ConfigDict(from_attributes=True)

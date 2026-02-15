@@ -10,6 +10,10 @@ import Settings from '@/pages/Settings';
 import AdminUsers from '@/pages/AdminUsers';
 import TaxRecords from '@/pages/Tax/TaxRecords';
 import FinancialManagement from '@/pages/Financial/FinancialManagement';
+import AssetsManagement from '@/pages/Assets/AssetsManagement';
+import ProjectsManagement from '@/pages/Projects/ProjectsManagement';
+import KnowledgeBase from '@/pages/Knowledge/KnowledgeBase';
+import MealPlanner from '@/pages/MealPlanner/MealPlanner';
 
 // Protected Route Component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -92,6 +96,42 @@ function App() {
           element={
             <ProtectedRoute>
               <FinancialManagement />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/assets"
+          element={
+            <ProtectedRoute>
+              <AssetsManagement />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/projects"
+          element={
+            <ProtectedRoute>
+              <ProjectsManagement />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/knowledge"
+          element={
+            <ProtectedRoute>
+              <KnowledgeBase />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/meals"
+          element={
+            <ProtectedRoute>
+              <MealPlanner />
             </ProtectedRoute>
           }
         />

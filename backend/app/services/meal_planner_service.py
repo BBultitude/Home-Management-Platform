@@ -71,7 +71,8 @@ class MealPlannerService:
             ingredient = Ingredient(
                 recipe_id=recipe.id,
                 name=ing_data["name"],
-                quantity=ing_data["quantity"],
+                quantity_amount=ing_data["quantity_amount"],
+                quantity_unit=ing_data["quantity_unit"],
                 sort_order=ing_data.get("sort_order", 0)
             )
             db.add(ingredient)
@@ -154,7 +155,8 @@ class MealPlannerService:
                 ingredient = Ingredient(
                     recipe_id=recipe.id,
                     name=ing_data["name"],
-                    quantity=ing_data["quantity"],
+                    quantity_amount=ing_data["quantity_amount"],
+                    quantity_unit=ing_data["quantity_unit"],
                     sort_order=ing_data.get("sort_order", 0)
                 )
                 db.add(ingredient)
@@ -295,88 +297,60 @@ class MealPlannerService:
     # ===== Shopping List Generation =====
 
     @staticmethod
-    def _parse_quantity(quantity_str: str) -> tuple[Optional[float], str]:
-        """
-        Parse quantity string into number and unit
-
-        Args:
-            quantity_str: e.g., "2 cups", "300 g", "1 medium"
-
-        Returns:
-            Tuple of (numeric_value, unit_string)
-        """
-        # Extract number from beginning of string
-        match = re.match(r'^(\d+(?:\.\d+)?)\s*(.*)', quantity_str.strip())
-        if match:
-            number = float(match.group(1))
-            unit = match.group(2).strip()
-            return (number, unit)
-        else:
-            # No number found (e.g., "As needed", "pinch")
-            return (None, quantity_str.strip())
-
-    @staticmethod
-    def _consolidate_ingredients(ingredients: list[tuple[str, str, str]]) -> dict[str, dict]:
+    def _consolidate_ingredients(ingredients: list[tuple[str, float, str, str]]) -> dict[str, dict]:
         """
         Consolidate duplicate ingredients across recipes
 
         Args:
-            ingredients: List of (ingredient_name, quantity, recipe_name) tuples
+            ingredients: List of (ingredient_name, quantity_amount, quantity_unit, recipe_name) tuples
 
         Returns:
             Dict mapping ingredient_name to {quantity: str, recipes: list[str]}
         """
-        consolidated = defaultdict(lambda: {"quantities": [], "recipes": []})
+        # Group by (normalized_name, unit)
+        groups = defaultdict(lambda: {"amount": 0.0, "unit": "", "recipes": []})
 
-        for ing_name, quantity, recipe_name in ingredients:
+        for ing_name, amount, unit, recipe_name in ingredients:
             ing_lower = ing_name.lower()
 
             # Check if it's a pantry staple
             is_staple = any(staple in ing_lower for staple in MealPlannerService.PANTRY_STAPLES)
 
+            # Use (normalized name, unit) as key for grouping
+            # This ensures "Chicken" and "chicken" with same unit are combined
+            key = (ing_lower, unit.lower() if not is_staple else "staple")
+
             if is_staple:
-                consolidated[ing_name]["quantities"].append("As needed")
+                groups[key]["amount"] = 0  # Don't accumulate pantry staples
+                groups[key]["unit"] = "As needed"
+                groups[key]["name"] = ing_name  # Keep original name
             else:
-                consolidated[ing_name]["quantities"].append(quantity)
+                groups[key]["amount"] += amount
+                groups[key]["unit"] = unit
+                groups[key]["name"] = ing_name  # Keep first occurrence name
 
-            if recipe_name not in consolidated[ing_name]["recipes"]:
-                consolidated[ing_name]["recipes"].append(recipe_name)
+            if recipe_name not in groups[key]["recipes"]:
+                groups[key]["recipes"].append(recipe_name)
 
-        # Generate consolidated quantity strings
+        # Convert grouped data to result format
         result = {}
-        for ing_name, data in consolidated.items():
-            quantities = data["quantities"]
+        for (_, _), data in groups.items():
+            ing_name = data["name"]
+            unit = data["unit"]
+            amount = data["amount"]
+            recipes = data["recipes"]
 
-            # If all quantities are "As needed", use that
-            if all(q == "As needed" for q in quantities):
-                result[ing_name] = {
-                    "quantity": "As needed",
-                    "recipes": data["recipes"]
-                }
+            if unit == "As needed":
+                quantity_str = "As needed"
             else:
-                # Try to sum numeric quantities with same unit
-                parsed = [MealPlannerService._parse_quantity(q) for q in quantities if q != "As needed"]
+                # Format amount nicely (remove trailing zeros)
+                amount_str = f"{amount:.2f}".rstrip('0').rstrip('.')
+                quantity_str = f"{amount_str} {unit}"
 
-                # Group by unit
-                by_unit = defaultdict(list)
-                for num, unit in parsed:
-                    if num is not None:
-                        by_unit[unit].append(num)
-
-                # If single unit, sum quantities
-                if len(by_unit) == 1:
-                    unit = list(by_unit.keys())[0]
-                    total = sum(by_unit[unit])
-                    result[ing_name] = {
-                        "quantity": f"{total:.1f} {unit}".rstrip('0').rstrip('.') + f" {unit}" if unit else "",
-                        "recipes": data["recipes"]
-                    }
-                else:
-                    # Multiple units or non-numeric - list all
-                    result[ing_name] = {
-                        "quantity": ", ".join(quantities),
-                        "recipes": data["recipes"]
-                    }
+            result[ing_name] = {
+                "quantity": quantity_str,
+                "recipes": recipes
+            }
 
         return result
 
@@ -418,7 +392,8 @@ class MealPlannerService:
             for ingredient in recipe.ingredients:
                 all_ingredients.append((
                     ingredient.name,
-                    ingredient.quantity,
+                    float(ingredient.quantity_amount),
+                    ingredient.quantity_unit,
                     recipe.name
                 ))
 

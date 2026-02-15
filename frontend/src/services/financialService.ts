@@ -193,6 +193,33 @@ export interface UtilityStatsResponse {
   period_end: string | null;
 }
 
+export interface MonthlyDataPoint {
+  month: string; // YYYY-MM format
+  cost: number;
+  usage: number;
+  cost_per_unit: number;
+  entry_count: number;
+}
+
+export interface ProviderDataPoint {
+  provider: string;
+  total_cost: number;
+  total_usage: number;
+  average_cost_per_unit: number;
+  entry_count: number;
+  period_start: string | null;
+  period_end: string | null;
+}
+
+export interface UtilityGraphsResponse {
+  utility_type: UtilityType;
+  monthly_data: MonthlyDataPoint[];
+  provider_comparison: ProviderDataPoint[];
+  rolling_12_month_avg_cost: number;
+  rolling_12_month_avg_usage: number;
+  total_entries: number;
+}
+
 // ============================================================================
 // BUDGET
 // ============================================================================
@@ -353,6 +380,13 @@ export const financialService = {
       params?: { start_date?: string; end_date?: string }
     ): Promise<UtilityStatsResponse> => {
       return await apiClient.get(`/financial/utilities/stats/${utilityType}`, { params }) as UtilityStatsResponse;
+    },
+
+    graphs: async (
+      utilityType: UtilityType,
+      params?: { start_date?: string; end_date?: string }
+    ): Promise<UtilityGraphsResponse> => {
+      return await apiClient.get(`/financial/utilities/graphs/${utilityType}`, { params }) as UtilityGraphsResponse;
     },
   },
 

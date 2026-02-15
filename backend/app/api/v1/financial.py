@@ -35,7 +35,8 @@ from app.schemas.utility import (
     UtilityUpdate,
     UtilityResponse,
     UtilityListResponse,
-    UtilityStatsResponse
+    UtilityStatsResponse,
+    UtilityGraphsResponse
 )
 from app.schemas.bank_account import (
     BankAccountCreate,
@@ -334,6 +335,32 @@ async def get_utility_stats(
     )
 
     return UtilityStatsResponse(**stats)
+
+
+@router.get("/utilities/graphs/{utility_type}", response_model=UtilityGraphsResponse)
+async def get_utility_graphs(
+    utility_type: UtilityType,
+    start_date: Optional[date] = Query(None),
+    end_date: Optional[date] = Query(None),
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get graph data for a utility type
+
+    Returns:
+    - Monthly time-series data (cost, usage, cost per unit)
+    - Provider comparison
+    - Rolling 12-month averages
+    """
+    graphs = UtilityService.get_utility_graphs(
+        db=db,
+        utility_type=utility_type,
+        start_date=start_date,
+        end_date=end_date
+    )
+
+    return UtilityGraphsResponse(**graphs)
 
 
 # Bank Accounts

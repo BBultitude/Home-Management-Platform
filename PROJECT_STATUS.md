@@ -3,21 +3,23 @@
 ## Project Information
 
 **Project Name:** Home Management Platform
-**Current Version:** v0.1.0 (Pre-release / Development)
-**Active Design Document:** Design-v1.md (Approved)
-**Project Phase:** Development - Sprint 1
-**Started:** 2025-02-01
-**Target v1.0 Release:** TBD
+**Current Version:** v0.5.0 (Development)
+**Active Design Document:** Design-v1.md (Locked - No Modifications)
+**Project Phase:** Development - All Planned Modules Complete
+**Started:** 2026-02-01
+**Last Updated:** 2026-02-15
+**Target v1.0 Release:** Ready for Production Testing
 
-## ⚠️ Existing Codebases Available for Porting
+## ✅ Completed Module Ports
 
-Two modules have existing implementations that will be ported during later sprints:
+**Meal Planner** (Ported from https://github.com/BBultitude/Meal-Planner):
+- ✅ Backend API fully implemented (recipes, meal plans, shopping lists)
+- ✅ Frontend UI complete (Sprint 21)
 
-1. **Cost-Benefit Decision** (Sprint 5): https://github.com/BBultitude/Cost-Benefit-Decision
-   - Node.js/Express + JSON → Port to Python/FastAPI + PostgreSQL
+## 📊 Overall Completion Status
 
-2. **Meal Planner** (Sprint 7): https://github.com/BBultitude/Meal-Planner
-   - Node.js/Express + JSON → Port to Python/FastAPI + PostgreSQL
+**Backend:** 100% Complete (All modules implemented)
+**Frontend:** 100% Complete (All planned modules implemented)
 
 ---
 
@@ -29,17 +31,110 @@ Two modules have existing implementations that will be ported during later sprin
 
 ---
 
-## Current Sprint: Sprint 4 - Assets & Documents Module
+## Recently Completed: Sprint 21 - Meal Planner UI
 
-**Sprint Goal:** Implement insurance vault and document storage
-**Sprint Duration:** TBD
-**Sprint Status:** ⚪ Not Started
+**Sprint Goal:** Build complete frontend UI for Meal Planner module (backend 100% complete)
+**Sprint Duration:** 4 hours
+**Sprint Status:** 🟢 Completed
+**Completed:** 2026-02-15
 
-### Previous Sprints
+### Sprint 21 Deliverables ✅
+- ✅ Created mealPlannerService.ts API wrapper
+- ✅ Built MealPlanner.tsx main page with three tabs (Recipes, Week Plan, Shopping List)
+- ✅ Implemented RecipesTab with full CRUD functionality
+  - Dynamic ingredient input with amount (number) + unit (dropdown)
+  - View-only recipe dialog with Eye icon
+  - Search functionality
+- ✅ Implemented WeekPlanTab with 7 numbered meal slots
+  - Maps to Monday-Sunday backend fields
+  - View recipe button on each meal slot
+  - Smart createOrUpdate pattern
+- ✅ Implemented ShoppingListTab with auto-generated consolidated list
+  - Smart ingredient combining (case-insensitive)
+  - Download functionality
+- ✅ Restructured ingredient data model (quantity_amount + quantity_unit)
+- ✅ Added database migration for ingredients table
+- ✅ Updated shopping list consolidation algorithm
+- ✅ Added /meals route to App.tsx
+- ✅ Sidebar navigation already exists
+- ✅ Added meals:write and meals:read permissions
+
+**Key Features:**
+- 15 standard measurement units (g, kg, oz, lb, ml, L, tsp, tbsp, cup, whole, piece, clove, bunch, to taste)
+- Intelligent ingredient consolidation (groups by name and unit, sums amounts)
+- Single current week plan (no historical data)
+- View recipes without editing from both tabs
+- Download shopping list as text file
+
+**Known Issues:**
+- 404 console message after deleting plan (expected behavior, try-catch handles it correctly)
+
+---
+
+## Sprint 20 - Knowledge Base + File Upload Integration
+
+**Sprint Goal:** Complete Household Knowledge Base UI (8 article types) and integrate file upload system into Assets and Projects modules
+**Sprint Duration:** 4-5 hours
+**Sprint Status:** 🟢 Completed
+**Completed:** 2026-02-15
+
+### Sprint 20 Deliverables ✅
+**File Upload System:**
+- ✅ Created fileService.ts API wrapper for /api/v1/files endpoints
+- ✅ Built FileUploadInput component with drag-and-drop support
+- ✅ Integrated file upload into DocumentsTab (Assets module) - replaced placeholder
+- ✅ Added optional file upload to InsurancePoliciesTab (policy documents)
+- ✅ Added optional file upload to QuotesTab (contractor quotes)
+- ✅ Client-side validation (20MB per file, allowed MIME types)
+- ✅ File display with download/delete functionality
+
+**Knowledge Base Module:**
+- ✅ Created knowledgeService.ts API wrapper for /api/v1/knowledge endpoints
+- ✅ Built main KnowledgeBase.tsx page with search and filtering
+- ✅ Implemented ArticleForm.tsx with 8 type-specific forms:
+  - Measurement (dimensions, room measurements)
+  - Paint (colors, finishes, coverage)
+  - TechDevice (routers, WiFi, credentials - backend encrypts passwords)
+  - StorageLocation (garage organization, items stored)
+  - Vehicle (maintenance, service history, insurance links)
+  - EmergencyContact (tradespeople, emergency numbers, pin to dashboard)
+  - Appliance (warranty tracking, service history, manuals)
+  - Vendor (contractors, ratings, service reviews)
+- ✅ Full-text search with PostgreSQL ts_rank
+- ✅ Tag-based filtering and organization
+- ✅ Added /knowledge route to App.tsx
+- ✅ Sidebar navigation already exists
+
+**Features:**
+- All 8 article types with validation and type-specific fields
+- File attachment support for articles (manuals, photos, documents)
+- Real-time search with 300ms debounce
+- Filter by article type and tags
+- Vehicle articles can link to insurance policies
+- Emergency contacts support "pin to dashboard" flag
+- Service history tracking for vehicles and appliances
+- Password encryption handled by backend (Fernet)
+
+**Known Issues:**
+- None - build successful, deployment verified
+
+### Completed Sprints Summary
 - **Sprint 0:** Foundation & Planning - 🟢 Completed (2026-02-02)
-- **Sprint 1:** Core Platform Services - 🟢 Completed (2026-02-02 to 2026-02-12)
-- **Sprint 2:** Tax Records Module (Backend) - 🟢 Completed (2026-02-13)
-- **Sprint 3:** Financial Management Module (Backend) - 🟢 Completed (2026-02-13)
+- **Sprint 1:** Core Platform Services (Auth, MFA, RBAC, Files, Audit) - 🟢 Completed (2026-02-02 to 2026-02-12)
+- **Sprint 2:** Tax Records Backend (WFH, Travel) - 🟢 Completed (2026-02-13)
+- **Sprint 3:** Financial Management Backend - 🟢 Completed (2026-02-13)
+- **Sprint 4:** Assets & Projects Backend - 🟢 Completed (2026-02-13)
+- **Sprint 5:** Knowledge Base Backend - 🟢 Completed (2026-02-13)
+- **Sprint 6:** Meal Planner Backend (Ported) - 🟢 Completed (2026-02-13)
+- **Sprint 12:** Frontend Foundation (React, Vite, TailwindCSS) - 🟢 Completed (2026-02-13)
+- **Sprint 13:** Core UI (Login, MFA, Layout, Navigation) - 🟢 Completed (2026-02-13)
+- **Sprint 14:** Admin Panel UI (User Management) - 🟢 Completed (2026-02-13)
+- **Sprint 15:** Tax Management UI (WFH, Travel, Summary) - 🟢 Completed (2026-02-14)
+- **Sprint 16:** Financial Management UI (Budget, Expenses, Income, Accounts) - 🟢 Completed (2026-02-14)
+- **Sprint 17:** Utility Tracking UI & Graphs - 🟢 Completed (2026-02-14)
+- **Sprint 18:** Assets Module UI (Documents, Insurance Policies) - 🟢 Completed (2026-02-14)
+- **Sprint 19:** Projects Module UI (Projects, Priorities, Quotes) - 🟢 Completed (2026-02-14)
+- **Sprint 20:** Knowledge Base UI + File Upload Integration - 🟢 Completed (2026-02-15)
 
 ### Sprint Tasks
 

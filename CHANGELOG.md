@@ -14,6 +14,156 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Automated backups to cloud storage
 - PWA support with offline capability
 - Performance optimizations
+- Cost-Benefit Decision module
+
+---
+
+## [0.5.0] - 2026-02-15
+
+### 🍽️ Sprint 21 - Meal Planner UI (Complete)
+
+Complete frontend implementation of the Meal Planner module with recipe management, weekly planning, and auto-generated shopping lists.
+
+### Added
+
+#### Meal Planner Module (`/meals`)
+- **RecipesTab**: Full CRUD for recipes with ingredients and cooking steps
+  - Dynamic ingredient input with separate amount (number) and unit (dropdown) fields
+  - 15 standard measurement units (g, kg, oz, lb, ml, L, tsp, tbsp, cup, whole, piece, clove, bunch, to taste)
+  - View-only recipe dialog with Eye icon (read without editing)
+  - Search functionality for recipes
+  - Ingredient count badge on recipe cards
+- **WeekPlanTab**: Weekly meal planning with 7 numbered meal slots
+  - Maps to Monday-Sunday backend fields
+  - Single current week plan (no historical data)
+  - View recipe button on each meal slot
+  - Smart createOrUpdate pattern (try update, fallback to create)
+  - Clear individual meals or entire plan
+- **ShoppingListTab**: Auto-generated consolidated shopping list
+  - Smart ingredient combining with case-insensitive matching
+  - Groups by (ingredient name, unit) and sums quantities
+  - Shows which recipes use each ingredient
+  - Download as text file
+  - Removed print functionality (download only)
+- **mealPlannerService.ts**: TypeScript API wrapper for meal planner operations
+
+#### Ingredient Data Model Restructure
+- Split `quantity` string into structured fields:
+  - `quantity_amount`: Decimal (numeric value)
+  - `quantity_unit`: MeasurementUnit enum (standardized unit)
+- Database migration (`d8f42a1b9c3e_update_ingredients_quantity_structure`)
+  - Adds `quantity_amount` and `quantity_unit` columns
+  - Migrates existing data with default values
+  - Drops old `quantity` column
+- Updated shopping list consolidation algorithm:
+  - Groups ingredients by lowercase name and unit
+  - Sums amounts for matching groups
+  - Formats as "300 g" instead of "300g, 100g"
+  - Handles pantry staples as "As needed"
+
+### Fixed
+- datetime.timedelta import bug in week_plan.py model
+- Recipe update 500 error (API endpoints now use quantity_amount/quantity_unit)
+- Ingredient combining case sensitivity (Chicken vs chicken now combine)
+- Week plan 404 error handling on delete then save (expected behavior)
+
+### Changed
+- Simplified week plan to current week only (no date pickers)
+- Updated meal planner schemas and services for new ingredient structure
+- Ingredient form layout: 5 cols name, 2 cols amount, 4 cols unit, 1 col delete
+- All dialogs use solid white backgrounds for consistency
+
+### Permissions
+- Added `meals:write` and `meals:read` to RBAC system
+
+---
+
+## [0.4.0] - 2026-02-15
+
+### 📝 Documentation & Status Update
+
+Updated project documentation to accurately reflect completion status:
+- Backend: 100% complete (all modules implemented)
+- Frontend: ~90% complete (Meal Planner UI pending)
+- All 15 completed sprints properly documented
+
+---
+
+## [0.3.0] - 2026-02-15
+
+### 🎨 Sprint 20 - Knowledge Base + File Upload Integration
+
+Complete implementation of the Household Knowledge Base module with 8 article types and file upload integration across Assets and Projects modules.
+
+### Added
+
+#### File Upload System
+- **FileUploadInput Component**: Reusable drag-and-drop file upload component
+  - Client-side validation (20MB per file, allowed MIME types: PDF, PNG, JPG, GIF, WEBP, TXT, CSV, XLSX)
+  - Upload progress indicator
+  - File preview with download/delete functionality
+  - Categories: INSURANCE, QUOTE, UTILITY, KNOWLEDGE, TAX, PROJECT, ASSET, OTHER
+  - Integrates with backend /api/v1/files endpoints
+- **fileService.ts**: TypeScript API wrapper for file operations
+  - upload(), get(), download(), delete(), list(), getQuota()
+  - Storage quota enforcement (200MB total, 20MB per file)
+
+#### Knowledge Base Module (`/knowledge`)
+- **KnowledgeBase.tsx**: Main page with unified article view
+  - Full-text search using PostgreSQL ts_rank with 300ms debounce
+  - Filter by article type and tags
+  - Article cards with type icons, tags, and attachment counts
+  - Create/Edit/Delete article functionality
+- **ArticleForm.tsx**: Dynamic type-specific forms for 8 article types
+- **knowledgeService.ts**: TypeScript API wrapper for knowledge base operations
+
+#### Knowledge Article Types
+1. **Measurement**: Room dimensions, window sizes, measurements
+   - Fields: location, measurement_type, value, unit, date_measured, notes
+2. **Paint**: Colors, finishes, coverage information
+   - Fields: room_area, surface_type, brand, product_line, color_name, color_code, finish, retailer
+3. **TechDevice**: Routers, modems, smart devices with credentials
+   - Fields: device_type, brand_model, location, IP, MAC, WiFi SSID/password, admin credentials
+   - **Backend encrypts passwords using Fernet**
+4. **StorageLocation**: Garage organization, item storage tracking
+   - Fields: storage_area, items_stored (array), category, last_updated
+5. **Vehicle**: Cars, motorcycles, bicycles with maintenance tracking
+   - Fields: make, model, year, VIN, registration, service_history, next_service
+   - **Links to insurance policies**
+6. **EmergencyContact**: Important contacts and service providers
+   - Fields: name, relationship_role, phones, email, category, when_to_call
+   - **Pin to dashboard flag for quick access**
+7. **Appliance**: Home appliances with warranty and service tracking
+   - Fields: appliance_type, brand, model, serial, warranty, service_history, energy_rating
+8. **Vendor**: Contractors and service providers with ratings
+   - Fields: business_name, service_type, contact info, rating (1-5 stars), cost_range, review
+
+### Enhanced
+
+#### Assets Module
+- **DocumentsTab**: Replaced file_id placeholder with FileUploadInput component
+  - Required file upload for all documents
+  - Download/delete functionality in table view
+- **InsurancePoliciesTab**: Added optional policy document upload
+  - Store insurance policy PDFs for reference
+
+#### Projects Module
+- **QuotesTab**: Added optional quote document upload
+  - Upload contractor quote PDFs for comparison
+  - Display in quote comparison table
+
+### Technical Details
+- **UI Components**: Added Checkbox component from @radix-ui/react-checkbox
+- **Type Safety**: All services use TypeScript type-only imports with verbatimModuleSyntax
+- **Toast Notifications**: Migrated from custom useToast to sonner throughout
+- **Validation**: Client-side and server-side validation for all article types
+- **Search**: Real-time full-text search with PostgreSQL tsvector
+- **File Attachments**: Many-to-many relationship between articles and files
+
+### Fixed
+- Type errors in InsurancePoliciesTab and QuotesTab document_id handling
+- Import statements using type-only imports for better type safety
+- NodeJS.Timeout replaced with ReturnType<typeof setTimeout> for compatibility
 
 ---
 
@@ -542,3 +692,10 @@ We recognize all contributors to this project:
 ---
 
 **Last Updated:** 2025-02-01
+
+---
+## Sprint Summary Archive
+
+### Sprint 12 - Frontend Foundation (2026-02-13)
+Completed initial React + TypeScript + Tailwind CSS setup with shadcn/ui components.
+

@@ -21,7 +21,7 @@ class QuoteCreate(BaseModel):
     expiry_date: Optional[date] = Field(None, description="Quote expiry date")
     scope_of_work: Optional[str] = Field(None, description="Scope of work description")
     selected: Optional[bool] = Field(False, description="Whether quote is selected")
-    document_id: Optional[UUID] = Field(None, description="ID of attached quote document")
+    document_id: Optional[int] = Field(None, description="ID of attached quote document")
     notes: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
@@ -37,7 +37,7 @@ class QuoteUpdate(BaseModel):
     expiry_date: Optional[date] = None
     scope_of_work: Optional[str] = None
     selected: Optional[bool] = None
-    document_id: Optional[UUID] = None
+    document_id: Optional[int] = None
     notes: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)

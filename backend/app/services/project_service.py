@@ -39,7 +39,6 @@ class ProjectService:
         project = Project(
             project_name=project_name,
             description=description,
-            priority_item_id=priority_item_id,
             status=project_status.value,
             start_date=start_date,
             completion_date=completion_date,
@@ -150,14 +149,10 @@ class ProjectService:
         project = ProjectService.get_project(db, project_id)
 
         # Unlink from priority item if exists
-        if project.priority_item_id:
-            from app.models.priority_item import PriorityItem, PriorityStatus
-            priority_item = db.query(PriorityItem).filter(
-                PriorityItem.id == project.priority_item_id
-            ).first()
-            if priority_item:
-                priority_item.project_id = None
-                priority_item.status = PriorityStatus.PENDING.value
+        if project.priority_item:
+            from app.models.priority_item import PriorityStatus
+            project.priority_item.project_id = None
+            project.priority_item.status = PriorityStatus.PENDING.value
 
         db.delete(project)
         db.commit()

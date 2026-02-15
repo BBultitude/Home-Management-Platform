@@ -5,15 +5,41 @@ Pydantic models for recipes, ingredients, week plans, and shopping lists
 
 from datetime import date
 from typing import Optional
+from decimal import Decimal
 from pydantic import BaseModel, Field, ConfigDict
 from uuid import UUID
+from enum import Enum
+
+
+# Measurement units enum
+class MeasurementUnit(str, Enum):
+    """Common measurement units"""
+    # Weight
+    G = "g"
+    KG = "kg"
+    OZ = "oz"
+    LB = "lb"
+    # Volume
+    ML = "ml"
+    L = "L"
+    TSP = "tsp"
+    TBSP = "tbsp"
+    CUP = "cup"
+    # Count
+    WHOLE = "whole"
+    PIECE = "piece"
+    CLOVE = "clove"
+    BUNCH = "bunch"
+    # Other
+    TO_TASTE = "to taste"
 
 
 # Ingredient schemas
 class IngredientCreate(BaseModel):
     """Schema for creating an ingredient"""
     name: str = Field(..., min_length=1, max_length=255, description="Ingredient name")
-    quantity: str = Field(..., min_length=1, max_length=100, description="Quantity (e.g., '300 g', '2 cups')")
+    quantity_amount: Decimal = Field(..., gt=0, description="Numeric quantity")
+    quantity_unit: MeasurementUnit = Field(..., description="Unit of measurement")
     sort_order: Optional[int] = Field(0, description="Display order in recipe")
 
     model_config = ConfigDict(from_attributes=True)
@@ -24,7 +50,8 @@ class IngredientResponse(BaseModel):
     id: str
     recipe_id: str
     name: str
-    quantity: str
+    quantity_amount: str  # String for JSON serialization
+    quantity_unit: str
     sort_order: int
 
     model_config = ConfigDict(from_attributes=True)

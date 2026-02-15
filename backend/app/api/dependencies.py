@@ -178,7 +178,24 @@ PERMISSION_MATRIX = {
     "financial:write": [UserRole.ADMIN, UserRole.EDITOR],
     "financial:read": [UserRole.ADMIN, UserRole.EDITOR, UserRole.READER],
 
-    # Insurance (Future modules)
+    # Assets & Documents (Active)
+    "assets:write": [UserRole.ADMIN, UserRole.EDITOR],
+    "assets:read": [UserRole.ADMIN, UserRole.EDITOR, UserRole.READER],
+
+    # Projects & Tasks (Active)
+    "projects:write": [UserRole.ADMIN, UserRole.EDITOR],
+    "projects:read": [UserRole.ADMIN, UserRole.EDITOR, UserRole.READER],
+
+    # Knowledge Base (Active)
+    "knowledge:write": [UserRole.ADMIN, UserRole.EDITOR],
+    "knowledge:read": [UserRole.ADMIN, UserRole.EDITOR, UserRole.READER],
+    "knowledge:admin": [UserRole.ADMIN],
+
+    # Meal Planner (Active)
+    "meals:write": [UserRole.ADMIN, UserRole.EDITOR],
+    "meals:read": [UserRole.ADMIN, UserRole.EDITOR, UserRole.READER],
+
+    # Insurance (Future modules - legacy keys)
     "insurance:create": [UserRole.ADMIN, UserRole.EDITOR],
     "insurance:update": [UserRole.ADMIN, UserRole.EDITOR],
     "insurance:delete": [UserRole.ADMIN],

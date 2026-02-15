@@ -75,3 +75,33 @@ class UtilityStatsResponse(BaseModel):
     entry_count: int
     period_start: Optional[date] = None
     period_end: Optional[date] = None
+
+
+class MonthlyDataPoint(BaseModel):
+    """Schema for monthly aggregated data point"""
+    month: str = Field(..., description="Month in YYYY-MM format")
+    cost: float = Field(..., description="Total cost for the month")
+    usage: float = Field(..., description="Total usage for the month")
+    cost_per_unit: float = Field(..., description="Average cost per unit for the month")
+    entry_count: int = Field(..., description="Number of entries in this month")
+
+
+class ProviderDataPoint(BaseModel):
+    """Schema for provider comparison data point"""
+    provider: str
+    total_cost: float
+    total_usage: float
+    average_cost_per_unit: float
+    entry_count: int
+    period_start: Optional[date] = None
+    period_end: Optional[date] = None
+
+
+class UtilityGraphsResponse(BaseModel):
+    """Schema for utility graphs data"""
+    utility_type: str
+    monthly_data: list[MonthlyDataPoint] = Field(..., description="Monthly time-series data")
+    provider_comparison: list[ProviderDataPoint] = Field(..., description="Comparison by provider")
+    rolling_12_month_avg_cost: float = Field(..., description="12-month rolling average cost")
+    rolling_12_month_avg_usage: float = Field(..., description="12-month rolling average usage")
+    total_entries: int = Field(..., description="Total number of entries analyzed")

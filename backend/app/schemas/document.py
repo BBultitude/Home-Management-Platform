@@ -20,7 +20,7 @@ class DocumentCreate(BaseModel):
     tags: Optional[list[str]] = Field(None, description="Document tags for search")
     uploaded_date: Optional[date] = Field(None, description="Upload date (defaults to today)")
     expiry_date: Optional[date] = Field(None, description="Document expiry date")
-    file_id: UUID = Field(..., description="ID of uploaded file")
+    file_id: int = Field(..., description="ID of uploaded file")
 
     model_config = ConfigDict(from_attributes=True)
 

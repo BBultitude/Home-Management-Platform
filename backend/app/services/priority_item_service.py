@@ -222,7 +222,6 @@ class PriorityItemService:
         project = Project(
             project_name=project_name,
             description=description or item.description,
-            priority_item_id=item.id,
             status=ProjectStatus.PLANNED.value,
             budget=budget or item.cost,
             notes=notes

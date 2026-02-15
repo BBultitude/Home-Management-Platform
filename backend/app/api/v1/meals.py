@@ -48,7 +48,8 @@ async def create_recipe(
     ingredients_data = [
         {
             "name": ing.name,
-            "quantity": ing.quantity,
+            "quantity_amount": ing.quantity_amount,
+            "quantity_unit": ing.quantity_unit,
             "sort_order": ing.sort_order
         }
         for ing in recipe_data.ingredients
@@ -131,7 +132,8 @@ async def update_recipe(
         ingredients_data = [
             {
                 "name": ing.name,
-                "quantity": ing.quantity,
+                "quantity_amount": ing.quantity_amount,
+                "quantity_unit": ing.quantity_unit,
                 "sort_order": ing.sort_order
             }
             for ing in recipe_data.ingredients
