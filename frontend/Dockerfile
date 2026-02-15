@@ -14,8 +14,9 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Install all dependencies (including devDependencies needed for build)
+# Note: TypeScript, Vite, and other build tools are in devDependencies
+RUN npm ci
 
 # Copy source code
 COPY . .
