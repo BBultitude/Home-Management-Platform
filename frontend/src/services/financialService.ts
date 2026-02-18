@@ -4,7 +4,7 @@ import { apiClient } from '@/lib/api';
 // INCOME SOURCES
 // ============================================================================
 
-export type IncomeFrequency = 'daily' | 'weekly' | 'fortnightly' | 'monthly' | 'yearly';
+export type IncomeFrequency = 'daily' | 'weekly' | 'fortnightly' | 'monthly' | 'bi_monthly' | 'quarterly' | 'semi_annually' | 'yearly';
 
 export interface IncomeSource {
   id: number;
@@ -98,7 +98,7 @@ export interface ExpenseCategoryListResponse {
 // EXPENSES
 // ============================================================================
 
-export type ExpenseFrequency = 'daily' | 'weekly' | 'fortnightly' | 'monthly' | 'yearly';
+export type ExpenseFrequency = 'daily' | 'weekly' | 'fortnightly' | 'monthly' | 'bi_monthly' | 'quarterly' | 'semi_annually' | 'yearly';
 
 export interface Expense {
   id: number;

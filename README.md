@@ -74,7 +74,6 @@ See [PROJECT_STATUS.md](./PROJECT_STATUS.md) for detailed sprint history and [CH
 - **[FUTURE_PLANS.md](./FUTURE_PLANS.md)** - Roadmap for v1.1+
 - **[CONTRIBUTING.md](./CONTRIBUTING.md)** - Development guidelines
 - **[KNOWN_ISSUES.md](./KNOWN_ISSUES.md)** - Known limitations
-- **[UI_ISSUES.md](./UI_ISSUES.md)** - UI considerations (frontend pending)
 
 ---
 
@@ -372,9 +371,129 @@ The platform consists of five core modules:
 
 ### Backups & Data Safety
 - ⚠️ **Backups are MANUAL and at admin's discretion** (by design for home use)
-- Admin is responsible for establishing backup routine
-- Recommended: Weekly backups to external drive, OneDrive, NAS, etc.
-- See [KNOWN_ISSUES.md](./KNOWN_ISSUES.md) for backup procedures
+- Three items require backing up: **database**, **uploaded files**, and **secrets**
+- See [Backup & Restore](#-backup--restore) section below for commands and schedule
+
+---
+
+## 💾 Backup & Restore
+
+### What Needs Backing Up
+
+Three items must be backed up to fully restore the system:
+
+| Item | Location on Pi | Contents |
+|------|---------------|----------|
+| **Database** | (use `pg_dump`) | All user data — financials, meals, projects, tax records, etc. |
+| **Uploaded files** | `/srv/sda1/Appdata/homemanager/uploads` | Insurance PDFs, quotes, documents |
+| **Secrets** | `/srv/sda1/Appdata/homemanager/secrets` | DB password, JWT key, MFA encryption key |
+
+> ⚠️ **Without the MFA encryption key, MFA secrets stored in the database cannot be decrypted.** Back up secrets separately from the database and store securely.
+
+---
+
+### Backup Script
+
+Save as `/home/pi/backup-homemanager.sh` and make executable (`chmod +x`):
+
+```bash
+#!/bin/bash
+# Home Manager Backup Script
+# Usage: ./backup-homemanager.sh
+# Recommended: run weekly via cron
+
+COMPOSE_FILE="/home/pi/Home-Management-Platform/docker-compose.pi.yml"
+BACKUP_ROOT="/srv/sda1/Backups/homemanager"   # change to your backup location
+DATE=$(date +%Y%m%d_%H%M%S)
+BACKUP_DIR="$BACKUP_ROOT/homemanager_$DATE"
+
+mkdir -p "$BACKUP_DIR"
+
+echo "[1/3] Backing up database..."
+docker compose -f "$COMPOSE_FILE" exec -T database \
+  pg_dump -U homeuser homedb > "$BACKUP_DIR/database.sql"
+
+echo "[2/3] Backing up uploaded files..."
+cp -r /srv/sda1/Appdata/homemanager/uploads "$BACKUP_DIR/uploads"
+
+echo "[3/3] Backing up secrets..."
+cp -r /srv/sda1/Appdata/homemanager/secrets "$BACKUP_DIR/secrets"
+
+echo "Compressing..."
+tar -czf "$BACKUP_ROOT/homemanager_$DATE.tar.gz" -C "$BACKUP_ROOT" "homemanager_$DATE"
+rm -rf "$BACKUP_DIR"
+
+echo "Done: $BACKUP_ROOT/homemanager_$DATE.tar.gz"
+```
+
+Change `BACKUP_ROOT` to your preferred destination:
+- External USB: `/media/pi/BACKUPDRIVE/homemanager`
+- NAS: `/mnt/nas/homemanager`
+- Or use `rclone` to sync to OneDrive/Google Drive after the script completes
+
+---
+
+### Manual Backup Commands
+
+```bash
+# Database dump
+docker compose -f docker-compose.pi.yml exec -T database \
+  pg_dump -U homeuser homedb > ~/homemanager-db-$(date +%Y%m%d).sql
+
+# Uploaded files
+tar -czf ~/homemanager-uploads-$(date +%Y%m%d).tar.gz \
+  /srv/sda1/Appdata/homemanager/uploads
+
+# Secrets (store securely — do not leave on the Pi unprotected)
+tar -czf ~/homemanager-secrets-$(date +%Y%m%d).tar.gz \
+  /srv/sda1/Appdata/homemanager/secrets
+```
+
+---
+
+### Restore Procedure
+
+```bash
+# 1. Extract backup archive
+tar -xzf homemanager_YYYYMMDD_HHMMSS.tar.gz
+
+# 2. Restore secrets first
+cp homemanager_YYYYMMDD_HHMMSS/secrets/* /srv/sda1/Appdata/homemanager/secrets/
+
+# 3. Start only the database container
+docker compose -f docker-compose.pi.yml up -d database
+
+# Wait for it to be ready, then restore the dump
+cat homemanager_YYYYMMDD_HHMMSS/database.sql | \
+  docker compose -f docker-compose.pi.yml exec -T database \
+  psql -U homeuser homedb
+
+# 4. Restore uploaded files
+cp -r homemanager_YYYYMMDD_HHMMSS/uploads/* /srv/sda1/Appdata/homemanager/uploads/
+
+# 5. Start all services
+docker compose -f docker-compose.pi.yml up -d
+```
+
+---
+
+### Recommended Schedule
+
+| Frequency | What |
+|-----------|------|
+| **Weekly** | Full backup (script above) |
+| **After major data entry** | Manual database dump |
+| **After any secret rotation** | Re-backup secrets directory |
+| **Before any upgrade/migration** | Full backup before `git pull` + rebuild |
+
+---
+
+### Retention Recommendation
+
+Keep at minimum:
+- Last **4 weekly** backups (rolling)
+- **1 monthly** backup for at least 12 months
+- Tax year snapshots indefinitely (ATO 5-year requirement)
 
 ---
 
@@ -440,7 +559,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for development workflow and coding gui
 
 ## Development Workflow
 
-> **Note:** Development has not yet started. This section will be updated once implementation begins.
+> **Note:** The platform is fully deployed in production on a Raspberry Pi. The below commands are for local development only.
 
 ### Local Development (Planned)
 
@@ -483,7 +602,6 @@ npx playwright test
 - Architecture: [Design-v1.md](./Design-v1.md)
 - Sprint Planning: [PROJECT_STATUS.md](./PROJECT_STATUS.md)
 - Known Issues: [KNOWN_ISSUES.md](./KNOWN_ISSUES.md)
-- UI Issues: [UI_ISSUES.md](./UI_ISSUES.md)
 
 **External References:**
 - FastAPI: https://fastapi.tiangolo.com
@@ -508,6 +626,5 @@ Private household project. Not licensed for public distribution.
 
 ---
 
-**Last Updated:** 2025-02-01  
-**Project Status:** Planning & Architecture Phase  
-**Next Milestone:** Design-v1.md Approval
+**Last Updated:** 2026-02-18
+**Project Status:** v1.0 Production — deployed on Raspberry Pi
