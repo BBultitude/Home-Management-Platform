@@ -74,9 +74,9 @@ class DashboardService:
 
         # Quote expiries
         quotes_expiring = db.query(Quote).filter(
-            Quote.expires_at.isnot(None),
-            Quote.expires_at.between(today, threshold_30),
-            Quote.is_selected == False
+            Quote.expiry_date.isnot(None),
+            Quote.expiry_date.between(today, threshold_30),
+            Quote.selected == False
         ).count()
 
         return {
@@ -105,7 +105,7 @@ class DashboardService:
             Dictionary with top priority items sorted by net_score
         """
         top_priorities = db.query(PriorityItem).filter(
-            PriorityItem.status == PriorityStatus.IDENTIFIED
+            PriorityItem.status == PriorityStatus.PENDING.value
         ).order_by(
             PriorityItem.net_score.desc()
         ).limit(limit).all()
@@ -114,16 +114,16 @@ class DashboardService:
             "top_priorities": [
                 {
                     "id": str(p.id),
-                    "name": p.name,
+                    "name": p.description,
                     "net_score": p.net_score,
                     "benefit_score": p.benefit_score,
                     "cost_score": p.cost_score,
-                    "estimated_cost": float(p.estimated_cost)
+                    "estimated_cost": float(p.cost)
                 }
                 for p in top_priorities
             ],
             "total_priorities": db.query(PriorityItem).filter(
-                PriorityItem.status == PriorityStatus.IDENTIFIED
+                PriorityItem.status == PriorityStatus.PENDING.value
             ).count()
         }
 
