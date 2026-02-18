@@ -136,7 +136,7 @@ export interface ExpenseListResponse {
 // UTILITIES
 // ============================================================================
 
-export type UtilityType = 'electricity' | 'gas' | 'water' | 'internet' | 'mobile' | 'rates';
+export type UtilityType = 'electricity' | 'gas' | 'water' | 'rates';
 
 export interface Utility {
   id: number;
@@ -144,10 +144,12 @@ export interface Utility {
   provider: string;
   billing_period_start: string;
   billing_period_end: string;
-  usage: number;
-  unit: string;
+  usage: number | null;
+  unit: string | null;
   cost: number;
-  cost_per_unit: number;
+  cost_per_unit: number | null;
+  solar_feed_in: number | null;
+  solar_feed_in_credit: number | null;
   attachment_id: number | null;
   notes: string | null;
   created_at: string;
@@ -159,9 +161,11 @@ export interface UtilityCreate {
   provider: string;
   billing_period_start: string;
   billing_period_end: string;
-  usage: number;
-  unit: string;
+  usage: number | null;
+  unit: string | null;
   cost: number;
+  solar_feed_in?: number | null;
+  solar_feed_in_credit?: number | null;
   attachment_id?: number;
   notes?: string;
 }
@@ -171,9 +175,11 @@ export interface UtilityUpdate {
   provider?: string;
   billing_period_start?: string;
   billing_period_end?: string;
-  usage?: number;
-  unit?: string;
+  usage?: number | null;
+  unit?: string | null;
   cost?: number;
+  solar_feed_in?: number | null;
+  solar_feed_in_credit?: number | null;
   attachment_id?: number;
   notes?: string;
 }

@@ -7,6 +7,9 @@ export const FREQUENCY_MULTIPLIERS = {
   weekly: 4.33,
   fortnightly: 2.17,
   monthly: 1,
+  bi_monthly: 0.5,  // Every 2 months
+  quarterly: 0.333,  // Every 3 months
+  semi_annually: 0.1667,  // Every 6 months
   yearly: 0.0833,
 } as const;
 
@@ -36,5 +39,16 @@ export function formatCurrency(amount: number): string {
  * Format frequency for display
  */
 export function formatFrequency(frequency: FrequencyType): string {
-  return frequency.charAt(0).toUpperCase() + frequency.slice(1);
+  const displayNames: Record<FrequencyType, string> = {
+    daily: 'Daily',
+    weekly: 'Weekly',
+    fortnightly: 'Fortnightly',
+    monthly: 'Monthly',
+    bi_monthly: 'Bi-Monthly',
+    quarterly: 'Quarterly',
+    semi_annually: 'Semi-Annually',
+    yearly: 'Yearly',
+  };
+
+  return displayNames[frequency] || frequency;
 }

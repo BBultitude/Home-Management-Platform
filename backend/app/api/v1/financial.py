@@ -230,6 +230,8 @@ async def create_utility(
         usage=utility_data.usage,
         unit=utility_data.unit,
         cost=utility_data.cost,
+        solar_feed_in=utility_data.solar_feed_in,
+        solar_feed_in_credit=utility_data.solar_feed_in_credit,
         attachment_id=utility_data.attachment_id,
         notes=utility_data.notes
     )
@@ -295,6 +297,8 @@ async def update_utility(
         usage=utility_data.usage,
         unit=utility_data.unit,
         cost=utility_data.cost,
+        solar_feed_in=utility_data.solar_feed_in,
+        solar_feed_in_credit=utility_data.solar_feed_in_credit,
         attachment_id=utility_data.attachment_id,
         notes=utility_data.notes
     )

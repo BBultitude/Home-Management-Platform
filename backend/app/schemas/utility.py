@@ -17,9 +17,11 @@ class UtilityCreate(BaseModel):
     provider: str = Field(..., min_length=1, max_length=255, description="Provider name")
     billing_period_start: date = Field(..., description="Billing period start date")
     billing_period_end: date = Field(..., description="Billing period end date")
-    usage: Decimal = Field(..., gt=0, description="Usage amount")
-    unit: str = Field(..., min_length=1, max_length=50, description="Unit of measurement")
+    usage: Optional[Decimal] = Field(None, gt=0, description="Usage amount (optional for fixed-cost utilities like rates)")
+    unit: Optional[str] = Field(None, min_length=1, max_length=50, description="Unit of measurement (kWh, bottles, m³, etc.)")
     cost: Decimal = Field(..., gt=0, description="Total cost")
+    solar_feed_in: Optional[Decimal] = Field(None, ge=0, description="Electricity fed to grid (kWh, electricity only)")
+    solar_feed_in_credit: Optional[Decimal] = Field(None, ge=0, description="Credit received for solar feed-in ($)")
     attachment_id: Optional[int] = Field(None, description="Optional bill PDF file ID")
     notes: Optional[str] = Field(None, max_length=500)
 
@@ -32,9 +34,11 @@ class UtilityUpdate(BaseModel):
     provider: Optional[str] = Field(None, min_length=1, max_length=255)
     billing_period_start: Optional[date] = None
     billing_period_end: Optional[date] = None
-    usage: Optional[Decimal] = Field(None, gt=0)
+    usage: Optional[Decimal] = Field(None, gt=0, description="Usage amount (can be None for fixed-cost)")
     unit: Optional[str] = Field(None, min_length=1, max_length=50)
     cost: Optional[Decimal] = Field(None, gt=0)
+    solar_feed_in: Optional[Decimal] = Field(None, ge=0, description="Electricity fed to grid (kWh)")
+    solar_feed_in_credit: Optional[Decimal] = Field(None, ge=0, description="Credit for solar feed-in ($)")
     attachment_id: Optional[int] = None
     notes: Optional[str] = Field(None, max_length=500)
 
@@ -48,10 +52,12 @@ class UtilityResponse(BaseModel):
     provider: str
     billing_period_start: date
     billing_period_end: date
-    usage: float
-    unit: str
+    usage: Optional[float]  # None for fixed-cost utilities
+    unit: Optional[str]  # None for fixed-cost utilities
     cost: float
-    cost_per_unit: float
+    cost_per_unit: Optional[float]  # None for fixed-cost utilities
+    solar_feed_in: Optional[float]  # Electricity fed to grid (kWh)
+    solar_feed_in_credit: Optional[float]  # Credit for solar feed-in ($)
     attachment_id: Optional[int]
     notes: Optional[str]
     created_at: datetime

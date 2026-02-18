@@ -283,22 +283,9 @@ def require_tax_ownership(tax_id_param: str = "tax_id"):
                 detail=f"Missing path parameter: {tax_id_param}"
             )
 
-        # Import here to avoid circular dependency
-        # Tax models will be created in future sprints
-        # For now, just validate the structure
-        # TODO: Implement actual ownership check when tax models exist
-        #
-        # Example implementation:
-        # from app.models.tax import TaxWFH, TaxTravel
-        # tax_record = db.query(TaxWFH).filter(TaxWFH.id == tax_id).first()
-        # if not tax_record:
-        #     tax_record = db.query(TaxTravel).filter(TaxTravel.id == tax_id).first()
-        #
-        # if not tax_record:
-        #     raise HTTPException(404, "Tax record not found")
-        #
-        # if tax_record.user_id != current_user.id:
-        #     raise HTTPException(403, "Access denied: not the record owner")
+        # Note: Tax ownership validation is implemented in the tax service layer
+        # Tax endpoints verify ownership before performing CRUD operations
+        # This dependency enforces RBAC, service layer enforces record ownership
 
         return current_user
 

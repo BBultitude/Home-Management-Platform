@@ -12,6 +12,8 @@
 docs/
 *.md
 !README.md
+*.txt
+DEPLOYMENT_STATUS.txt
 
 # IDE
 .vscode/
@@ -19,6 +21,9 @@ docs/
 *.swp
 *.swo
 *~
+
+# Claude Code (AI assistant local settings)
+.claude/
 
 # CI/CD
 .github/
@@ -36,6 +41,14 @@ secrets/
 *.pem
 *.key
 *.crt
+
+# Environment files (use Docker env/secrets instead)
+.env
+.env.*
+!.env.example
+
+# Scripts (ops/admin scripts, not needed in containers)
+scripts/
 
 # Backups
 backups/

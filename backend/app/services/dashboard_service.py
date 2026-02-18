@@ -16,7 +16,6 @@ from app.models.project import Project, ProjectStatus
 from app.models.quote import Quote
 from app.models.week_plan import WeekPlan
 from app.models.expense import Expense
-from app.models.utility import Utility
 from app.models.notification import Notification
 
 
@@ -223,11 +222,6 @@ class DashboardService:
             Expense.expense_date.between(month_start, month_end)
         ).scalar() or 0
 
-        # Utility costs this month
-        utility_costs = db.query(func.sum(Utility.total_cost)).filter(
-            Utility.bill_date.between(month_start, month_end)
-        ).scalar() or 0
-
         # Upcoming insurance premiums (next 30 days)
         threshold_30 = today + timedelta(days=30)
         upcoming_premiums = db.query(func.sum(InsurancePolicy.premium_amount)).filter(
@@ -236,7 +230,6 @@ class DashboardService:
 
         return {
             "monthly_expenses": float(monthly_expenses),
-            "utility_costs_this_month": float(utility_costs),
             "upcoming_insurance_premiums": float(upcoming_premiums),
             "month": today.strftime("%B %Y")
         }

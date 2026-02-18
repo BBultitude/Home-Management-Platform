@@ -22,6 +22,9 @@ class BudgetService:
         IncomeFrequency.WEEKLY: Decimal("4.33"),
         IncomeFrequency.FORTNIGHTLY: Decimal("2.17"),
         IncomeFrequency.MONTHLY: Decimal("1"),
+        IncomeFrequency.BI_MONTHLY: Decimal("0.5"),  # Every 2 months
+        IncomeFrequency.QUARTERLY: Decimal("0.333"),  # Every 3 months
+        IncomeFrequency.SEMI_ANNUALLY: Decimal("0.1667"),  # Every 6 months
         IncomeFrequency.YEARLY: Decimal("0.0833"),
     }
 
@@ -30,6 +33,9 @@ class BudgetService:
         ExpenseFrequency.WEEKLY: Decimal("4.33"),
         ExpenseFrequency.FORTNIGHTLY: Decimal("2.17"),
         ExpenseFrequency.MONTHLY: Decimal("1"),
+        ExpenseFrequency.BI_MONTHLY: Decimal("0.5"),  # Every 2 months
+        ExpenseFrequency.QUARTERLY: Decimal("0.333"),  # Every 3 months
+        ExpenseFrequency.SEMI_ANNUALLY: Decimal("0.1667"),  # Every 6 months
         ExpenseFrequency.YEARLY: Decimal("0.0833"),
     }
 

@@ -3,11 +3,13 @@ Security utilities for authentication and authorization
 """
 
 import re
+import hashlib
 from datetime import datetime, timedelta
 from typing import Optional
 from passlib.context import CryptContext
 from jose import JWTError, jwt
 from cryptography.fernet import Fernet
+from fastapi import Request
 
 from app.core.config import settings
 
@@ -216,3 +218,123 @@ def validate_password_policy(password: str) -> tuple[bool, Optional[str]]:
     # Future enhancement: Check against haveibeenpwned API for breach detection
 
     return True, None
+
+
+# Device fingerprinting utilities for trusted device feature
+def generate_device_fingerprint(request: Request) -> str:
+    """
+    Generate a stable device fingerprint from request headers
+
+    Uses User-Agent header hashed with SHA-256 to create a semi-stable
+    identifier that works across IP changes (important for mobile devices).
+
+    Privacy-friendly approach: Only User-Agent, no IP tracking.
+
+    Args:
+        request: FastAPI Request object
+
+    Returns:
+        SHA-256 hex digest (64 characters)
+
+    Example:
+        "a3f5b8c2d1e4..."
+    """
+    user_agent = request.headers.get("User-Agent", "unknown")
+
+    # Hash the user agent to create stable identifier
+    fingerprint = hashlib.sha256(user_agent.encode()).hexdigest()
+
+    return fingerprint
+
+
+def parse_device_name(request: Request) -> str:
+    """
+    Parse user agent string to extract readable device name
+
+    Examples:
+        "Chrome 120 on Windows 10"
+        "Firefox 121 on macOS"
+        "Safari on iPhone"
+        "Edge 120 on Windows 11"
+
+    Args:
+        request: FastAPI Request object
+
+    Returns:
+        Human-readable device name
+    """
+    user_agent = request.headers.get("User-Agent", "Unknown Device")
+
+    # Simple parsing - extract browser and OS
+    # This is a basic implementation; could use user-agents library for more accuracy
+
+    ua_lower = user_agent.lower()
+
+    # Detect browser
+    if "edg/" in ua_lower or "edge/" in ua_lower:
+        browser = "Edge"
+    elif "chrome/" in ua_lower and "edg/" not in ua_lower:
+        browser = "Chrome"
+    elif "firefox/" in ua_lower:
+        browser = "Firefox"
+    elif "safari/" in ua_lower and "chrome/" not in ua_lower:
+        browser = "Safari"
+    elif "opera/" in ua_lower or "opr/" in ua_lower:
+        browser = "Opera"
+    else:
+        browser = "Browser"
+
+    # Detect OS
+    if "windows nt 10" in ua_lower:
+        os_name = "Windows 10/11"
+    elif "windows nt 6.3" in ua_lower:
+        os_name = "Windows 8.1"
+    elif "windows nt 6.2" in ua_lower:
+        os_name = "Windows 8"
+    elif "windows nt 6.1" in ua_lower:
+        os_name = "Windows 7"
+    elif "mac os x" in ua_lower or "macos" in ua_lower:
+        os_name = "macOS"
+    elif "iphone" in ua_lower:
+        os_name = "iPhone"
+    elif "ipad" in ua_lower:
+        os_name = "iPad"
+    elif "android" in ua_lower:
+        os_name = "Android"
+    elif "linux" in ua_lower:
+        os_name = "Linux"
+    else:
+        os_name = "Unknown OS"
+
+    return f"{browser} on {os_name}"
+
+
+def get_client_ip(request: Request) -> str:
+    """
+    Extract client IP address from request
+
+    Checks X-Forwarded-For header first (for proxies/load balancers),
+    then falls back to direct client IP.
+
+    Args:
+        request: FastAPI Request object
+
+    Returns:
+        Client IP address (IPv4 or IPv6)
+    """
+    # Check for proxy headers (Cloudflare, Nginx, etc.)
+    forwarded_for = request.headers.get("X-Forwarded-For")
+    if forwarded_for:
+        # X-Forwarded-For can be comma-separated list; take first IP
+        return forwarded_for.split(",")[0].strip()
+
+    # Check for Cloudflare header
+    cf_connecting_ip = request.headers.get("CF-Connecting-IP")
+    if cf_connecting_ip:
+        return cf_connecting_ip
+
+    # Fallback to direct client IP
+    if request.client:
+        return request.client.host
+
+    return "unknown"

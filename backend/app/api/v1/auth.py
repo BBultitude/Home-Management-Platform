@@ -24,7 +24,12 @@ from app.api.dependencies import (
 )
 from app.models.user import User
 from app.core.config import settings, is_development
-from app.core.security import decode_access_token
+from app.core.security import (
+    decode_access_token,
+    generate_device_fingerprint,
+    parse_device_name,
+    get_client_ip,
+)
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -79,6 +84,7 @@ async def register_user(
 )
 async def login(
     user_data: UserLogin,
+    request: Request,
     response: Response,
     db: Session = Depends(get_db)
 ):
@@ -117,10 +123,34 @@ async def login(
 
     # Check if MFA is enabled
     if user.mfa_enabled:
-        # Check for trusted device
-        # TODO: Implement device fingerprinting from request headers
-        # For now, always require MFA
+        # Check if this device is trusted
+        device_fingerprint = generate_device_fingerprint(request)
+        trusted_device = MFAService.verify_trusted_device(db, user.id, device_fingerprint)
 
+        if trusted_device:
+            # Device is trusted - skip MFA and proceed with login
+            access_token = AuthService.create_session_token(user)
+
+            # Set HTTP-only cookie
+            response.set_cookie(
+                key="access_token",
+                value=access_token,
+                httponly=True,
+                secure=not is_development(),
+                samesite="strict",
+                max_age=int(timedelta(hours=settings.ACCESS_TOKEN_EXPIRE_HOURS).total_seconds())
+            )
+
+            # Update last login
+            AuthService.update_last_login(db, user)
+
+            return LoginResponse(
+                user=UserResponse.model_validate(user),
+                requires_mfa=False,
+                message="Login successful (trusted device)"
+            )
+
+        # Device not trusted - require MFA verification
         # Create temporary MFA pending token (5 min expiry)
         mfa_token = AuthService.create_mfa_pending_token(user)
 
@@ -246,16 +276,29 @@ async def verify_mfa(
     # Update last login
     AuthService.update_last_login(db, user)
 
-    # TODO: Handle remember_device flag
-    # if mfa_data.remember_device:
-    #     # Extract device fingerprint from headers
-    #     # Create trusted device entry
-    #     pass
+    # Handle remember_device flag - create trusted device entry
+    if mfa_data.remember_device:
+        device_fingerprint = generate_device_fingerprint(request)
+        device_name = parse_device_name(request)
+        ip_address = get_client_ip(request)
+        user_agent = request.headers.get("User-Agent", "Unknown")
+
+        # Create trusted device entry (30-day expiry)
+        MFAService.create_trusted_device(
+            db=db,
+            user_id=user.id,
+            device_name=device_name,
+            device_fingerprint=device_fingerprint,
+            ip_address=ip_address,
+            user_agent=user_agent
+        )
 
     return LoginResponse(
         user=UserResponse.model_validate(user),
         requires_mfa=False,
-        message="MFA verification successful. Login complete."
+        message="MFA verification successful. Login complete." + (
+            " This device is now trusted for 30 days." if mfa_data.remember_device else ""
+        )
     )
 
 

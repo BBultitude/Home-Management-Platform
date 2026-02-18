@@ -32,10 +32,16 @@ env.bak/
 venv.bak/
 
 # IDEs
-.vscode/
+.vscode/*
+!.vscode/extensions.json
 .idea/
 *.swp
 *.swo
+*.sw?
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
 *~
 .DS_Store
 
@@ -79,10 +85,19 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-.pnpm-debug.log*
+pnpm-debug.log*
+lerna-debug.log*
 dist/
 dist-ssr/
 *.local
+
+# Frontend build caches
+.vite/
+.turbo/
+.nyc_output/
+
+# TypeScript
+*.tsbuildinfo
 
 # Build artifacts
 *.pyc
@@ -173,3 +188,11 @@ docker-data/
 dev.db
 test.db
 local.db
+
+# Claude Code (AI assistant local settings - machine specific)
+.claude/
+
+# Environment overrides (root-level, not the committed .env.example)
+.env
+.env.local
+.env.*.local

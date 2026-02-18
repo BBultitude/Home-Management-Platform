@@ -18,6 +18,9 @@ class ExpenseFrequency(str, Enum):
     WEEKLY = "weekly"
     FORTNIGHTLY = "fortnightly"
     MONTHLY = "monthly"
+    BI_MONTHLY = "bi_monthly"  # Every 2 months
+    QUARTERLY = "quarterly"  # Every 3 months
+    SEMI_ANNUALLY = "semi_annually"  # Every 6 months
     YEARLY = "yearly"
 
     def __str__(self) -> str:

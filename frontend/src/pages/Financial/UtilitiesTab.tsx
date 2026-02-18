@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Plus, Pencil, Trash2, Zap, Flame, Droplet, Wifi, Smartphone, Home } from 'lucide-react';
-import { format } from 'date-fns';
+import { Plus, Pencil, Trash2, Zap, Flame, Droplet, Home } from 'lucide-react';
+import { format, differenceInDays } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -44,6 +44,8 @@ export function UtilitiesTab() {
   const [formUsage, setFormUsage] = useState('');
   const [formUnit, setFormUnit] = useState('');
   const [formCost, setFormCost] = useState('');
+  const [formSolarFeedIn, setFormSolarFeedIn] = useState('');
+  const [formSolarFeedInCredit, setFormSolarFeedInCredit] = useState('');
   const [formNotes, setFormNotes] = useState('');
 
   // Fetch utilities
@@ -85,34 +87,7 @@ export function UtilitiesTab() {
     fetchUtilities();
   }, [typeFilter, startDateFilter, endDateFilter]);
 
-  const handleOpenDialog = (utility?: Utility) => {
-    if (utility) {
-      setEditingUtility(utility);
-      setFormType(utility.utility_type);
-      setFormProvider(utility.provider);
-      setFormPeriodStart(new Date(utility.billing_period_start));
-      setFormPeriodEnd(new Date(utility.billing_period_end));
-      setFormUsage(utility.usage.toString());
-      setFormUnit(utility.unit);
-      setFormCost(utility.cost.toString());
-      setFormNotes(utility.notes || '');
-    } else {
-      setEditingUtility(null);
-      setFormType('electricity');
-      setFormProvider('');
-      setFormPeriodStart(undefined);
-      setFormPeriodEnd(undefined);
-      setFormUsage('');
-      setFormUnit('kWh');
-      setFormCost('');
-      setFormNotes('');
-    }
-    setShowDialog(true);
-  };
-
-  const handleCloseDialog = () => {
-    setShowDialog(false);
-    setEditingUtility(null);
+  const resetForm = () => {
     setFormType('electricity');
     setFormProvider('');
     setFormPeriodStart(undefined);
@@ -120,12 +95,50 @@ export function UtilitiesTab() {
     setFormUsage('');
     setFormUnit('kWh');
     setFormCost('');
+    setFormSolarFeedIn('');
+    setFormSolarFeedInCredit('');
     setFormNotes('');
   };
 
+  const handleOpenDialog = (utility?: Utility) => {
+    if (utility) {
+      setEditingUtility(utility);
+      setFormType(utility.utility_type);
+      setFormProvider(utility.provider);
+      setFormPeriodStart(new Date(utility.billing_period_start));
+      setFormPeriodEnd(new Date(utility.billing_period_end));
+      setFormUsage(utility.usage !== null && utility.usage !== undefined ? utility.usage.toString() : '');
+      setFormUnit(utility.unit || '');
+      setFormCost(utility.cost.toString());
+      setFormSolarFeedIn(utility.solar_feed_in !== null && utility.solar_feed_in !== undefined ? utility.solar_feed_in.toString() : '');
+      setFormSolarFeedInCredit(utility.solar_feed_in_credit !== null && utility.solar_feed_in_credit !== undefined ? utility.solar_feed_in_credit.toString() : '');
+      setFormNotes(utility.notes || '');
+    } else {
+      setEditingUtility(null);
+      resetForm();
+    }
+    setShowDialog(true);
+  };
+
+  const handleCloseDialog = () => {
+    setShowDialog(false);
+    setEditingUtility(null);
+    resetForm();
+  };
+
   const handleSubmit = async () => {
-    if (!formProvider || !formPeriodStart || !formPeriodEnd || !formUsage || !formUnit || !formCost) {
+    // Rates (council tax) is a fixed cost with no usage metering
+    const isFixedCost = formType === 'rates';
+
+    // Basic validation - all types need provider, dates, and cost
+    if (!formProvider || !formPeriodStart || !formPeriodEnd || !formCost) {
       toast.error('Please fill in all required fields');
+      return;
+    }
+
+    // Metered utilities need usage and unit
+    if (!isFixedCost && (!formUsage || !formUnit)) {
+      toast.error('Please enter usage and unit for metered utilities');
       return;
     }
 
@@ -134,10 +147,29 @@ export function UtilitiesTab() {
       return;
     }
 
-    const usage = parseFloat(formUsage);
+    // Validate cost
     const cost = parseFloat(formCost);
-    if (isNaN(usage) || usage <= 0 || isNaN(cost) || cost <= 0) {
-      toast.error('Usage and cost must be greater than 0');
+    if (isNaN(cost) || cost <= 0) {
+      toast.error('Cost must be greater than 0');
+      return;
+    }
+
+    // Validate usage (only if provided for metered utilities)
+    const usage = formUsage ? parseFloat(formUsage) : null;
+    if (usage !== null && (isNaN(usage) || usage <= 0)) {
+      toast.error('Usage must be greater than 0');
+      return;
+    }
+
+    // Parse solar fields (electricity only)
+    const solarFeedIn = formSolarFeedIn ? parseFloat(formSolarFeedIn) : null;
+    const solarFeedInCredit = formSolarFeedInCredit ? parseFloat(formSolarFeedInCredit) : null;
+    if (solarFeedIn !== null && (isNaN(solarFeedIn) || solarFeedIn < 0)) {
+      toast.error('Solar feed-in must be 0 or greater');
+      return;
+    }
+    if (solarFeedInCredit !== null && (isNaN(solarFeedInCredit) || solarFeedInCredit < 0)) {
+      toast.error('Solar feed-in credit must be 0 or greater');
       return;
     }
 
@@ -150,8 +182,10 @@ export function UtilitiesTab() {
           billing_period_start: format(formPeriodStart, 'yyyy-MM-dd'),
           billing_period_end: format(formPeriodEnd, 'yyyy-MM-dd'),
           usage,
-          unit: formUnit,
+          unit: formUnit || null,
           cost,
+          solar_feed_in: formType === 'electricity' ? solarFeedIn : null,
+          solar_feed_in_credit: formType === 'electricity' ? solarFeedInCredit : null,
           notes: formNotes || undefined,
         });
         toast.success('Utility entry updated');
@@ -162,8 +196,10 @@ export function UtilitiesTab() {
           billing_period_start: format(formPeriodStart, 'yyyy-MM-dd'),
           billing_period_end: format(formPeriodEnd, 'yyyy-MM-dd'),
           usage,
-          unit: formUnit,
+          unit: formUnit || null,
           cost,
+          solar_feed_in: formType === 'electricity' ? solarFeedIn : null,
+          solar_feed_in_credit: formType === 'electricity' ? solarFeedInCredit : null,
           notes: formNotes || undefined,
         };
         await financialService.utilities.create(data);
@@ -191,13 +227,15 @@ export function UtilitiesTab() {
     }
   };
 
+  const getBillingDays = (start: string, end: string): number => {
+    return differenceInDays(new Date(end), new Date(start));
+  };
+
   const getUtilityIcon = (type: UtilityType) => {
     const icons = {
       electricity: Zap,
       gas: Flame,
       water: Droplet,
-      internet: Wifi,
-      mobile: Smartphone,
       rates: Home,
     };
     const Icon = icons[type];
@@ -209,8 +247,6 @@ export function UtilitiesTab() {
       electricity: 'bg-yellow-100 text-yellow-800',
       gas: 'bg-orange-100 text-orange-800',
       water: 'bg-blue-100 text-blue-800',
-      internet: 'bg-purple-100 text-purple-800',
-      mobile: 'bg-green-100 text-green-800',
       rates: 'bg-gray-100 text-gray-800',
     };
     return (
@@ -253,8 +289,6 @@ export function UtilitiesTab() {
                   <SelectItem value="electricity">⚡ Electricity</SelectItem>
                   <SelectItem value="gas">🔥 Gas</SelectItem>
                   <SelectItem value="water">💧 Water</SelectItem>
-                  <SelectItem value="internet">🌐 Internet</SelectItem>
-                  <SelectItem value="mobile">📱 Mobile</SelectItem>
                   <SelectItem value="rates">🏠 Rates</SelectItem>
                 </SelectContent>
               </Select>
@@ -330,6 +364,7 @@ export function UtilitiesTab() {
                   <TableHead>Type</TableHead>
                   <TableHead>Provider</TableHead>
                   <TableHead>Period</TableHead>
+                  <TableHead>Days</TableHead>
                   <TableHead>Usage</TableHead>
                   <TableHead>Cost</TableHead>
                   <TableHead>Cost/Unit</TableHead>
@@ -337,39 +372,62 @@ export function UtilitiesTab() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {utilities.map((utility) => (
-                  <TableRow key={utility.id}>
-                    <TableCell>{getUtilityBadge(utility.utility_type)}</TableCell>
-                    <TableCell>{utility.provider}</TableCell>
-                    <TableCell className="text-sm">
-                      {format(new Date(utility.billing_period_start), 'MMM d')} -{' '}
-                      {format(new Date(utility.billing_period_end), 'MMM d, yyyy')}
-                    </TableCell>
-                    <TableCell>
-                      {utility.usage.toFixed(2)} {utility.unit}
-                    </TableCell>
-                    <TableCell>{formatCurrency(utility.cost)}</TableCell>
-                    <TableCell>{formatCurrency(utility.cost_per_unit)}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleOpenDialog(utility)}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setDeleteUtility(utility)}
-                        >
-                          <Trash2 className="h-4 w-4 text-red-600" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {utilities.map((utility) => {
+                  const days = getBillingDays(utility.billing_period_start, utility.billing_period_end);
+                  return (
+                    <TableRow key={utility.id}>
+                      <TableCell>{getUtilityBadge(utility.utility_type)}</TableCell>
+                      <TableCell>{utility.provider}</TableCell>
+                      <TableCell className="text-sm">
+                        {format(new Date(utility.billing_period_start), 'MMM d')} -{' '}
+                        {format(new Date(utility.billing_period_end), 'MMM d, yyyy')}
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-sm text-muted-foreground">{days}d</span>
+                      </TableCell>
+                      <TableCell>
+                        {utility.usage !== null && utility.usage !== undefined
+                          ? `${utility.usage.toFixed(2)} ${utility.unit ?? ''}`
+                          : <span className="text-muted-foreground text-sm">—</span>
+                        }
+                      </TableCell>
+                      <TableCell>
+                        <div>
+                          {formatCurrency(utility.cost)}
+                          {utility.solar_feed_in_credit !== null && utility.solar_feed_in_credit !== undefined && utility.solar_feed_in_credit > 0 && (
+                            <div className="text-xs text-green-600">
+                              -{formatCurrency(utility.solar_feed_in_credit)} solar
+                            </div>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {utility.cost_per_unit !== null && utility.cost_per_unit !== undefined
+                          ? formatCurrency(utility.cost_per_unit)
+                          : <span className="text-muted-foreground text-sm">—</span>
+                        }
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleOpenDialog(utility)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setDeleteUtility(utility)}
+                          >
+                            <Trash2 className="h-4 w-4 text-red-600" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           )}
@@ -382,7 +440,7 @@ export function UtilitiesTab() {
           <DialogHeader>
             <DialogTitle>{editingUtility ? 'Edit' : 'Add'} Utility Entry</DialogTitle>
             <DialogDescription>
-              Track utility costs and usage for budget planning.
+              Track utility costs and usage.
             </DialogDescription>
           </DialogHeader>
 
@@ -398,8 +456,6 @@ export function UtilitiesTab() {
                     <SelectItem value="electricity">⚡ Electricity</SelectItem>
                     <SelectItem value="gas">🔥 Gas</SelectItem>
                     <SelectItem value="water">💧 Water</SelectItem>
-                    <SelectItem value="internet">🌐 Internet</SelectItem>
-                    <SelectItem value="mobile">📱 Mobile</SelectItem>
                     <SelectItem value="rates">🏠 Rates</SelectItem>
                   </SelectContent>
                 </Select>
@@ -429,44 +485,117 @@ export function UtilitiesTab() {
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="usage">Usage *</Label>
-                <Input
-                  id="usage"
-                  type="number"
-                  min="0.01"
-                  step="0.01"
-                  value={formUsage}
-                  onChange={(e) => setFormUsage(e.target.value)}
-                  placeholder="0.00"
-                />
-              </div>
+            {/* Show billing days preview */}
+            {formPeriodStart && formPeriodEnd && formPeriodStart < formPeriodEnd && (
+              <p className="text-sm text-muted-foreground">
+                Billing period: {differenceInDays(formPeriodEnd, formPeriodStart)} days
+              </p>
+            )}
 
-              <div className="space-y-2">
-                <Label htmlFor="unit">Unit *</Label>
-                <Input
-                  id="unit"
-                  value={formUnit}
-                  onChange={(e) => setFormUnit(e.target.value)}
-                  placeholder="kWh, m³, GB"
-                  maxLength={50}
-                />
+            {/* Conditional fields based on utility type */}
+            {formType === 'rates' ? (
+              // Rates: Fixed cost only (no usage metering)
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="cost">Cost *</Label>
+                  <Input
+                    id="cost"
+                    type="number"
+                    min="0.01"
+                    step="0.01"
+                    value={formCost}
+                    onChange={(e) => setFormCost(e.target.value)}
+                    placeholder="0.00"
+                  />
+                </div>
+                <p className="text-sm text-muted-foreground italic">
+                  Council rates are a fixed cost with no usage metering
+                </p>
               </div>
+            ) : (
+              // Metered utilities: Usage + Unit + Cost
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="usage">Usage *</Label>
+                  <Input
+                    id="usage"
+                    type="number"
+                    min="0.01"
+                    step="0.01"
+                    value={formUsage}
+                    onChange={(e) => setFormUsage(e.target.value)}
+                    placeholder={formType === 'gas' ? 'Number of bottles' : '0.00'}
+                  />
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="cost">Cost *</Label>
-                <Input
-                  id="cost"
-                  type="number"
-                  min="0.01"
-                  step="0.01"
-                  value={formCost}
-                  onChange={(e) => setFormCost(e.target.value)}
-                  placeholder="0.00"
-                />
+                <div className="space-y-2">
+                  <Label htmlFor="unit">Unit *</Label>
+                  <Input
+                    id="unit"
+                    value={formUnit}
+                    onChange={(e) => setFormUnit(e.target.value)}
+                    placeholder={formType === 'gas' ? 'bottles' : 'kWh, m³'}
+                    maxLength={50}
+                  />
+                  {formType === 'gas' && (
+                    <p className="text-xs text-muted-foreground">
+                      e.g., "bottles" for 45kg cylinders
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="cost">Cost *</Label>
+                  <Input
+                    id="cost"
+                    type="number"
+                    min="0.01"
+                    step="0.01"
+                    value={formCost}
+                    onChange={(e) => setFormCost(e.target.value)}
+                    placeholder="0.00"
+                  />
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* Solar feed-in section (electricity only) */}
+            {formType === 'electricity' && (
+              <div className="border rounded-lg p-4 space-y-3 bg-green-50/50">
+                <Label className="text-sm font-medium text-green-800">
+                  ☀️ Solar Feed-In (Optional)
+                </Label>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="solarFeedIn" className="text-sm">Feed-In (kWh)</Label>
+                    <Input
+                      id="solarFeedIn"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={formSolarFeedIn}
+                      onChange={(e) => setFormSolarFeedIn(e.target.value)}
+                      placeholder="kWh exported to grid"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="solarCredit" className="text-sm">Credit Received ($)</Label>
+                    <Input
+                      id="solarCredit"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={formSolarFeedInCredit}
+                      onChange={(e) => setFormSolarFeedInCredit(e.target.value)}
+                      placeholder="Credit on bill"
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Enter the kWh you exported to the grid and the credit amount shown on your bill
+                </p>
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label htmlFor="notes">Notes (Optional)</Label>

@@ -82,7 +82,6 @@ class MealPlanWidget(BaseModel):
 class FinancialWidget(BaseModel):
     """Schema for financial widget"""
     monthly_expenses: float
-    utility_costs_this_month: float
     upcoming_insurance_premiums: float
     month: str
 

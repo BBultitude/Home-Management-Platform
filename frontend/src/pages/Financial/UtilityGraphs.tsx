@@ -117,8 +117,6 @@ export default function UtilityGraphs({ selectedType }: UtilityGraphsProps) {
                   <SelectItem value="electricity">⚡ Electricity</SelectItem>
                   <SelectItem value="gas">🔥 Gas</SelectItem>
                   <SelectItem value="water">💧 Water</SelectItem>
-                  <SelectItem value="internet">🌐 Internet</SelectItem>
-                  <SelectItem value="mobile">📱 Mobile</SelectItem>
                   <SelectItem value="rates">🏠 Rates</SelectItem>
                 </SelectContent>
               </Select>
@@ -158,8 +156,6 @@ export default function UtilityGraphs({ selectedType }: UtilityGraphsProps) {
     electricity: '⚡ Electricity',
     gas: '🔥 Gas',
     water: '💧 Water',
-    internet: '🌐 Internet',
-    mobile: '📱 Mobile',
     rates: '🏠 Rates',
   };
 
@@ -210,8 +206,6 @@ export default function UtilityGraphs({ selectedType }: UtilityGraphsProps) {
                 <SelectItem value="electricity">⚡ Electricity</SelectItem>
                 <SelectItem value="gas">🔥 Gas</SelectItem>
                 <SelectItem value="water">💧 Water</SelectItem>
-                <SelectItem value="internet">🌐 Internet</SelectItem>
-                <SelectItem value="mobile">📱 Mobile</SelectItem>
                 <SelectItem value="rates">🏠 Rates</SelectItem>
               </SelectContent>
             </Select>

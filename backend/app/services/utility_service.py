@@ -23,14 +23,23 @@ class UtilityService:
         provider: str,
         billing_period_start: date,
         billing_period_end: date,
-        usage: Decimal,
-        unit: str,
+        usage: Optional[Decimal],
+        unit: Optional[str],
         cost: Decimal,
+        solar_feed_in: Optional[Decimal] = None,
+        solar_feed_in_credit: Optional[Decimal] = None,
         attachment_id: Optional[int] = None,
         notes: Optional[str] = None
     ) -> Utility:
-        """Create a new utility entry"""
-        if usage <= 0:
+        """
+        Create a new utility entry
+
+        For metered utilities (electricity, gas, water): provide usage and unit
+        For fixed-cost utilities (rates): usage and unit can be None
+        For electricity with solar: provide solar_feed_in and solar_feed_in_credit
+        """
+        # Validate usage if provided
+        if usage is not None and usage <= 0:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Usage must be greater than 0"
@@ -48,8 +57,16 @@ class UtilityService:
                 detail="End date must be after start date"
             )
 
-        # Calculate cost per unit
-        cost_per_unit = cost / usage
+        # Validate solar fields (electricity only)
+        if solar_feed_in is not None or solar_feed_in_credit is not None:
+            if utility_type != UtilityType.ELECTRICITY:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Solar feed-in is only applicable to electricity utilities"
+                )
+
+        # Calculate cost per unit only if usage is provided
+        cost_per_unit = (cost / usage) if usage is not None and usage > 0 else None
 
         utility = Utility(
             utility_type=utility_type,
@@ -60,6 +77,8 @@ class UtilityService:
             unit=unit,
             cost=cost,
             cost_per_unit=cost_per_unit,
+            solar_feed_in=solar_feed_in,
+            solar_feed_in_credit=solar_feed_in_credit,
             attachment_id=attachment_id,
             notes=notes
         )
@@ -120,6 +139,8 @@ class UtilityService:
         usage: Optional[Decimal] = None,
         unit: Optional[str] = None,
         cost: Optional[Decimal] = None,
+        solar_feed_in: Optional[Decimal] = None,
+        solar_feed_in_credit: Optional[Decimal] = None,
         attachment_id: Optional[int] = None,
         notes: Optional[str] = None
     ) -> Utility:
@@ -157,9 +178,24 @@ class UtilityService:
                 )
             utility.cost = cost
 
-        # Recalculate cost per unit if usage or cost changed
-        if usage is not None or cost is not None:
+        # Update solar fields (validate electricity only)
+        if solar_feed_in is not None or solar_feed_in_credit is not None:
+            if utility.utility_type != UtilityType.ELECTRICITY:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Solar feed-in is only applicable to electricity utilities"
+                )
+            if solar_feed_in is not None:
+                utility.solar_feed_in = solar_feed_in
+            if solar_feed_in_credit is not None:
+                utility.solar_feed_in_credit = solar_feed_in_credit
+
+        # Recalculate cost per unit if usage or cost changed (only if usage is not None)
+        if (usage is not None or cost is not None) and utility.usage is not None:
             utility.cost_per_unit = utility.cost / utility.usage
+        elif utility.usage is None:
+            # Fixed-cost utility - no cost per unit
+            utility.cost_per_unit = None
 
         if attachment_id is not None:
             utility.attachment_id = attachment_id

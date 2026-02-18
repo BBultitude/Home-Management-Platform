@@ -12,7 +12,7 @@ export default function MFAVerify() {
   const navigate = useNavigate();
   const { setUser, mfaToken } = useAuthStore();
   const [code, setCode] = useState('');
-  const trustDevice = false; // Hardcoded - trusted device feature not yet implemented in backend
+  const [trustDevice, setTrustDevice] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -98,18 +98,21 @@ export default function MFAVerify() {
               </p>
             </div>
 
-            <div className="flex items-center space-x-2 opacity-50">
+            <div className="flex items-center space-x-2">
               <input
                 type="checkbox"
                 id="trustDevice"
-                checked={false}
-                disabled
-                className="h-4 w-4 rounded border-gray-300"
+                checked={trustDevice}
+                onChange={(e) => setTrustDevice(e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
               />
-              <Label htmlFor="trustDevice" className="text-sm font-normal">
-                Trust this device for 30 days (Coming soon - backend pending)
+              <Label htmlFor="trustDevice" className="text-sm font-normal cursor-pointer">
+                Trust this device for 30 days
               </Label>
             </div>
+            <p className="text-xs text-gray-500 mt-1">
+              You won't need to enter a code on this device for 30 days
+            </p>
           </CardContent>
 
           <CardFooter className="flex flex-col gap-2">
