@@ -67,8 +67,7 @@ export const useAuthStore = create<AuthState>()(
         try {
           // Call backend to clear HTTP-only cookie
           await apiClient.post('/auth/logout');
-        } catch (error) {
-          console.error('Logout error:', error);
+        } catch {
           // Continue with logout even if backend call fails
         } finally {
           // Clear local state

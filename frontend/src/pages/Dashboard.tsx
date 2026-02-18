@@ -1,30 +1,90 @@
 import { useEffect, useState } from 'react';
+import { format, subMonths, startOfMonth, endOfMonth } from 'date-fns';
 import { useAuthStore } from '@/stores/authStore';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { financialService } from '@/services/financialService';
-import type { BudgetSummaryResponse } from '@/services/financialService';
+import { dashboardService } from '@/services/dashboardService';
+import type { BudgetSummaryResponse, UtilityStatsResponse } from '@/services/financialService';
+import type { AlertsWidget, PrioritiesWidget } from '@/services/dashboardService';
 import { formatCurrency } from '@/lib/frequencyUtils';
-import { TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
+import {
+  TrendingUp, TrendingDown, DollarSign,
+  Zap, Flame, Droplet, Home,
+  AlertTriangle, ListTodo, ExternalLink
+} from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+
+// Last 12 months date range
+const getLast12Months = () => {
+  const now = new Date();
+  return {
+    start_date: format(startOfMonth(subMonths(now, 11)), 'yyyy-MM-dd'),
+    end_date: format(endOfMonth(now), 'yyyy-MM-dd'),
+  };
+};
 
 export default function Dashboard() {
   const { user } = useAuthStore();
+
+  // Budget
   const [budgetSummary, setBudgetSummary] = useState<BudgetSummaryResponse | null>(null);
   const [budgetLoading, setBudgetLoading] = useState(true);
 
+  // Utility stats (last 12 months)
+  const [electricityStats, setElectricityStats] = useState<UtilityStatsResponse | null>(null);
+  const [gasStats, setGasStats] = useState<UtilityStatsResponse | null>(null);
+  const [waterStats, setWaterStats] = useState<UtilityStatsResponse | null>(null);
+  const [ratesStats, setRatesStats] = useState<UtilityStatsResponse | null>(null);
+  const [utilitiesLoading, setUtilitiesLoading] = useState(true);
+
+  // Priorities
+  const [priorities, setPriorities] = useState<PrioritiesWidget | null>(null);
+  const [prioritiesLoading, setPrioritiesLoading] = useState(true);
+
+  // Alerts
+  const [alerts, setAlerts] = useState<AlertsWidget | null>(null);
+  const [alertsLoading, setAlertsLoading] = useState(true);
+
   useEffect(() => {
-    loadBudgetSummary();
+    const dateRange = getLast12Months();
+
+    // Budget summary
+    financialService.budget.summary()
+      .then(setBudgetSummary)
+      .catch(() => {})
+      .finally(() => setBudgetLoading(false));
+
+    // All 4 utility stats in parallel
+    Promise.allSettled([
+      financialService.utilities.stats('electricity', dateRange),
+      financialService.utilities.stats('gas', dateRange),
+      financialService.utilities.stats('water', dateRange),
+      financialService.utilities.stats('rates', dateRange),
+    ]).then(([elec, gas, water, rates]) => {
+      if (elec.status === 'fulfilled') setElectricityStats(elec.value);
+      if (gas.status === 'fulfilled') setGasStats(gas.value);
+      if (water.status === 'fulfilled') setWaterStats(water.value);
+      if (rates.status === 'fulfilled') setRatesStats(rates.value);
+    }).finally(() => setUtilitiesLoading(false));
+
+    // Priorities
+    dashboardService.priorities(5)
+      .then(setPriorities)
+      .catch(() => {})
+      .finally(() => setPrioritiesLoading(false));
+
+    // Alerts
+    dashboardService.alerts()
+      .then(setAlerts)
+      .catch(() => {})
+      .finally(() => setAlertsLoading(false));
   }, []);
 
-  const loadBudgetSummary = async () => {
-    try {
-      const data = await financialService.budget.summary();
-      setBudgetSummary(data);
-    } catch (error) {
-      console.error('Failed to load budget summary:', error);
-    } finally {
-      setBudgetLoading(false);
-    }
-  };
+  const totalAlerts = alerts
+    ? alerts.insurance_renewals.urgent + alerts.document_expiries.urgent +
+      alerts.insurance_renewals.upcoming + alerts.document_expiries.upcoming +
+      alerts.quote_expiries
+    : 0;
 
   return (
     <div>
@@ -33,155 +93,278 @@ export default function Dashboard() {
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
           Welcome back, {user?.full_name}!
         </h1>
-        <p className="text-gray-600">
-          Your home management dashboard
-        </p>
+        <p className="text-gray-600">Your home management dashboard</p>
       </div>
 
-      {/* Dashboard Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* ── Financial Overview ───────────────────────────────────── */}
+      <h2 className="text-lg font-semibold text-gray-700 mb-3">Financial</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+        {/* Budget summary */}
         <Card>
-          <CardHeader>
-            <CardTitle>Tax Management</CardTitle>
-            <CardDescription>Work from home and travel deductions</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-gray-600 mb-4">
-              Track your tax-deductible expenses
-            </p>
-            <div className="text-2xl font-bold text-gray-900">Coming Soon</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Financial Overview</CardTitle>
-            <CardDescription>Monthly budget summary</CardDescription>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Budget Overview</CardTitle>
+            <CardDescription>Monthly income vs expenses</CardDescription>
           </CardHeader>
           <CardContent>
             {budgetLoading ? (
-              <div className="text-sm text-gray-600">Loading budget data...</div>
+              <div className="text-sm text-gray-500">Loading...</div>
             ) : budgetSummary ? (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <TrendingUp className="h-4 w-4 text-green-600" />
-                    <span>Income</span>
-                  </div>
-                  <div className="font-semibold text-green-700">
-                    {formatCurrency(budgetSummary.total_monthly_income)}
-                  </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="flex items-center gap-1 text-gray-600">
+                    <TrendingUp className="h-3 w-3 text-green-600" /> Income
+                  </span>
+                  <span className="font-semibold text-green-700">{formatCurrency(budgetSummary.total_monthly_income)}</span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <TrendingDown className="h-4 w-4 text-red-600" />
-                    <span>Expenses</span>
-                  </div>
-                  <div className="font-semibold text-red-700">
-                    {formatCurrency(budgetSummary.total_monthly_expenses)}
-                  </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="flex items-center gap-1 text-gray-600">
+                    <TrendingDown className="h-3 w-3 text-red-500" /> Expenses
+                  </span>
+                  <span className="font-semibold text-red-600">{formatCurrency(budgetSummary.total_monthly_expenses)}</span>
                 </div>
-                <div className="border-t pt-3 mt-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-sm font-medium">
-                      <DollarSign className={`h-4 w-4 ${budgetSummary.monthly_surplus >= 0 ? 'text-green-600' : 'text-red-600'}`} />
-                      <span>{budgetSummary.monthly_surplus >= 0 ? 'Surplus' : 'Deficit'}</span>
-                    </div>
-                    <div className={`text-xl font-bold ${budgetSummary.monthly_surplus >= 0 ? 'text-green-700' : 'text-red-700'}`}>
-                      {formatCurrency(Math.abs(budgetSummary.monthly_surplus))}
-                    </div>
-                  </div>
+                <div className="border-t pt-2 flex items-center justify-between">
+                  <span className="flex items-center gap-1 text-sm font-medium">
+                    <DollarSign className={`h-3 w-3 ${budgetSummary.monthly_surplus >= 0 ? 'text-green-600' : 'text-red-500'}`} />
+                    {budgetSummary.monthly_surplus >= 0 ? 'Surplus' : 'Deficit'}
+                  </span>
+                  <span className={`text-xl font-bold ${budgetSummary.monthly_surplus >= 0 ? 'text-green-700' : 'text-red-600'}`}>
+                    {formatCurrency(Math.abs(budgetSummary.monthly_surplus))}
+                  </span>
                 </div>
               </div>
             ) : (
-              <div className="text-sm text-gray-600">
-                No financial data yet. <a href="/financial" className="text-blue-600 hover:underline">Add income & expenses</a>
-              </div>
+              <p className="text-sm text-gray-500">
+                No data yet. <a href="/financial" className="text-blue-600 hover:underline">Add income & expenses</a>
+              </p>
             )}
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Assets & Documents</CardTitle>
-            <CardDescription>Insurance, properties, and files</CardDescription>
+        {/* Alerts / Expiring */}
+        <Card className={totalAlerts > 0 ? 'border-amber-300' : ''}>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <AlertTriangle className={`h-4 w-4 ${totalAlerts > 0 ? 'text-amber-500' : 'text-gray-400'}`} />
+              Expiring / Renewals
+            </CardTitle>
+            <CardDescription>Insurance, documents & quotes</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-gray-600 mb-4">
-              Track important documents and assets
-            </p>
-            <div className="text-2xl font-bold text-gray-900">Coming Soon</div>
+            {alertsLoading ? (
+              <div className="text-sm text-gray-500">Loading...</div>
+            ) : alerts ? (
+              totalAlerts === 0 ? (
+                <p className="text-sm text-green-600 font-medium">✅ Nothing expiring soon</p>
+              ) : (
+                <div className="space-y-2 text-sm">
+                  {alerts.insurance_renewals.urgent > 0 && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-red-600 font-medium">Insurance (within 7 days)</span>
+                      <Badge variant="destructive">{alerts.insurance_renewals.urgent}</Badge>
+                    </div>
+                  )}
+                  {alerts.insurance_renewals.upcoming > 0 && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-amber-600">Insurance (7–30 days)</span>
+                      <Badge className="bg-amber-100 text-amber-800">{alerts.insurance_renewals.upcoming}</Badge>
+                    </div>
+                  )}
+                  {alerts.document_expiries.urgent > 0 && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-red-600 font-medium">Documents (within 7 days)</span>
+                      <Badge variant="destructive">{alerts.document_expiries.urgent}</Badge>
+                    </div>
+                  )}
+                  {alerts.document_expiries.upcoming > 0 && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-amber-600">Documents (7–30 days)</span>
+                      <Badge className="bg-amber-100 text-amber-800">{alerts.document_expiries.upcoming}</Badge>
+                    </div>
+                  )}
+                  {alerts.quote_expiries > 0 && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600">Quotes expiring</span>
+                      <Badge variant="secondary">{alerts.quote_expiries}</Badge>
+                    </div>
+                  )}
+                  <a href="/assets" className="text-xs text-blue-600 hover:underline flex items-center gap-1 pt-1">
+                    View in Assets <ExternalLink className="h-3 w-3" />
+                  </a>
+                </div>
+              )
+            ) : (
+              <p className="text-sm text-gray-500">Unable to load alerts</p>
+            )}
           </CardContent>
         </Card>
 
+        {/* Top 5 Priorities */}
         <Card>
-          <CardHeader>
-            <CardTitle>Projects</CardTitle>
-            <CardDescription>Home improvement tracking</CardDescription>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <ListTodo className="h-4 w-4 text-blue-500" />
+              Top Priorities
+            </CardTitle>
+            <CardDescription>
+              {priorities ? `${priorities.total_priorities} pending items` : 'Home improvement items'}
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-gray-600 mb-4">
-              Manage home projects and quotes
-            </p>
-            <div className="text-2xl font-bold text-gray-900">Coming Soon</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Knowledge Base</CardTitle>
-            <CardDescription>Household reference information</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-gray-600 mb-4">
-              Store measurements, paint codes, and more
-            </p>
-            <div className="text-2xl font-bold text-gray-900">Coming Soon</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Meal Planner</CardTitle>
-            <CardDescription>Weekly meal planning</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-gray-600 mb-4">
-              Plan meals and manage recipes
-            </p>
-            <div className="text-2xl font-bold text-gray-900">Coming Soon</div>
+            {prioritiesLoading ? (
+              <div className="text-sm text-gray-500">Loading...</div>
+            ) : priorities && priorities.top_priorities.length > 0 ? (
+              <div className="space-y-2">
+                {priorities.top_priorities.map((item, i) => (
+                  <div key={item.id} className="flex items-start justify-between gap-2 text-sm">
+                    <div className="flex items-start gap-2 min-w-0">
+                      <span className="text-gray-400 font-mono text-xs mt-0.5 shrink-0">#{i + 1}</span>
+                      <span className="text-gray-800 truncate">{item.name}</span>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <Badge variant="secondary" className="text-xs">{item.net_score.toFixed(1)}</Badge>
+                      <span className="text-xs text-gray-400">{formatCurrency(item.estimated_cost)}</span>
+                    </div>
+                  </div>
+                ))}
+                <a href="/projects" className="text-xs text-blue-600 hover:underline flex items-center gap-1 pt-1">
+                  View all priorities <ExternalLink className="h-3 w-3" />
+                </a>
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500">
+                No priorities yet. <a href="/projects" className="text-blue-600 hover:underline">Add items</a>
+              </p>
+            )}
           </CardContent>
         </Card>
       </div>
 
-      {/* Quick Stats */}
-      <div className="mt-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>Account Information</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-              <div>
-                <p className="text-gray-600 mb-1">Username</p>
-                <p className="font-medium">{user?.username}</p>
-              </div>
-              <div>
-                <p className="text-gray-600 mb-1">Email</p>
-                <p className="font-medium">{user?.email}</p>
-              </div>
-              <div>
-                <p className="text-gray-600 mb-1">Role</p>
-                <p className="font-medium capitalize">{user?.role?.toLowerCase()}</p>
-              </div>
-              <div>
-                <p className="text-gray-600 mb-1">MFA Status</p>
-                <p className="font-medium">{user?.mfa_enabled ? '✅ Enabled' : '❌ Disabled'}</p>
-              </div>
+      {/* ── Utilities (Last 12 Months) ───────────────────────────── */}
+      <h2 className="text-lg font-semibold text-gray-700 mb-3">Utilities — Last 12 Months</h2>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <UtilityWidget
+          label="Electricity"
+          icon={<Zap className="h-4 w-4 text-yellow-500" />}
+          stats={electricityStats}
+          loading={utilitiesLoading}
+          color="yellow"
+          href="/financial"
+        />
+        <UtilityWidget
+          label="Gas"
+          icon={<Flame className="h-4 w-4 text-orange-500" />}
+          stats={gasStats}
+          loading={utilitiesLoading}
+          color="orange"
+          href="/financial"
+        />
+        <UtilityWidget
+          label="Water"
+          icon={<Droplet className="h-4 w-4 text-blue-500" />}
+          stats={waterStats}
+          loading={utilitiesLoading}
+          color="blue"
+          href="/financial"
+        />
+        <UtilityWidget
+          label="Rates"
+          icon={<Home className="h-4 w-4 text-gray-500" />}
+          stats={ratesStats}
+          loading={utilitiesLoading}
+          color="gray"
+          href="/financial"
+        />
+      </div>
+
+      {/* ── Account Info ─────────────────────────────────────────── */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Account</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            <div>
+              <p className="text-gray-500 mb-1">Username</p>
+              <p className="font-medium">{user?.username}</p>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+            <div>
+              <p className="text-gray-500 mb-1">Email</p>
+              <p className="font-medium">{user?.email}</p>
+            </div>
+            <div>
+              <p className="text-gray-500 mb-1">Role</p>
+              <p className="font-medium capitalize">{user?.role?.toLowerCase()}</p>
+            </div>
+            <div>
+              <p className="text-gray-500 mb-1">MFA</p>
+              <p className="font-medium">{user?.mfa_enabled ? '✅ Enabled' : '❌ Disabled'}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
+  );
+}
+
+// ── Utility Widget Component ─────────────────────────────────────────────────
+
+interface UtilityWidgetProps {
+  label: string;
+  icon: React.ReactNode;
+  stats: UtilityStatsResponse | null;
+  loading: boolean;
+  color: 'yellow' | 'orange' | 'blue' | 'gray';
+  href: string;
+}
+
+const colorMap = {
+  yellow: 'bg-yellow-50 border-yellow-200',
+  orange: 'bg-orange-50 border-orange-200',
+  blue: 'bg-blue-50 border-blue-200',
+  gray: 'bg-gray-50 border-gray-200',
+};
+
+function UtilityWidget({ label, icon, stats, loading, color, href }: UtilityWidgetProps) {
+  const hasData = stats && stats.entry_count > 0;
+
+  return (
+    <Card className={`${colorMap[color]} border`}>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm flex items-center gap-2">
+          {icon}
+          {label}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <div className="text-xs text-gray-500">Loading...</div>
+        ) : hasData ? (
+          <div className="space-y-1">
+            <div>
+              <p className="text-2xl font-bold text-gray-900">{formatCurrency(stats.total_cost)}</p>
+              <p className="text-xs text-gray-500">total cost</p>
+            </div>
+            {stats.total_usage > 0 && (
+              <div className="pt-1 border-t border-gray-200">
+                <p className="text-sm font-medium text-gray-700">{stats.total_usage.toFixed(1)}</p>
+                <p className="text-xs text-gray-500">total usage</p>
+              </div>
+            )}
+            <div className="pt-1 border-t border-gray-200">
+              <p className="text-sm text-gray-600">{formatCurrency(stats.average_cost)} avg / bill</p>
+              <p className="text-xs text-gray-400">{stats.entry_count} bills recorded</p>
+            </div>
+            <a href={href} className="text-xs text-blue-600 hover:underline flex items-center gap-1 pt-1">
+              View details <ExternalLink className="h-3 w-3" />
+            </a>
+          </div>
+        ) : (
+          <div>
+            <p className="text-xs text-gray-500 mb-2">No data in last 12 months</p>
+            <a href={href} className="text-xs text-blue-600 hover:underline">Add entry</a>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
