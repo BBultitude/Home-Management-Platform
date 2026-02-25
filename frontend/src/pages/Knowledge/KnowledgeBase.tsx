@@ -247,7 +247,7 @@ export default function KnowledgeBase() {
             return (
               <div
                 key={article.id}
-                className="border rounded-lg p-4 hover:shadow-lg transition-shadow bg-white dark:bg-gray-950"
+                className="border rounded-lg p-4 hover:shadow-lg transition-shadow bg-white dark:bg-white"
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className={`p-2 rounded-lg ${config.color}`}>

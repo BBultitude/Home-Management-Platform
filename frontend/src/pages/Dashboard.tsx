@@ -219,10 +219,10 @@ export default function Dashboard() {
         />
         <UtilityWidget
           label="Rates"
-          icon={<Home className="h-4 w-4 text-gray-500" />}
+          icon={<Home className="h-4 w-4 text-green-500" />}
           stats={ratesStats}
           loading={utilitiesLoading}
-          color="gray"
+          color="green"
           href="/financial"
           isRates
         />
@@ -265,17 +265,17 @@ interface UtilityWidgetProps {
   icon: React.ReactNode;
   stats: UtilityStatsResponse | null;
   loading: boolean;
-  color: 'yellow' | 'orange' | 'blue' | 'gray';
+  color: 'yellow' | 'orange' | 'blue' | 'green';
   href: string;
   unit?: string;
   isRates?: boolean;
 }
 
 const colorMap = {
-  yellow: 'bg-yellow-100 border-yellow-300',
-  orange: 'bg-orange-100 border-orange-300',
-  blue: 'bg-blue-100 border-blue-300',
-  gray: 'bg-gray-100 border-gray-300',
+  yellow: 'bg-yellow-50 border-yellow-300',
+  orange: 'bg-orange-50 border-orange-300',
+  blue: 'bg-blue-50 border-blue-300',
+  green: 'bg-green-50 border-green-300',
 };
 
 function UtilityWidget({ label, icon, stats, loading, color, href, unit, isRates }: UtilityWidgetProps) {
