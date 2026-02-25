@@ -191,6 +191,7 @@ local.db
 
 # Claude Code (AI assistant local settings - machine specific)
 .claude/
+CLAUDE.md
 
 # Environment overrides (root-level, not the committed .env.example)
 .env

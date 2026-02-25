@@ -6,6 +6,7 @@
 }
 
 :root {
+  color-scheme: light only;
   --background: #ffffff;
   --foreground: #0f172a;
   --primary: #3b82f6;

@@ -228,7 +228,7 @@ export function UtilitiesTab() {
   };
 
   const getBillingDays = (start: string, end: string): number => {
-    return differenceInDays(new Date(end), new Date(start));
+    return differenceInDays(new Date(end), new Date(start)) + 1;
   };
 
   const getUtilityIcon = (type: UtilityType) => {
@@ -366,6 +366,7 @@ export function UtilitiesTab() {
                   <TableHead>Period</TableHead>
                   <TableHead>Days</TableHead>
                   <TableHead>Usage</TableHead>
+                  <TableHead>Avg Daily</TableHead>
                   <TableHead>Cost</TableHead>
                   <TableHead>Cost/Unit</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
@@ -388,6 +389,12 @@ export function UtilitiesTab() {
                       <TableCell>
                         {utility.usage !== null && utility.usage !== undefined
                           ? `${utility.usage.toFixed(2)} ${utility.unit ?? ''}`
+                          : <span className="text-muted-foreground text-sm">—</span>
+                        }
+                      </TableCell>
+                      <TableCell>
+                        {utility.usage !== null && utility.usage !== undefined && days > 0
+                          ? <span className="text-sm">{(utility.usage / days).toFixed(2)} {utility.unit ?? ''}/day</span>
                           : <span className="text-muted-foreground text-sm">—</span>
                         }
                       </TableCell>
@@ -488,7 +495,7 @@ export function UtilitiesTab() {
             {/* Show billing days preview */}
             {formPeriodStart && formPeriodEnd && formPeriodStart < formPeriodEnd && (
               <p className="text-sm text-muted-foreground">
-                Billing period: {differenceInDays(formPeriodEnd, formPeriodStart)} days
+                Billing period: {differenceInDays(formPeriodEnd, formPeriodStart) + 1} days
               </p>
             )}
 

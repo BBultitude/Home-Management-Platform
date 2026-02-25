@@ -18,6 +18,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.5.1] - 2026-02-25
+
+### 🐛 Bug Fixes & UX Improvements
+
+Post-production fixes from user feedback.
+
+### Fixed
+- **Billing Days Off-By-One**: Utility billing period day count now inclusive on both ends
+  (June 11–Sept 11 correctly shows 93 days, not 92)
+- **nginx 403 on /assets route**: Removed `$uri/` directory check from SPA try_files fallback;
+  React Router navigation to `/assets` page now works correctly on mobile
+- **Mobile Dark Mode (Knowledge Base)**: Added `color-scheme: light only` to `:root` to prevent
+  Android Chrome's forced dark mode from inverting card colours
+
+### Added
+- **Average Daily Usage — Utilities Tab**: New "Avg Daily" column in the utilities table showing
+  per-entry daily consumption rate (e.g. `18.45 kWh/day`); rates entries show `—`
+- **Average Daily Usage — Backend**: `avg_daily_usage` and `total_billing_days` fields added to
+  utility stats API response (`GET /financial/utilities/stats/{type}`)
+- **Admin MFA Reset UI**: "Reset MFA" button in admin user table (visible only when MFA is
+  enabled); includes confirmation dialog and toast feedback; uses existing backend endpoint
+  `POST /admin/users/{user_id}/reset-mfa`
+
+### Changed
+- **Dashboard Utility Widgets**: Electricity/Gas/Water now show avg daily usage as primary
+  metric instead of total cost/usage; Rates shows avg bill cost as primary metric
+- **Dashboard**: Removed budget summary card (income/expenses/surplus) — provided no actionable
+  value at a glance
+
+---
+
 ## [0.5.0] - 2026-02-15
 
 ### 🍽️ Sprint 21 - Meal Planner UI (Complete)

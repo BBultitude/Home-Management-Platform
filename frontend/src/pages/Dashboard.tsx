@@ -4,11 +4,10 @@ import { useAuthStore } from '@/stores/authStore';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { financialService } from '@/services/financialService';
 import { dashboardService } from '@/services/dashboardService';
-import type { BudgetSummaryResponse, UtilityStatsResponse } from '@/services/financialService';
+import type { UtilityStatsResponse } from '@/services/financialService';
 import type { AlertsWidget, PrioritiesWidget } from '@/services/dashboardService';
 import { formatCurrency } from '@/lib/frequencyUtils';
 import {
-  TrendingUp, TrendingDown, DollarSign,
   Zap, Flame, Droplet, Home,
   AlertTriangle, ListTodo, ExternalLink
 } from 'lucide-react';
@@ -25,10 +24,6 @@ const getLast12Months = () => {
 
 export default function Dashboard() {
   const { user } = useAuthStore();
-
-  // Budget
-  const [budgetSummary, setBudgetSummary] = useState<BudgetSummaryResponse | null>(null);
-  const [budgetLoading, setBudgetLoading] = useState(true);
 
   // Utility stats (last 12 months)
   const [electricityStats, setElectricityStats] = useState<UtilityStatsResponse | null>(null);
@@ -47,12 +42,6 @@ export default function Dashboard() {
 
   useEffect(() => {
     const dateRange = getLast12Months();
-
-    // Budget summary
-    financialService.budget.summary()
-      .then(setBudgetSummary)
-      .catch(() => {})
-      .finally(() => setBudgetLoading(false));
 
     // All 4 utility stats in parallel
     Promise.allSettled([
@@ -98,48 +87,7 @@ export default function Dashboard() {
 
       {/* ── Financial Overview ───────────────────────────────────── */}
       <h2 className="text-lg font-semibold text-gray-700 mb-3">Financial</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-        {/* Budget summary */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Budget Overview</CardTitle>
-            <CardDescription>Monthly income vs expenses</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {budgetLoading ? (
-              <div className="text-sm text-gray-500">Loading...</div>
-            ) : budgetSummary ? (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="flex items-center gap-1 text-gray-600">
-                    <TrendingUp className="h-3 w-3 text-green-600" /> Income
-                  </span>
-                  <span className="font-semibold text-green-700">{formatCurrency(budgetSummary.total_monthly_income)}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="flex items-center gap-1 text-gray-600">
-                    <TrendingDown className="h-3 w-3 text-red-500" /> Expenses
-                  </span>
-                  <span className="font-semibold text-red-600">{formatCurrency(budgetSummary.total_monthly_expenses)}</span>
-                </div>
-                <div className="border-t pt-2 flex items-center justify-between">
-                  <span className="flex items-center gap-1 text-sm font-medium">
-                    <DollarSign className={`h-3 w-3 ${budgetSummary.monthly_surplus >= 0 ? 'text-green-600' : 'text-red-500'}`} />
-                    {budgetSummary.monthly_surplus >= 0 ? 'Surplus' : 'Deficit'}
-                  </span>
-                  <span className={`text-xl font-bold ${budgetSummary.monthly_surplus >= 0 ? 'text-green-700' : 'text-red-600'}`}>
-                    {formatCurrency(Math.abs(budgetSummary.monthly_surplus))}
-                  </span>
-                </div>
-              </div>
-            ) : (
-              <p className="text-sm text-gray-500">
-                No data yet. <a href="/financial" className="text-blue-600 hover:underline">Add income & expenses</a>
-              </p>
-            )}
-          </CardContent>
-        </Card>
-
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
         {/* Alerts / Expiring */}
         <Card className={totalAlerts > 0 ? 'border-amber-300' : ''}>
           <CardHeader className="pb-3">
@@ -249,6 +197,7 @@ export default function Dashboard() {
           loading={utilitiesLoading}
           color="yellow"
           href="/financial"
+          unit="kWh"
         />
         <UtilityWidget
           label="Gas"
@@ -257,6 +206,7 @@ export default function Dashboard() {
           loading={utilitiesLoading}
           color="orange"
           href="/financial"
+          unit="units"
         />
         <UtilityWidget
           label="Water"
@@ -265,6 +215,7 @@ export default function Dashboard() {
           loading={utilitiesLoading}
           color="blue"
           href="/financial"
+          unit="kL"
         />
         <UtilityWidget
           label="Rates"
@@ -273,6 +224,7 @@ export default function Dashboard() {
           loading={utilitiesLoading}
           color="gray"
           href="/financial"
+          isRates
         />
       </div>
 
@@ -315,6 +267,8 @@ interface UtilityWidgetProps {
   loading: boolean;
   color: 'yellow' | 'orange' | 'blue' | 'gray';
   href: string;
+  unit?: string;
+  isRates?: boolean;
 }
 
 const colorMap = {
@@ -324,7 +278,7 @@ const colorMap = {
   gray: 'bg-gray-100 border-gray-300',
 };
 
-function UtilityWidget({ label, icon, stats, loading, color, href }: UtilityWidgetProps) {
+function UtilityWidget({ label, icon, stats, loading, color, href, unit, isRates }: UtilityWidgetProps) {
   const hasData = stats && stats.entry_count > 0;
 
   return (
@@ -340,14 +294,18 @@ function UtilityWidget({ label, icon, stats, loading, color, href }: UtilityWidg
           <div className="text-xs text-gray-500">Loading...</div>
         ) : hasData ? (
           <div className="space-y-1">
-            <div>
-              <p className="text-2xl font-bold text-gray-900">{formatCurrency(stats.total_cost)}</p>
-              <p className="text-xs text-gray-500">total cost</p>
-            </div>
-            {stats.total_usage > 0 && (
-              <div className="pt-1 border-t border-gray-200">
-                <p className="text-sm font-medium text-gray-700">{stats.total_usage.toFixed(1)}</p>
-                <p className="text-xs text-gray-500">total usage</p>
+            {isRates ? (
+              <div>
+                <p className="text-2xl font-bold text-gray-900">{formatCurrency(stats.average_cost)}</p>
+                <p className="text-xs text-gray-500">avg bill cost</p>
+              </div>
+            ) : (
+              <div>
+                <p className="text-2xl font-bold text-gray-900">
+                  {stats.avg_daily_usage.toFixed(2)}
+                  <span className="text-sm font-normal text-gray-500 ml-1">{unit}/day</span>
+                </p>
+                <p className="text-xs text-gray-500">avg daily usage</p>
               </div>
             )}
             <div className="pt-1 border-t border-gray-200">

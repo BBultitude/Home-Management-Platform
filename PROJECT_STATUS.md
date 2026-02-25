@@ -3,11 +3,11 @@
 ## Project Information
 
 **Project Name:** Home Management Platform
-**Current Version:** v0.5.0 (Development)
+**Current Version:** v0.5.1 (Development)
 **Active Design Document:** Design-v1.md (Locked - No Modifications)
 **Project Phase:** Development - All Planned Modules Complete
 **Started:** 2026-02-01
-**Last Updated:** 2026-02-15
+**Last Updated:** 2026-02-25
 **Target v1.0 Release:** Ready for Production Testing
 
 ## ✅ Completed Module Ports
@@ -27,7 +27,12 @@
 
 | Version | Date | Status | Design Doc | Notes |
 |---------|------|--------|------------|-------|
-| v0.1.0 | 2025-02-01 | In Progress | Design-v1.md (Draft) | Initial architecture definition |
+| v0.1.0 | 2025-02-01 | Completed | Design-v1.md (Draft) | Initial architecture definition |
+| v0.2.0 | 2026-02-13 | Completed | Design-v1.md | Full backend release (all 9 sprints; 151 endpoints) |
+| v0.3.0 | 2026-02-15 | Completed | Design-v1.md | Knowledge Base UI + File Upload Integration (Sprint 20) |
+| v0.4.0 | 2026-02-15 | Completed | Design-v1.md | Documentation & status update |
+| v0.5.0 | 2026-02-15 | Completed | Design-v1.md | Meal Planner UI (Sprint 21); frontend 100% complete |
+| v0.5.1 | 2026-02-25 | Current | Design-v1.md | Bug fixes & UX improvements (post-production) |
 
 ---
 
@@ -543,13 +548,13 @@ See FUTURE_PLANS.md for detailed roadmap.
 
 | Milestone | Target Date | Status | Completion Criteria |
 |-----------|-------------|--------|---------------------|
-| Design Approval | TBD | 🟡 In Progress | Design-v1.md approved by user |
-| Foundation Complete | TBD | ⚪ Not Started | Docker stack running, DB initialized |
-| Core Platform Services | TBD | ⚪ Not Started | Auth, RBAC, file upload working |
-| Tax Module Complete | TBD | ⚪ Not Started | WFH and Travel tracking functional |
-| All Modules Implemented | TBD | ⚪ Not Started | All 6 modules functional |
-| Dashboard Complete | TBD | ⚪ Not Started | Dashboard showing all widgets |
-| Testing Complete | TBD | ⚪ Not Started | 70% coverage, all integration tests pass |
+| Design Approval | 2026-02-02 | 🟢 Completed | Design-v1.md approved by user |
+| Foundation Complete | 2026-02-11 | 🟢 Completed | Docker stack running, DB initialized |
+| Core Platform Services | 2026-02-13 | 🟢 Completed | Auth, RBAC, file upload working |
+| Tax Module Complete | 2026-02-13 | 🟢 Completed | WFH and Travel tracking functional |
+| All Modules Implemented | 2026-02-15 | 🟢 Completed | All modules functional (backend + frontend) |
+| Dashboard Complete | 2026-02-13 | 🟢 Completed | Dashboard showing all widgets |
+| Testing Complete | TBD | ⚪ Not Started | Frontend unit/integration tests; 70% coverage |
 | v1.0 Released | TBD | ⚪ Not Started | Deployed to production, users trained |
 
 ---

@@ -81,6 +81,8 @@ class UtilityStatsResponse(BaseModel):
     entry_count: int
     period_start: Optional[date] = None
     period_end: Optional[date] = None
+    avg_daily_usage: float = 0.0
+    total_billing_days: int = 0
 
 
 class MonthlyDataPoint(BaseModel):

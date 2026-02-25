@@ -7,7 +7,7 @@ from datetime import date, datetime
 from decimal import Decimal
 from typing import Optional
 from sqlalchemy.orm import Session
-from sqlalchemy import func, and_, extract
+from sqlalchemy import func, and_, extract, literal
 from fastapi import HTTPException, status
 
 from app.models.utility import Utility, UtilityType
@@ -243,7 +243,10 @@ class UtilityService:
             func.sum(Utility.cost).label('total_cost'),
             func.count(Utility.id).label('count'),
             func.min(Utility.billing_period_start).label('period_start'),
-            func.max(Utility.billing_period_end).label('period_end')
+            func.max(Utility.billing_period_end).label('period_end'),
+            func.sum(
+                Utility.billing_period_end - Utility.billing_period_start + literal(1)
+            ).label('total_billing_days')
         ).filter(Utility.utility_type == utility_type)
 
         if start_date:
@@ -254,14 +257,20 @@ class UtilityService:
 
         result = query.first()
 
+        total_days = int(result.total_billing_days) if result.total_billing_days else 0
+        total_usage = float(result.total_usage) if result.total_usage else 0.0
+        avg_daily_usage = (total_usage / total_days) if total_days > 0 and total_usage else 0.0
+
         return {
             "utility_type": utility_type.value,
             "average_cost": float(result.avg_cost) if result.avg_cost else 0.0,
-            "total_usage": float(result.total_usage) if result.total_usage else 0.0,
+            "total_usage": total_usage,
             "total_cost": float(result.total_cost) if result.total_cost else 0.0,
             "entry_count": result.count,
             "period_start": result.period_start,
-            "period_end": result.period_end
+            "period_end": result.period_end,
+            "avg_daily_usage": avg_daily_usage,
+            "total_billing_days": total_days,
         }
 
     @staticmethod

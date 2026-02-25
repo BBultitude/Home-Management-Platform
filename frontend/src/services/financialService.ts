@@ -197,6 +197,8 @@ export interface UtilityStatsResponse {
   average_cost: number;
   period_start: string | null;
   period_end: string | null;
+  avg_daily_usage: number;
+  total_billing_days: number;
 }
 
 export interface MonthlyDataPoint {
