@@ -14,7 +14,7 @@ import { formatCurrency, formatFrequency } from '@/lib/frequencyUtils';
 import { cn } from '@/lib/utils';
 
 export function BudgetTab() {
-  const [payFrequency, setPayFrequency] = useState<IncomeFrequency>('fortnightly');
+  const [payFrequency, setPayFrequency] = useState<IncomeFrequency>('monthly');
   const [calculating, setCalculating] = useState(false);
   const [result, setResult] = useState<BudgetCalculationResponse | null>(null);
   const [expandedTransfers, setExpandedTransfers] = useState<Set<number>>(new Set());

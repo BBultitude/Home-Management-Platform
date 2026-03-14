@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Pencil, Trash2, FileText, AlertTriangle, Calendar, Tag, Search, File, Receipt, ShieldCheck, BookOpen, Award, Scale, Stethoscope, Wallet } from 'lucide-react';
+import { Plus, Pencil, Trash2, FileText, AlertTriangle, Calendar, Tag, Search, File, Receipt, ShieldCheck, BookOpen, Award, Scale, Stethoscope, Wallet, Download } from 'lucide-react';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,12 +17,14 @@ import { LoadingButton } from '@/components/ui/loading-button';
 import { DatePicker } from '@/components/forms/DatePicker';
 import { FileUploadInput } from '@/components/forms/FileUploadInput';
 import { assetsService } from '@/services/assetsService';
-import type { Document, DocumentCreate, DocumentType } from '@/services/assetsService';
+import type { Document, DocumentCreate, DocumentType, InsurancePolicy } from '@/services/assetsService';
+import { fileService } from '@/services/fileService';
 import { getErrorMessage } from '@/lib/errorMessages';
 import { toast } from 'sonner';
 
 export default function DocumentsTab() {
   const [documents, setDocuments] = useState<Document[]>([]);
+  const [insurancePolicies, setInsurancePolicies] = useState<InsurancePolicy[]>([]);
   const [loading, setLoading] = useState(true);
   const [showDialog, setShowDialog] = useState(false);
   const [editingDocument, setEditingDocument] = useState<Document | null>(null);
@@ -55,8 +57,14 @@ export default function DocumentsTab() {
         params.search = searchQuery;
       }
 
-      const response = await assetsService.documents.list(params);
-      setDocuments(response.documents);
+      const [docsResponse, insuranceResponse] = await Promise.all([
+        assetsService.documents.list(params),
+        assetsService.insurance.list(),
+      ]);
+      setDocuments(docsResponse.documents);
+      setInsurancePolicies(
+        insuranceResponse.policies.filter((p) => p.document_id !== null)
+      );
     } catch (error) {
       toast.error(getErrorMessage(error));
     } finally {
@@ -67,6 +75,23 @@ export default function DocumentsTab() {
   useEffect(() => {
     fetchDocuments();
   }, [typeFilter, searchQuery]);
+
+  const handleDownloadInsuranceDoc = async (policy: InsurancePolicy) => {
+    if (!policy.document_id) return;
+    try {
+      const blob = await fileService.download(parseInt(policy.document_id));
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${policy.provider}_${policy.policy_type}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch {
+      toast.error('Failed to download file');
+    }
+  };
 
   const resetForm = () => {
     setFormType('Contract');
@@ -409,6 +434,57 @@ export default function DocumentsTab() {
                             <Trash2 className="h-4 w-4 text-red-500" />
                           </Button>
                         </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Insurance Documents Section */}
+      {insurancePolicies.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Insurance Documents</CardTitle>
+            <CardDescription>
+              Documents attached to insurance policies
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Policy</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {insurancePolicies.map((policy) => (
+                    <TableRow key={policy.id}>
+                      <TableCell>
+                        <Badge className="bg-purple-100 text-purple-800" variant="secondary">
+                          <span className="flex items-center gap-1">
+                            <ShieldCheck className="h-4 w-4" />
+                            Insurance
+                          </span>
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="font-medium">{policy.provider}</TableCell>
+                      <TableCell className="text-gray-500">{policy.policy_type}</TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDownloadInsuranceDoc(policy)}
+                        >
+                          <Download className="h-4 w-4" />
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}

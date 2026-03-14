@@ -57,6 +57,7 @@ backups/
 *.sql
 *.sql.gz
 *.dump
+*.zip
 
 # OS files
 .DS_Store

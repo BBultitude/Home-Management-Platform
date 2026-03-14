@@ -112,6 +112,7 @@ alembic/versions/__pycache__/
 *.bak
 *.backup
 backup_*.sql
+backup_*.zip
 
 # macOS
 .DS_Store
@@ -192,6 +193,7 @@ local.db
 # Claude Code (AI assistant local settings - machine specific)
 .claude/
 CLAUDE.md
+Handoff.md
 
 # Environment overrides (root-level, not the committed .env.example)
 .env

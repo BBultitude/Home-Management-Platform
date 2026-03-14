@@ -3,16 +3,24 @@ Admin API endpoints
 User management, system statistics, and administrative oversight
 """
 
+import io
+import os
+import subprocess
+import zipfile
+from datetime import datetime, timezone
 from typing import Optional
+from urllib.parse import urlparse
 from uuid import UUID
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from app.api.dependencies import get_db, require_admin
+from app.core.config import settings
 from app.models.user import User, UserRole
 from app.services.admin_service import AdminService
 from app.services.audit_service import AuditService
-from app.models.audit_log import AuditModule, AuditAction, AuditLog
+from app.models.audit_log import AuditModule, AuditAction, AuditLog, EventType, Severity
 from app.schemas.admin import (
     UserUpdateRequest,
     UserRoleUpdateRequest,
@@ -386,4 +394,96 @@ async def get_action_audit_logs(
         total=total,
         limit=limit,
         offset=offset
+    )
+
+
+# ===== Backup Endpoint =====
+
+@router.get("/backup/download")
+async def download_backup(
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    """
+    Download a full backup as a ZIP archive (admin only).
+
+    The archive contains:
+    - backup_YYYYMMDD_HHMMSS.sql — pg_dump of the database
+    - files/ — all uploaded user files
+    """
+    # Parse DB connection details from the URL with password
+    raw_url = settings.database_url_with_password
+    # Strip the driver prefix so urlparse can handle it
+    parsed = urlparse(raw_url.replace("postgresql+psycopg://", "postgresql://"))
+    db_host = parsed.hostname or "db"
+    db_port = str(parsed.port or 5432)
+    db_user = parsed.username or "homeuser"
+    db_pass = parsed.password or ""
+    db_name = (parsed.path or "/homedb").lstrip("/")
+
+    # Run pg_dump
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    sql_filename = f"backup_{timestamp}.sql"
+
+    env = os.environ.copy()
+    env["PGPASSWORD"] = db_pass
+
+    try:
+        result = subprocess.run(
+            [
+                "pg_dump",
+                "-h", db_host,
+                "-p", db_port,
+                "-U", db_user,
+                "--no-password",
+                db_name,
+            ],
+            capture_output=True,
+            env=env,
+            timeout=120,
+        )
+    except FileNotFoundError:
+        raise HTTPException(status_code=500, detail="pg_dump not found on server")
+    except subprocess.TimeoutExpired:
+        raise HTTPException(status_code=500, detail="pg_dump timed out")
+
+    if result.returncode != 0:
+        raise HTTPException(
+            status_code=500,
+            detail=f"pg_dump failed: {result.stderr.decode(errors='replace')[:500]}"
+        )
+
+    sql_data = result.stdout
+
+    # Build ZIP in memory
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, mode="w", compression=zipfile.ZIP_DEFLATED) as zf:
+        zf.writestr(sql_filename, sql_data)
+
+        upload_dir = settings.UPLOAD_DIR
+        if upload_dir.exists():
+            for file_path in upload_dir.rglob("*"):
+                if file_path.is_file():
+                    arcname = "files/" + str(file_path.relative_to(upload_dir))
+                    zf.write(file_path, arcname)
+
+    zip_buffer.seek(0)
+
+    # Log the backup event
+    AuditService.log_event(
+        db=db,
+        event_type=EventType.BACKUP_DOWNLOAD,
+        user_id=current_user.id,
+        username=current_user.username,
+        resource_type="backup",
+        severity=Severity.WARNING,
+        details={"filename": f"backup_{timestamp}.zip"},
+    )
+    db.commit()
+
+    zip_filename = f"backup_{timestamp}.zip"
+    return StreamingResponse(
+        zip_buffer,
+        media_type="application/zip",
+        headers={"Content-Disposition": f'attachment; filename="{zip_filename}"'},
     )

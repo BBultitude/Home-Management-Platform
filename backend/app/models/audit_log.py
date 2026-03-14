@@ -67,6 +67,9 @@ class EventType(str, enum.Enum):
     KNOWLEDGE_UPDATE = "KNOWLEDGE_UPDATE"
     KNOWLEDGE_DELETE = "KNOWLEDGE_DELETE"
 
+    # System
+    BACKUP_DOWNLOAD = "BACKUP_DOWNLOAD"
+
 
 # Alias for backwards compatibility
 AuditAction = EventType

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -33,6 +34,8 @@ export default function AdminUsers() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [resetMfaUserId, setResetMfaUserId] = useState<number | null>(null);
   const [deleteUserId, setDeleteUserId] = useState<number | null>(null);
+  const [backupLoading, setBackupLoading] = useState(false);
+  const [lastBackupTime, setLastBackupTime] = useState<string | null>(null);
 
   // Create user form state
   const [newUser, setNewUser] = useState({
@@ -138,6 +141,31 @@ export default function AdminUsers() {
     } catch (err: any) {
       console.error('Failed to update user:', err);
       setError('Failed to update user status');
+    }
+  };
+
+  const handleDownloadBackup = async () => {
+    setBackupLoading(true);
+    try {
+      const response = await apiClient.get('/admin/backup/download', {
+        responseType: 'blob',
+      }) as Blob;
+      const url = window.URL.createObjectURL(response);
+      const now = new Date();
+      const filename = `backup_${now.toISOString().replace(/[:.]/g, '-').slice(0, 19)}.zip`;
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      setLastBackupTime(now.toLocaleString());
+      toast.success('Backup downloaded successfully');
+    } catch {
+      toast.error('Failed to download backup');
+    } finally {
+      setBackupLoading(false);
     }
   };
 
@@ -325,6 +353,27 @@ export default function AdminUsers() {
             </div>
           </CardContent>
         </Card>
+
+      {/* Backup Section */}
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle>Database Backup</CardTitle>
+          <CardDescription>
+            Download a full backup of the database and uploaded files as a ZIP archive.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-4">
+            <Button onClick={handleDownloadBackup} disabled={backupLoading}>
+              <Download className="mr-2 h-4 w-4" />
+              {backupLoading ? 'Preparing backup…' : 'Download Backup'}
+            </Button>
+            {lastBackupTime && (
+              <span className="text-sm text-gray-500">Last downloaded: {lastBackupTime}</span>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       <AlertDialog open={deleteUserId !== null} onOpenChange={(open) => !open && setDeleteUserId(null)}>
         <AlertDialogContent>

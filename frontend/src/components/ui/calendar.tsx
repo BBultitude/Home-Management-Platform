@@ -13,8 +13,10 @@ function Calendar({
   className,
   classNames,
   showOutsideDays = true,
-  captionLayout = "label",
+  captionLayout = "dropdown",
   buttonVariant = "ghost",
+  fromYear = 2000,
+  toYear = 2030,
   formatters,
   components,
   ...props
@@ -26,6 +28,8 @@ function Calendar({
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
+      fromYear={fromYear}
+      toYear={toYear}
       className={cn(
         "bg-white dark:bg-white group/calendar p-5 [--cell-size:3.75rem] [[data-slot=card-content]_&]:bg-white",
         String.raw`rtl:**:[.rdp-button\_next>svg]:rotate-180`,

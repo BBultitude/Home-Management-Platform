@@ -345,7 +345,10 @@ curl -X GET "http://localhost:8000/api/v1/dashboard/search?q=roof&modules=projec
 #### Enhanced Audit Logs (3 endpoints)
 - By user, module, or action
 
-**Total: 12 endpoints**
+#### Backup (1 endpoint)
+- `GET /admin/backup/download` — streams a ZIP archive containing a `pg_dump` SQL file and all uploaded files; logs a `BACKUP_DOWNLOAD` audit event at WARNING severity
+
+**Total: 13 endpoints**
 
 **Example: List Users**
 ```bash

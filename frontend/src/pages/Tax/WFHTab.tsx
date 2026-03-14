@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Calendar } from '@/components/ui/calendar';
 import { DatePicker } from '@/components/forms/DatePicker';
 import { EmptyState } from '@/components/common/EmptyState';
 import { PageLoader } from '@/components/common/PageLoader';
@@ -33,6 +35,12 @@ export function WFHTab({ financialYear }: WFHTabProps) {
   const [formDate, setFormDate] = useState<Date | undefined>(new Date());
   const [formHours, setFormHours] = useState('');
   const [formNotes, setFormNotes] = useState('');
+
+  // Bulk add state
+  const [showBulkDialog, setShowBulkDialog] = useState(false);
+  const [bulkDates, setBulkDates] = useState<Date[]>([]);
+  const [bulkHours, setBulkHours] = useState('7.6');
+  const [bulkSubmitting, setBulkSubmitting] = useState(false);
 
   // Summary stats
   const totalHours = entries.reduce((sum, e) => sum + e.hours, 0);
@@ -69,7 +77,7 @@ export function WFHTab({ financialYear }: WFHTabProps) {
     } else {
       setEditingEntry(null);
       setFormDate(new Date());
-      setFormHours('');
+      setFormHours('7.6');
       setFormNotes('');
     }
     setShowDialog(true);
@@ -136,6 +144,36 @@ export function WFHTab({ financialYear }: WFHTabProps) {
     }
   };
 
+  const handleBulkSubmit = async () => {
+    if (bulkDates.length === 0) {
+      toast.error('Please select at least one date');
+      return;
+    }
+    const hours = parseFloat(bulkHours);
+    if (!bulkHours || isNaN(hours) || hours < 0.5 || hours > 24) {
+      toast.error('Please enter valid hours (0.5–24)');
+      return;
+    }
+    setBulkSubmitting(true);
+    try {
+      for (const date of bulkDates) {
+        await taxService.wfh.create({
+          date: format(date, 'yyyy-MM-dd'),
+          hours,
+        });
+      }
+      toast.success(`${bulkDates.length} ${bulkDates.length === 1 ? 'entry' : 'entries'} added`);
+      setShowBulkDialog(false);
+      setBulkDates([]);
+      setBulkHours('7.6');
+      fetchEntries();
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    } finally {
+      setBulkSubmitting(false);
+    }
+  };
+
   if (loading) {
     return <PageLoader message="Loading WFH entries..." />;
   }
@@ -166,10 +204,16 @@ export function WFHTab({ financialYear }: WFHTabProps) {
               <CardTitle>Work From Home Entries</CardTitle>
               <CardDescription>FY {financialYear}</CardDescription>
             </div>
-            <Button onClick={() => handleOpenDialog()}>
-              <Plus className="mr-2 h-4 w-4" />
-              Add Entry
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setShowBulkDialog(true)}>
+                <Plus className="mr-2 h-4 w-4" />
+                Bulk Add
+              </Button>
+              <Button onClick={() => handleOpenDialog()}>
+                <Plus className="mr-2 h-4 w-4" />
+                Add Entry
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -258,7 +302,7 @@ export function WFHTab({ financialYear }: WFHTabProps) {
                 step="0.5"
                 value={formHours}
                 onChange={(e) => setFormHours(e.target.value)}
-                placeholder="8.0"
+                placeholder="7.6"
               />
               <p className="text-xs text-gray-500">Between 0.5 and 24 hours</p>
             </div>
@@ -281,6 +325,74 @@ export function WFHTab({ financialYear }: WFHTabProps) {
             </Button>
             <LoadingButton onClick={handleSubmit} loading={submitting}>
               {editingEntry ? 'Update' : 'Create'}
+            </LoadingButton>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk Add Dialog */}
+      <Dialog open={showBulkDialog} onOpenChange={(open) => { setShowBulkDialog(open); if (!open) { setBulkDates([]); setBulkHours('7.6'); } }}>
+        <DialogContent className="bg-white dark:bg-white max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Bulk Add WFH Entries</DialogTitle>
+            <DialogDescription>
+              Select multiple dates and specify hours per day.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            <div className="flex justify-center">
+              <Calendar
+                mode="multiple"
+                selected={bulkDates}
+                onSelect={(dates) => setBulkDates((dates as Date[]) || [])}
+              />
+            </div>
+
+            {bulkDates.length > 0 && (
+              <div className="space-y-2">
+                <Label>Selected dates ({bulkDates.length})</Label>
+                <div className="flex flex-wrap gap-1 max-h-24 overflow-y-auto">
+                  {bulkDates
+                    .slice()
+                    .sort((a, b) => a.getTime() - b.getTime())
+                    .map((date) => (
+                      <Badge
+                        key={date.toISOString()}
+                        variant="secondary"
+                        className="flex items-center gap-1 cursor-pointer"
+                        onClick={() => setBulkDates(bulkDates.filter((d) => d.toISOString() !== date.toISOString()))}
+                      >
+                        {format(date, 'MMM d')}
+                        <X className="h-3 w-3" />
+                      </Badge>
+                    ))}
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Label htmlFor="bulk-hours">Hours per day *</Label>
+              <Input
+                id="bulk-hours"
+                type="number"
+                min="0.5"
+                max="24"
+                step="0.5"
+                value={bulkHours}
+                onChange={(e) => setBulkHours(e.target.value)}
+                placeholder="7.6"
+              />
+              <p className="text-xs text-gray-500">Applied to all selected dates</p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowBulkDialog(false)}>
+              Cancel
+            </Button>
+            <LoadingButton onClick={handleBulkSubmit} loading={bulkSubmitting} disabled={bulkDates.length === 0}>
+              Add {bulkDates.length > 0 ? `${bulkDates.length} ` : ''}Entries
             </LoadingButton>
           </DialogFooter>
         </DialogContent>

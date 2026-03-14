@@ -272,17 +272,17 @@ interface UtilityWidgetProps {
 }
 
 const colorMap = {
-  yellow: 'bg-yellow-50 border-yellow-300',
-  orange: 'bg-orange-50 border-orange-300',
-  blue: 'bg-blue-50 border-blue-300',
-  green: 'bg-green-50 border-green-300',
+  yellow: 'border-yellow-400',
+  orange: 'border-orange-400',
+  blue: 'border-blue-400',
+  green: 'border-green-400',
 };
 
 function UtilityWidget({ label, icon, stats, loading, color, href, unit, isRates }: UtilityWidgetProps) {
   const hasData = stats && stats.entry_count > 0;
 
   return (
-    <Card className={`${colorMap[color]} border`}>
+    <Card className={`${colorMap[color]} border-2 bg-background`}>
       <CardHeader className="pb-2">
         <CardTitle className="text-sm flex items-center gap-2">
           {icon}
