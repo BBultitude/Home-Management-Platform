@@ -14,7 +14,6 @@ psycopg[binary]==3.2.2  # PostgreSQL driver (pure Python, ARM compatible)
 # Note: psycopg3 is the modern replacement for psycopg2, with better ARM support
 
 # Authentication & Security
-fastapi-users[sqlalchemy]==13.0.0
 passlib[argon2]==1.7.4  # Password hashing with Argon2
 python-jose[cryptography]==3.3.0  # JWT tokens
 pyotp==2.9.0  # TOTP for MFA
