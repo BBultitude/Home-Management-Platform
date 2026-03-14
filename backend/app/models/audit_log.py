@@ -69,6 +69,7 @@ class EventType(str, enum.Enum):
 
     # System
     BACKUP_DOWNLOAD = "BACKUP_DOWNLOAD"
+    BACKUP_RESTORE = "BACKUP_RESTORE"
 
 
 # Alias for backwards compatibility

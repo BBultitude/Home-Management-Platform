@@ -272,10 +272,10 @@ interface UtilityWidgetProps {
 }
 
 const colorMap = {
-  yellow: 'border-yellow-400',
-  orange: 'border-orange-400',
-  blue: 'border-blue-400',
-  green: 'border-green-400',
+  yellow: '!border-yellow-400',
+  orange: '!border-orange-400',
+  blue:   '!border-blue-400',
+  green:  '!border-green-400',
 };
 
 function UtilityWidget({ label, icon, stats, loading, color, href, unit, isRates }: UtilityWidgetProps) {

@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Download } from 'lucide-react';
+import { Download, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -36,6 +36,10 @@ export default function AdminUsers() {
   const [deleteUserId, setDeleteUserId] = useState<number | null>(null);
   const [backupLoading, setBackupLoading] = useState(false);
   const [lastBackupTime, setLastBackupTime] = useState<string | null>(null);
+  const [restoreFile, setRestoreFile] = useState<File | null>(null);
+  const [restoreLoading, setRestoreLoading] = useState(false);
+  const [showRestoreConfirm, setShowRestoreConfirm] = useState(false);
+  const restoreFileInputRef = useRef<HTMLInputElement>(null);
 
   // Create user form state
   const [newUser, setNewUser] = useState({
@@ -141,6 +145,27 @@ export default function AdminUsers() {
     } catch (err: any) {
       console.error('Failed to update user:', err);
       setError('Failed to update user status');
+    }
+  };
+
+  const handleRestoreBackup = async () => {
+    if (!restoreFile) return;
+    setRestoreLoading(true);
+    setShowRestoreConfirm(false);
+    try {
+      const formData = new FormData();
+      formData.append('file', restoreFile);
+      await apiClient.post('/admin/backup/restore', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      toast.success('Restore completed successfully');
+      setRestoreFile(null);
+      if (restoreFileInputRef.current) restoreFileInputRef.current.value = '';
+    } catch (err: any) {
+      const detail = err.response?.data?.detail || 'Restore failed';
+      toast.error(typeof detail === 'string' ? detail : 'Restore failed');
+    } finally {
+      setRestoreLoading(false);
     }
   };
 
@@ -372,8 +397,52 @@ export default function AdminUsers() {
               <span className="text-sm text-gray-500">Last downloaded: {lastBackupTime}</span>
             )}
           </div>
+
+          <div className="border-t border-gray-200 my-4" />
+
+          <Alert variant="destructive" className="mb-4">
+            <AlertDescription>
+              <strong>Warning:</strong> Restoring a backup will overwrite the current database. All data
+              created after the backup date will be permanently lost.
+            </AlertDescription>
+          </Alert>
+          <div className="flex items-center gap-4">
+            <input
+              ref={restoreFileInputRef}
+              type="file"
+              accept=".zip"
+              className="text-sm text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-sm file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200"
+              onChange={(e) => setRestoreFile(e.target.files?.[0] ?? null)}
+            />
+            <Button
+              variant="destructive"
+              disabled={!restoreFile || restoreLoading}
+              onClick={() => setShowRestoreConfirm(true)}
+            >
+              <Upload className="mr-2 h-4 w-4" />
+              {restoreLoading ? 'Restoring…' : 'Restore from Backup'}
+            </Button>
+          </div>
         </CardContent>
       </Card>
+
+      <AlertDialog open={showRestoreConfirm} onOpenChange={(open) => !open && setShowRestoreConfirm(false)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Restore from Backup?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will overwrite the current database with the contents of <strong>{restoreFile?.name}</strong>.
+              All data after the backup date will be permanently lost. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleRestoreBackup} className="bg-red-600 hover:bg-red-700">
+              Yes, Restore
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AlertDialog open={deleteUserId !== null} onOpenChange={(open) => !open && setDeleteUserId(null)}>
         <AlertDialogContent>

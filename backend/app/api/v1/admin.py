@@ -5,13 +5,15 @@ User management, system statistics, and administrative oversight
 
 import io
 import os
+import shutil
 import subprocess
+import tempfile
 import zipfile
 from datetime import datetime, timezone
 from typing import Optional
 from urllib.parse import urlparse
 from uuid import UUID
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
@@ -487,3 +489,102 @@ async def download_backup(
         media_type="application/zip",
         headers={"Content-Disposition": f'attachment; filename="{zip_filename}"'},
     )
+
+
+@router.post("/backup/restore")
+async def restore_backup(
+    file: UploadFile = File(...),
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """
+    Restore database and files from a backup ZIP (admin only).
+
+    Accepts the ZIP produced by /backup/download. Replays the SQL dump
+    via psql and overwrites the uploads directory with any files/ found
+    inside the archive. This is a destructive operation.
+    """
+    if not file.filename or not file.filename.lower().endswith(".zip"):
+        raise HTTPException(status_code=400, detail="Uploaded file must be a ZIP archive (.zip)")
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        zip_path = os.path.join(tmpdir, "restore.zip")
+        content = await file.read()
+        with open(zip_path, "wb") as f:
+            f.write(content)
+
+        # Validate and extract ZIP
+        try:
+            with zipfile.ZipFile(zip_path, "r") as zf:
+                names = zf.namelist()
+                sql_files = [n for n in names if n.startswith("backup_") and n.endswith(".sql")]
+                if not sql_files:
+                    raise HTTPException(
+                        status_code=400,
+                        detail="ZIP does not contain a valid backup SQL file (expected backup_*.sql)"
+                    )
+                zf.extractall(tmpdir)
+        except zipfile.BadZipFile:
+            raise HTTPException(status_code=400, detail="Uploaded file is not a valid ZIP archive")
+
+        sql_file_path = os.path.join(tmpdir, sql_files[0])
+
+        # Parse DB connection details
+        raw_url = settings.database_url_with_password
+        parsed = urlparse(raw_url.replace("postgresql+psycopg://", "postgresql://"))
+        db_host = parsed.hostname or "db"
+        db_port = str(parsed.port or 5432)
+        db_user = parsed.username or "homeuser"
+        db_pass = parsed.password or ""
+        db_name = (parsed.path or "/homedb").lstrip("/")
+
+        env = os.environ.copy()
+        env["PGPASSWORD"] = db_pass
+
+        try:
+            result = subprocess.run(
+                [
+                    "psql",
+                    "-h", db_host,
+                    "-p", db_port,
+                    "-U", db_user,
+                    "-d", db_name,
+                    "-f", sql_file_path,
+                ],
+                capture_output=True,
+                env=env,
+                timeout=300,
+            )
+        except FileNotFoundError:
+            raise HTTPException(status_code=500, detail="psql not found on server")
+        except subprocess.TimeoutExpired:
+            raise HTTPException(status_code=500, detail="Database restore timed out after 300s")
+
+        if result.returncode != 0:
+            raise HTTPException(
+                status_code=500,
+                detail=f"psql failed: {result.stderr.decode(errors='replace')[:500]}"
+            )
+
+        # Restore uploaded files if present in the archive
+        files_restored = False
+        files_dir = os.path.join(tmpdir, "files")
+        if os.path.isdir(files_dir):
+            upload_dir = settings.UPLOAD_DIR
+            upload_dir.mkdir(parents=True, exist_ok=True)
+            shutil.copytree(files_dir, str(upload_dir), dirs_exist_ok=True)
+            files_restored = True
+
+    # Log the restore event (outside the tempdir context — temp files are gone)
+    AuditService.log_event(
+        db=db,
+        event_type=EventType.BACKUP_RESTORE,
+        user_id=current_user.id,
+        username=current_user.username,
+        resource_type="backup",
+        severity=Severity.WARNING,
+        details={"sql_file": sql_files[0], "files_restored": files_restored},
+    )
+    db.commit()
+
+    return {"message": "Restore completed", "tables_restored": True, "files_restored": files_restored}

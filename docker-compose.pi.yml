@@ -55,7 +55,8 @@ services:
       ALLOWED_ORIGINS: http://frontend,http://localhost,http://192.168.12.120:8001,https://home.brydel.net
 
       # Session settings
-      SESSION_EXPIRY_HOURS: 1
+      SESSION_EXPIRY_HOURS: 8
+      ACCESS_TOKEN_EXPIRE_HOURS: 8
       TRUSTED_DEVICE_EXPIRY_DAYS: 30
 
       # File upload settings

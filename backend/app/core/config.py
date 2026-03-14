@@ -78,8 +78,8 @@ class Settings(BaseSettings):
         return read_secret(self.MFA_ENCRYPTION_KEY_FILE, "MFA_ENCRYPTION_KEY")
 
     # Session Settings
-    ACCESS_TOKEN_EXPIRE_HOURS: int = 1
-    SESSION_EXPIRY_HOURS: int = 1
+    ACCESS_TOKEN_EXPIRE_HOURS: int = 8
+    SESSION_EXPIRY_HOURS: int = 8
     TRUSTED_DEVICE_EXPIRY_DAYS: int = 30
 
     # Login Throttling

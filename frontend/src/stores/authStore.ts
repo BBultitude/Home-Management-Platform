@@ -17,6 +17,7 @@ interface AuthState {
   mfaToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  _hasHydrated: boolean;
   login: (username: string, password: string) => Promise<any>;
   logout: () => void;
   setUser: (user: User) => void;
@@ -30,6 +31,7 @@ export const useAuthStore = create<AuthState>()(
       mfaToken: null,
       isAuthenticated: false,
       isLoading: false,
+      _hasHydrated: false,
 
       login: async (username: string, password: string) => {
         set({ isLoading: true });
@@ -85,16 +87,16 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'auth-storage',
-      // Only persist user and token, not isAuthenticated
-      // isAuthenticated is derived from user on hydration
+      // Only persist user and token — not isAuthenticated or _hasHydrated
       partialize: (state) => ({
         user: state.user,
         token: state.token,
       }),
       onRehydrateStorage: () => (state) => {
-        // After hydrating from localStorage, set isAuthenticated based on user
+        // After hydrating from localStorage, set isAuthenticated and mark hydration complete
         if (state) {
           state.isAuthenticated = state.user !== null;
+          state._hasHydrated = true;
         }
       },
     }

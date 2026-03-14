@@ -31,7 +31,7 @@ function Calendar({
       fromYear={fromYear}
       toYear={toYear}
       className={cn(
-        "bg-white dark:bg-white group/calendar p-5 [--cell-size:3.75rem] [[data-slot=card-content]_&]:bg-white",
+        "bg-white dark:bg-white group/calendar p-3 [--cell-size:2rem] sm:[--cell-size:2.5rem] md:[--cell-size:3rem] [[data-slot=card-content]_&]:bg-white",
         String.raw`rtl:**:[.rdp-button\_next>svg]:rotate-180`,
         String.raw`rtl:**:[.rdp-button\_previous>svg]:rotate-180`,
         className
@@ -68,7 +68,7 @@ function Calendar({
           defaultClassNames.month_caption
         ),
         dropdowns: cn(
-          "flex h-[--cell-size] w-full items-center justify-center gap-1.5 text-sm font-medium",
+          "flex h-9 w-full items-center justify-center gap-1.5 text-sm font-medium",
           defaultClassNames.dropdowns
         ),
         dropdown_root: cn(
