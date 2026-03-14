@@ -31,7 +31,7 @@ function Calendar({
       fromYear={fromYear}
       toYear={toYear}
       className={cn(
-        "bg-white dark:bg-white group/calendar p-3 [--cell-size:2rem] sm:[--cell-size:2.5rem] md:[--cell-size:3rem] [[data-slot=card-content]_&]:bg-white",
+        "bg-white dark:bg-white group/calendar p-3 [--cell-size:2.5rem] md:[--cell-size:3rem] [[data-slot=card-content]_&]:bg-white",
         String.raw`rtl:**:[.rdp-button\_next>svg]:rotate-180`,
         String.raw`rtl:**:[.rdp-button\_previous>svg]:rotate-180`,
         className
