@@ -90,8 +90,9 @@ async def create_income_source(
 
 @router.get("/income", response_model=IncomeSourceListResponse)
 async def list_income_sources(
-    limit: Annotated[int, Query(100, ge=1, le=500)],
-    offset: Annotated[int, Query(0, ge=0)],
+    limit: Annotated[int, Query(ge=1, le=500)] = 100,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    *,
     current_user: Annotated[User, Depends(get_current_active_user)],
     db: Annotated[Session, Depends(get_db)]
 ):
@@ -241,11 +242,12 @@ async def create_utility(
 
 @router.get("/utilities", response_model=UtilityListResponse)
 async def list_utilities(
-    utility_type: Annotated[Optional[UtilityType], Query(None)],
-    start_date: Annotated[Optional[date], Query(None)],
-    end_date: Annotated[Optional[date], Query(None)],
-    limit: Annotated[int, Query(100, ge=1, le=500)],
-    offset: Annotated[int, Query(0, ge=0)],
+    utility_type: Annotated[Optional[UtilityType], Query()] = None,
+    start_date: Annotated[Optional[date], Query()] = None,
+    end_date: Annotated[Optional[date], Query()] = None,
+    limit: Annotated[int, Query(ge=1, le=500)] = 100,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    *,
     current_user: Annotated[User, Depends(get_current_active_user)],
     db: Annotated[Session, Depends(get_db)]
 ):
@@ -321,8 +323,9 @@ async def delete_utility(
 @router.get("/utilities/stats/{utility_type}", response_model=UtilityStatsResponse)
 async def get_utility_stats(
     utility_type: UtilityType,
-    start_date: Annotated[Optional[date], Query(None)],
-    end_date: Annotated[Optional[date], Query(None)],
+    start_date: Annotated[Optional[date], Query()] = None,
+    end_date: Annotated[Optional[date], Query()] = None,
+    *,
     current_user: Annotated[User, Depends(get_current_active_user)],
     db: Annotated[Session, Depends(get_db)]
 ):
@@ -344,8 +347,9 @@ async def get_utility_stats(
 @router.get("/utilities/graphs/{utility_type}", response_model=UtilityGraphsResponse)
 async def get_utility_graphs(
     utility_type: UtilityType,
-    start_date: Annotated[Optional[date], Query(None)],
-    end_date: Annotated[Optional[date], Query(None)],
+    start_date: Annotated[Optional[date], Query()] = None,
+    end_date: Annotated[Optional[date], Query()] = None,
+    *,
     current_user: Annotated[User, Depends(get_current_active_user)],
     db: Annotated[Session, Depends(get_db)]
 ):
@@ -398,8 +402,9 @@ async def create_bank_account(
 
 @router.get("/bank-accounts", response_model=BankAccountListResponse)
 async def list_bank_accounts(
-    limit: Annotated[int, Query(100, ge=1, le=500)],
-    offset: Annotated[int, Query(0, ge=0)],
+    limit: Annotated[int, Query(ge=1, le=500)] = 100,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    *,
     current_user: Annotated[User, Depends(get_current_active_user)],
     db: Annotated[Session, Depends(get_db)]
 ):
@@ -516,9 +521,10 @@ async def create_expense_category(
 
 @router.get("/expense-categories", response_model=ExpenseCategoryListResponse)
 async def list_expense_categories(
-    bank_account_id: Annotated[Optional[int], Query(None)],
-    limit: Annotated[int, Query(100, ge=1, le=500)],
-    offset: Annotated[int, Query(0, ge=0)],
+    bank_account_id: Annotated[Optional[int], Query()] = None,
+    limit: Annotated[int, Query(ge=1, le=500)] = 100,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    *,
     current_user: Annotated[User, Depends(get_current_active_user)],
     db: Annotated[Session, Depends(get_db)]
 ):
@@ -640,9 +646,10 @@ async def create_expense(
 
 @router.get("/expenses", response_model=ExpenseListResponse)
 async def list_expenses(
-    category_id: Annotated[Optional[int], Query(None)],
-    limit: Annotated[int, Query(100, ge=1, le=500)],
-    offset: Annotated[int, Query(0, ge=0)],
+    category_id: Annotated[Optional[int], Query()] = None,
+    limit: Annotated[int, Query(ge=1, le=500)] = 100,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    *,
     current_user: Annotated[User, Depends(get_current_active_user)],
     db: Annotated[Session, Depends(get_db)]
 ):

@@ -55,7 +55,8 @@ async def get_alerts_widget(
 
 @router.get("/priorities")
 async def get_priorities_widget(
-    limit: Annotated[int, Query(10, ge=1, le=50)],
+    limit: Annotated[int, Query(ge=1, le=50)] = 10,
+    *,
     current_user: Annotated[User, Depends(get_current_active_user)],
     db: Annotated[Session, Depends(get_db)]
 ):
@@ -137,10 +138,11 @@ async def create_notification(
 
 @router.get("/notifications", response_model=NotificationListResponse)
 async def list_notifications(
-    unread_only: Annotated[bool, Query(False, description="Show only unread notifications")],
-    category: Annotated[Optional[str], Query(None, description="Filter by category")],
-    limit: Annotated[int, Query(50, ge=1, le=200)],
-    offset: Annotated[int, Query(0, ge=0)],
+    unread_only: Annotated[bool, Query(description="Show only unread notifications")] = False,
+    category: Annotated[Optional[str], Query(description="Filter by category")] = None,
+    limit: Annotated[int, Query(ge=1, le=200)] = 50,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    *,
     current_user: Annotated[User, Depends(get_current_active_user)],
     db: Annotated[Session, Depends(get_db)]
 ):
@@ -222,8 +224,9 @@ async def dismiss_all_notifications(
 @router.get("/search", response_model=GlobalSearchResponse)
 async def global_search(
     q: Annotated[str, Query(..., min_length=2, description="Search query")],
-    modules: Annotated[Optional[str], Query(None, description="Comma-separated list of modules to search")],
-    limit: Annotated[int, Query(50, ge=1, le=200)],
+    modules: Annotated[Optional[str], Query(description="Comma-separated list of modules to search")] = None,
+    limit: Annotated[int, Query(ge=1, le=200)] = 50,
+    *,
     current_user: Annotated[User, Depends(get_current_active_user)],
     db: Annotated[Session, Depends(get_db)]
 ):
@@ -249,7 +252,8 @@ async def global_search(
 @router.get("/search/quick", response_model=QuickSearchResponse)
 async def quick_search(
     q: Annotated[str, Query(..., min_length=2, description="Search query")],
-    limit: Annotated[int, Query(10, ge=1, le=50)],
+    limit: Annotated[int, Query(ge=1, le=50)] = 10,
+    *,
     current_user: Annotated[User, Depends(get_current_active_user)],
     db: Annotated[Session, Depends(get_db)]
 ):

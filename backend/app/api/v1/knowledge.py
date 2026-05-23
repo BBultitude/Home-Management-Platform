@@ -62,10 +62,11 @@ async def create_knowledge_article(
 
 @router.get("", response_model=KnowledgeArticleListResponse)
 async def list_knowledge_articles(
-    article_type: Annotated[Optional[ArticleType], Query(None, description="Filter by article type")],
-    tag: Annotated[Optional[str], Query(None, description="Filter by tag")],
-    limit: Annotated[int, Query(100, ge=1, le=500)],
-    offset: Annotated[int, Query(0, ge=0)],
+    article_type: Annotated[Optional[ArticleType], Query(description="Filter by article type")] = None,
+    tag: Annotated[Optional[str], Query(description="Filter by tag")] = None,
+    limit: Annotated[int, Query(ge=1, le=500)] = 100,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    *,
     current_user: Annotated[User, Depends(get_current_active_user)],
     db: Annotated[Session, Depends(get_db)]
 ):
@@ -121,7 +122,8 @@ async def search_knowledge_articles(
 @router.get("/{article_id}", response_model=KnowledgeArticleResponse)
 async def get_knowledge_article(
     article_id: UUID,
-    decrypt_passwords: Annotated[bool, Query(False, description="Decrypt passwords (requires knowledge:admin)")],
+    decrypt_passwords: Annotated[bool, Query(description="Decrypt passwords (requires knowledge:admin)")] = False,
+    *,
     current_user: Annotated[User, Depends(get_current_active_user)],
     db: Annotated[Session, Depends(get_db)]
 ):

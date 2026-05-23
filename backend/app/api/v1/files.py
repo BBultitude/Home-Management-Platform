@@ -186,9 +186,10 @@ async def delete_file(
 
 @router.get("", response_model=FileListResponse)
 async def list_files(
-    category: Annotated[Optional[FileCategory], Query(None)],
-    limit: Annotated[int, Query(100, ge=1, le=500)],
-    offset: Annotated[int, Query(0, ge=0)],
+    category: Annotated[Optional[FileCategory], Query()] = None,
+    limit: Annotated[int, Query(ge=1, le=500)] = 100,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    *,
     current_user: Annotated[User, Depends(get_current_active_user)],
     db: Annotated[Session, Depends(get_db)]
 ):

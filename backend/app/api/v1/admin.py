@@ -45,11 +45,12 @@ router = APIRouter(prefix="/admin", tags=["admin"])
 
 @router.get("/users", response_model=UserListResponse)
 async def list_users(
-    search: Annotated[Optional[str], Query(None, description="Search by username, email, or name")],
-    role: Annotated[Optional[str], Query(None, description="Filter by role: admin, editor, reader")],
-    is_active: Annotated[Optional[bool], Query(None, description="Filter by active status")],
-    limit: Annotated[int, Query(100, ge=1, le=500)],
-    offset: Annotated[int, Query(0, ge=0)],
+    search: Annotated[Optional[str], Query(description="Search by username, email, or name")] = None,
+    role: Annotated[Optional[str], Query(description="Filter by role: admin, editor, reader")] = None,
+    is_active: Annotated[Optional[bool], Query(description="Filter by active status")] = None,
+    limit: Annotated[int, Query(ge=1, le=500)] = 100,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    *,
     current_user: Annotated[User, Depends(require_admin)],
     db: Annotated[Session, Depends(get_db)]
 ):
@@ -302,10 +303,11 @@ async def get_user_statistics(
 @router.get("/audit/users/{user_id}", response_model=AuditLogListResponse)
 async def get_user_audit_logs(
     user_id: UUID,
-    module: Annotated[Optional[str], Query(None, description="Filter by module")],
-    action: Annotated[Optional[str], Query(None, description="Filter by action")],
-    limit: Annotated[int, Query(100, ge=1, le=1000)],
-    offset: Annotated[int, Query(0, ge=0)],
+    module: Annotated[Optional[str], Query(description="Filter by module")] = None,
+    action: Annotated[Optional[str], Query(description="Filter by action")] = None,
+    limit: Annotated[int, Query(ge=1, le=1000)] = 100,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    *,
     current_user: Annotated[User, Depends(require_admin)],
     db: Annotated[Session, Depends(get_db)]
 ):
@@ -336,10 +338,11 @@ async def get_user_audit_logs(
 @router.get("/audit/modules/{module}", response_model=AuditLogListResponse)
 async def get_module_audit_logs(
     module: str,
-    action: Annotated[Optional[str], Query(None, description="Filter by action")],
-    user_id: Annotated[Optional[str], Query(None, description="Filter by user")],
-    limit: Annotated[int, Query(100, ge=1, le=1000)],
-    offset: Annotated[int, Query(0, ge=0)],
+    action: Annotated[Optional[str], Query(description="Filter by action")] = None,
+    user_id: Annotated[Optional[str], Query(description="Filter by user")] = None,
+    limit: Annotated[int, Query(ge=1, le=1000)] = 100,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    *,
     current_user: Annotated[User, Depends(require_admin)],
     db: Annotated[Session, Depends(get_db)]
 ):
@@ -370,10 +373,11 @@ async def get_module_audit_logs(
 @router.get("/audit/actions/{action}", response_model=AuditLogListResponse)
 async def get_action_audit_logs(
     action: str,
-    module: Annotated[Optional[str], Query(None, description="Filter by module")],
-    user_id: Annotated[Optional[str], Query(None, description="Filter by user")],
-    limit: Annotated[int, Query(100, ge=1, le=1000)],
-    offset: Annotated[int, Query(0, ge=0)],
+    module: Annotated[Optional[str], Query(description="Filter by module")] = None,
+    user_id: Annotated[Optional[str], Query(description="Filter by user")] = None,
+    limit: Annotated[int, Query(ge=1, le=1000)] = 100,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    *,
     current_user: Annotated[User, Depends(require_admin)],
     db: Annotated[Session, Depends(get_db)]
 ):

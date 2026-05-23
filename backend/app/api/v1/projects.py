@@ -70,9 +70,10 @@ async def create_priority_item(
 
 @router.get("/priorities", response_model=PriorityItemListResponse)
 async def list_priority_items(
-    status: Annotated[Optional[PriorityStatus], Query(None, description="Filter by status")],
-    limit: Annotated[int, Query(100, ge=1, le=500)],
-    offset: Annotated[int, Query(0, ge=0)],
+    status: Annotated[Optional[PriorityStatus], Query(description="Filter by status")] = None,
+    limit: Annotated[int, Query(ge=1, le=500)] = 100,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    *,
     current_user: Annotated[User, Depends(get_current_active_user)],
     db: Annotated[Session, Depends(get_db)]
 ):
@@ -203,9 +204,10 @@ async def create_project(
 
 @router.get("", response_model=ProjectListResponse)
 async def list_projects(
-    status: Annotated[Optional[ProjectStatus], Query(None, description="Filter by status")],
-    limit: Annotated[int, Query(100, ge=1, le=500)],
-    offset: Annotated[int, Query(0, ge=0)],
+    status: Annotated[Optional[ProjectStatus], Query(description="Filter by status")] = None,
+    limit: Annotated[int, Query(ge=1, le=500)] = 100,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    *,
     current_user: Annotated[User, Depends(get_current_active_user)],
     db: Annotated[Session, Depends(get_db)]
 ):
@@ -453,7 +455,8 @@ async def delete_quote(
 
 @router.get("/quotes/alerts/expiry", response_model=list[QuoteResponse])
 async def get_quote_expiry_alerts(
-    days: Annotated[int, Query(30, ge=1, le=365, description="Days before expiry to alert")],
+    days: Annotated[int, Query(ge=1, le=365, description="Days before expiry to alert")] = 30,
+    *,
     current_user: Annotated[User, Depends(get_current_active_user)],
     db: Annotated[Session, Depends(get_db)]
 ):

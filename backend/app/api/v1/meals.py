@@ -74,9 +74,10 @@ async def create_recipe(
 
 @router.get("/recipes", response_model=RecipeListResponse)
 async def list_recipes(
-    search: Annotated[Optional[str], Query(None, description="Search by recipe or ingredient name")],
-    limit: Annotated[int, Query(100, ge=1, le=500)],
-    offset: Annotated[int, Query(0, ge=0)],
+    search: Annotated[Optional[str], Query(description="Search by recipe or ingredient name")] = None,
+    limit: Annotated[int, Query(ge=1, le=500)] = 100,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    *,
     current_user: Annotated[User, Depends(get_current_active_user)],
     db: Annotated[Session, Depends(get_db)]
 ):

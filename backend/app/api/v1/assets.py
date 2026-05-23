@@ -68,9 +68,10 @@ async def create_insurance_policy(
 
 @router.get("/insurance", response_model=InsurancePolicyListResponse)
 async def list_insurance_policies(
-    policy_type: Annotated[Optional[PolicyType], Query(None)],
-    limit: Annotated[int, Query(100, ge=1, le=500)],
-    offset: Annotated[int, Query(0, ge=0)],
+    policy_type: Annotated[Optional[PolicyType], Query()] = None,
+    limit: Annotated[int, Query(ge=1, le=500)] = 100,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    *,
     current_user: Annotated[User, Depends(get_current_active_user)],
     db: Annotated[Session, Depends(get_db)]
 ):
@@ -153,7 +154,8 @@ async def delete_insurance_policy(
 
 @router.get("/insurance/alerts/renewals", response_model=list[RenewalAlertResponse])
 async def get_renewal_alerts(
-    days: Annotated[int, Query(30, ge=1, le=365, description="Days before renewal to alert")],
+    days: Annotated[int, Query(ge=1, le=365, description="Days before renewal to alert")] = 30,
+    *,
     current_user: Annotated[User, Depends(get_current_active_user)],
     db: Annotated[Session, Depends(get_db)]
 ):
@@ -226,11 +228,12 @@ async def create_document(
 
 @router.get("/documents", response_model=DocumentListResponse)
 async def list_documents(
-    document_type: Annotated[Optional[DocumentType], Query(None)],
-    category: Annotated[Optional[str], Query(None)],
-    tag: Annotated[Optional[str], Query(None)],
-    limit: Annotated[int, Query(100, ge=1, le=500)],
-    offset: Annotated[int, Query(0, ge=0)],
+    document_type: Annotated[Optional[DocumentType], Query()] = None,
+    category: Annotated[Optional[str], Query()] = None,
+    tag: Annotated[Optional[str], Query()] = None,
+    limit: Annotated[int, Query(ge=1, le=500)] = 100,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    *,
     current_user: Annotated[User, Depends(get_current_active_user)],
     db: Annotated[Session, Depends(get_db)]
 ):
@@ -260,7 +263,8 @@ async def list_documents(
 @router.get("/documents/search")
 async def search_documents(
     q: Annotated[str, Query(..., min_length=1, description="Search term")],
-    limit: Annotated[int, Query(50, ge=1, le=100)],
+    limit: Annotated[int, Query(ge=1, le=100)] = 50,
+    *,
     current_user: Annotated[User, Depends(get_current_active_user)],
     db: Annotated[Session, Depends(get_db)]
 ):
@@ -340,7 +344,8 @@ async def delete_document(
 
 @router.get("/documents/alerts/expiry", response_model=list[ExpiryAlertResponse])
 async def get_expiry_alerts(
-    days: Annotated[int, Query(30, ge=1, le=365, description="Days before expiry to alert")],
+    days: Annotated[int, Query(ge=1, le=365, description="Days before expiry to alert")] = 30,
+    *,
     current_user: Annotated[User, Depends(get_current_active_user)],
     db: Annotated[Session, Depends(get_db)]
 ):

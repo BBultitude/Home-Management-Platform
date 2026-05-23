@@ -83,10 +83,11 @@ async def create_wfh_entry(
 
 @router.get("", response_model=TaxWFHEntryListResponse)
 async def list_wfh_entries(
-    start_date: Annotated[Optional[date], Query(None)],
-    end_date: Annotated[Optional[date], Query(None)],
-    limit: Annotated[int, Query(100, ge=1, le=500)],
-    offset: Annotated[int, Query(0, ge=0)],
+    start_date: Annotated[Optional[date], Query()] = None,
+    end_date: Annotated[Optional[date], Query()] = None,
+    limit: Annotated[int, Query(ge=1, le=500)] = 100,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    *,
     current_user: Annotated[User, Depends(get_current_active_user)],
     db: Annotated[Session, Depends(get_db)]
 ):
@@ -129,10 +130,11 @@ async def list_wfh_entries(
 @router.get("/users/{user_id}", response_model=TaxWFHEntryListResponse)
 async def list_user_wfh_entries(
     user_id: int,
-    start_date: Annotated[Optional[date], Query(None)],
-    end_date: Annotated[Optional[date], Query(None)],
-    limit: Annotated[int, Query(100, ge=1, le=500)],
-    offset: Annotated[int, Query(0, ge=0)],
+    start_date: Annotated[Optional[date], Query()] = None,
+    end_date: Annotated[Optional[date], Query()] = None,
+    limit: Annotated[int, Query(ge=1, le=500)] = 100,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    *,
     current_user: Annotated[User, Depends(get_current_active_user)],
     db: Annotated[Session, Depends(get_db)]
 ):
@@ -303,7 +305,8 @@ async def delete_wfh_entry(
 @router.get("/summary/fy/{fy_year}", response_model=TaxWFHFYSummaryResponse)
 async def get_fy_summary(
     fy_year: int,
-    rate_per_hour: Annotated[Decimal, Query(Decimal("0.67"), description="Rate per hour for deduction calculation")],
+    rate_per_hour: Annotated[Decimal, Query(description="Rate per hour for deduction calculation")] = Decimal("0.67"),
+    *,
     current_user: Annotated[User, Depends(get_current_active_user)],
     db: Annotated[Session, Depends(get_db)]
 ):
@@ -327,7 +330,8 @@ async def get_fy_summary(
 async def export_fy_csv(
     request: Request,
     fy_year: int,
-    rate_per_hour: Annotated[Decimal, Query(Decimal("0.67"), description="Rate per hour for deduction calculation")],
+    rate_per_hour: Annotated[Decimal, Query(description="Rate per hour for deduction calculation")] = Decimal("0.67"),
+    *,
     current_user: Annotated[User, Depends(get_current_active_user)],
     db: Annotated[Session, Depends(get_db)]
 ):
@@ -369,7 +373,8 @@ async def export_fy_csv(
 async def export_fy_text(
     request: Request,
     fy_year: int,
-    rate_per_hour: Annotated[Decimal, Query(Decimal("0.67"), description="Rate per hour for deduction calculation")],
+    rate_per_hour: Annotated[Decimal, Query(description="Rate per hour for deduction calculation")] = Decimal("0.67"),
+    *,
     current_user: Annotated[User, Depends(get_current_active_user)],
     db: Annotated[Session, Depends(get_db)]
 ):

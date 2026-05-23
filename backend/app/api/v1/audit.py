@@ -23,11 +23,12 @@ router = APIRouter(prefix="/audit", tags=["audit"])
     summary="Get all audit logs (Admin only)"
 )
 async def get_all_audit_logs(
-    limit: Annotated[int, Query(100, ge=1, le=1000, description="Maximum number of logs to return")],
-    offset: Annotated[int, Query(0, ge=0, description="Number of logs to skip")],
-    event_type: Annotated[Optional[EventType], Query(None, description="Filter by event type")],
-    user_id: Annotated[Optional[int], Query(None, description="Filter by user ID")],
-    severity: Annotated[Optional[Severity], Query(None, description="Filter by severity")],
+    limit: Annotated[int, Query(ge=1, le=1000, description="Maximum number of logs to return")] = 100,
+    offset: Annotated[int, Query(ge=0, description="Number of logs to skip")] = 0,
+    event_type: Annotated[Optional[EventType], Query(description="Filter by event type")] = None,
+    user_id: Annotated[Optional[int], Query(description="Filter by user ID")] = None,
+    severity: Annotated[Optional[Severity], Query(description="Filter by severity")] = None,
+    *,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(require_admin)]
 ):
@@ -75,8 +76,9 @@ async def get_all_audit_logs(
     summary="Get user's own tax audit logs"
 )
 async def get_user_tax_audit_logs(
-    limit: Annotated[int, Query(100, ge=1, le=1000, description="Maximum number of logs to return")],
-    offset: Annotated[int, Query(0, ge=0, description="Number of logs to skip")],
+    limit: Annotated[int, Query(ge=1, le=1000, description="Maximum number of logs to return")] = 100,
+    offset: Annotated[int, Query(ge=0, description="Number of logs to skip")] = 0,
+    *,
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[User, Depends(get_current_active_user)]
 ):
