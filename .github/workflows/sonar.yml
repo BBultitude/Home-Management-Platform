@@ -16,8 +16,8 @@ jobs:
 
       - name: Install backend dependencies
         run: |
-          pip install --upgrade pip
-          pip install -r backend/requirements.txt
+          python3 -m pip install --upgrade pip
+          python3 -m pip install --extra-index-url https://pypi.org/simple/ -r backend/requirements.txt
 
       - name: Run backend tests with coverage
         run: cd backend && pytest
