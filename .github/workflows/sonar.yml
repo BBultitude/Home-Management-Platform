@@ -14,10 +14,15 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
       - name: Install backend dependencies
         run: |
-          python3 -m pip install --upgrade pip
-          python3 -m pip install --extra-index-url https://pypi.org/simple/ -r backend/requirements.txt
+          python -m pip install --upgrade pip
+          python -m pip install -r backend/requirements.txt
 
       - name: Run backend tests with coverage
         run: cd backend && pytest
