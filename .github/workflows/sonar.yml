@@ -22,11 +22,15 @@ jobs:
       - name: Install backend dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -r backend/requirements.txt
+          python -m pip install -r backend/requirements.txt -r backend/requirements-dev.txt
 
       - name: Run backend tests with coverage
         run: cd backend && pytest
         continue-on-error: true
+        env:
+          DB_PASSWORD: ci_test_password
+          JWT_SECRET: ci_test_jwt_secret_must_be_at_least_32_characters_long
+          MFA_ENCRYPTION_KEY: dV1FtheOSRTWaLyXn3CjInEruQA0rtfHeI5AntCCVnw=
 
       - uses: SonarSource/sonarqube-scan-action@v6
         env:

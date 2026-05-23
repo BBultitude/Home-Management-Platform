@@ -40,9 +40,14 @@ RUN echo '#!/bin/sh' > /docker-entrypoint.d/40-inject-env.sh && \
     echo 'echo "window.ENV = { VITE_API_URL: \"${VITE_API_URL}\" };"' \
       '> /usr/share/nginx/html/env-config.js' \
       >> /docker-entrypoint.d/40-inject-env.sh && \
-    chmod +x /docker-entrypoint.d/40-inject-env.sh
+    chmod +x /docker-entrypoint.d/40-inject-env.sh && \
+    chown -R nginx:nginx /usr/share/nginx/html && \
+    chown -R nginx:nginx /var/cache/nginx && \
+    chown -R nginx:nginx /var/log/nginx && \
+    touch /var/run/nginx.pid && \
+    chown nginx:nginx /var/run/nginx.pid
 
-# Expose port 80
-EXPOSE 80
+USER nginx
+EXPOSE 8080
 
 # Nginx will start automatically (from base image)
