@@ -5,7 +5,7 @@
 # Web Framework
 fastapi==0.109.2
 uvicorn[standard]==0.27.1
-python-multipart==0.0.22  # For file uploads
+python-multipart==0.0.27  # For file uploads
 
 # Database
 sqlalchemy==2.0.36
@@ -15,10 +15,10 @@ psycopg[binary]==3.2.2  # PostgreSQL driver (pure Python, ARM compatible)
 
 # Authentication & Security
 passlib[argon2]==1.7.4  # Password hashing with Argon2
-python-jose[cryptography]==3.3.0  # JWT tokens
+python-jose[cryptography]==3.4.0  # JWT tokens
 pyotp==2.9.0  # TOTP for MFA
 qrcode[pil]==7.4.2  # QR code generation for MFA setup
-cryptography==46.0.5  # Fernet encryption for MFA secrets
+cryptography==46.0.7  # Fernet encryption for MFA secrets
 
 # Validation & Serialization
 pydantic==2.10.5
@@ -26,7 +26,7 @@ pydantic-settings==2.7.1
 email-validator==2.1.2
 
 # Utilities
-python-dotenv==1.0.1
+python-dotenv==1.2.2
 aiofiles==23.2.1  # Async file operations
 
 # HTTP Client (for health checks, future integrations)
@@ -36,7 +36,7 @@ httpx==0.26.0
 python-dateutil==2.8.2
 
 # Testing (development)
-pytest==7.4.4
+pytest==9.0.3
 pytest-asyncio==0.23.4
 pytest-cov==4.1.0
 faker==22.6.0  # Test data generation
