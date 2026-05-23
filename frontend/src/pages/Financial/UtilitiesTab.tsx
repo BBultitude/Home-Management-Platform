@@ -16,7 +16,7 @@ import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { LoadingButton } from '@/components/ui/loading-button';
 import { DatePicker } from '@/components/forms/DatePicker';
 import { financialService } from '@/services/financialService';
-import type { Utility, UtilityCreate, UtilityType, UtilityStatsResponse } from '@/services/financialService';
+import type { Utility, UtilityType, UtilityStatsResponse } from '@/services/financialService';
 import { getErrorMessage } from '@/lib/errorMessages';
 import { toast } from 'sonner';
 import { formatCurrency } from '@/lib/frequencyUtils';
@@ -67,14 +67,14 @@ export function UtilitiesTab() {
       setUtilities(response.utilities);
 
       // Fetch stats if type filter is set
-      if (typeFilter !== 'all') {
+      if (typeFilter === 'all') {
+        setStats(null);
+      } else {
         const statsParams: Record<string, string> = {};
         if (startDateFilter) statsParams.start_date = format(startDateFilter, 'yyyy-MM-dd');
         if (endDateFilter) statsParams.end_date = format(endDateFilter, 'yyyy-MM-dd');
         const statsResp = await financialService.utilities.stats(typeFilter as UtilityType, statsParams);
         setStats(statsResp);
-      } else {
-        setStats(null);
       }
     } catch (error) {
       toast.error(getErrorMessage(error));
@@ -200,7 +200,7 @@ export function UtilitiesTab() {
         await financialService.utilities.update(editingUtility.id, payload);
         toast.success('Utility entry updated');
       } else {
-        await financialService.utilities.create(payload as UtilityCreate);
+        await financialService.utilities.create(payload);
         toast.success('Utility entry created');
       }
       handleCloseDialog();

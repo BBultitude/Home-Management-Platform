@@ -187,6 +187,101 @@ This document outlines planned features, enhancements, and long-term vision for 
 
 ---
 
+### 7. Wire Backend Test Coverage to SonarQube CI
+
+**Priority:** 🔴 High
+**Category:** Code Quality / CI
+**Effort:** 2 hours
+
+**Description:**
+- 17 backend test files exist (5,727 lines) but are never executed in CI
+- SonarQube has been reporting 0% coverage because `pytest` is not run before the scan
+- Two file changes unlock the existing test investment
+
+**Why:**
+- Coverage was 0% not because tests don't exist, but because CI went straight to the Sonar scan without running them
+- `pytest.ini` already configures `--cov=app --cov-report=xml` — just needs to run
+- Quality gate `new_coverage` condition requires coverage data to be meaningful
+
+**Implementation:**
+- Add pip install + pytest steps to `.github/workflows/sonar.yml` before the scan step
+- Add `sonar.python.coverage.reportPaths=backend/coverage.xml` to `sonar-project.properties`
+
+**Tasks:**
+- [x] Update `.github/workflows/sonar.yml` to run pytest before Sonar scan
+- [x] Add `sonar.python.coverage.reportPaths=backend/coverage.xml` to `sonar-project.properties`
+
+---
+
+### 8. Set Up Frontend Unit Tests (Vitest + React Testing Library)
+
+**Priority:** 🔴 High
+**Category:** Code Quality / Testing
+**Effort:** 1-2 weeks
+
+**Description:**
+- No frontend tests exist — no test runner, no coverage tooling, no test scripts
+- SonarQube quality gate requires 80% coverage on new code; frontend changes always fail this gate
+- Backend gap closes with item 7; frontend needs a test framework stood up from scratch
+
+**Why:**
+- Every frontend file changed triggers a coverage violation in the quality gate
+- Vitest integrates natively with the existing Vite build setup (no config conflict)
+- React Testing Library is the standard for component testing in React 18/19
+
+**Implementation:**
+- Install Vitest + @testing-library/react + @testing-library/user-event
+- Configure coverage output (lcov format for SonarQube)
+- Write tests for shared components first (highest reuse value)
+- Wire lcov report into CI and sonar-project.properties
+
+**Tasks:**
+- [ ] Install Vitest + @testing-library/react + @testing-library/user-event + jsdom
+- [ ] Add test and coverage scripts to package.json
+- [ ] Add Vitest config to vite.config.ts (or vitest.config.ts)
+- [ ] Write unit tests for shared components (`SkeletonLoaders`, common UI)
+- [ ] Write unit tests for key page components (`AdminUsers`, `ArticleForm`)
+- [ ] Add frontend test step to `.github/workflows/sonar.yml`
+- [ ] Add `sonar.javascript.lcov.reportPaths` to `sonar-project.properties`
+
+---
+
+### 9. Reduce Code Duplication in High-Density Files
+
+**Priority:** 🟡 Medium
+**Category:** Code Quality / Maintainability
+**Effort:** 1 week
+
+**Description:**
+- SonarQube identifies 13 files with internal duplication (22 blocks, 547 lines)
+- Overall project duplication is 1.6% (under 3% threshold) but individual files range 10–15%
+- Worst offenders share near-identical CRUD dialog patterns across similar feature pairs
+
+**Worst offenders:**
+
+| File | Duplication |
+|---|---|
+| `frontend/src/pages/MealPlanner/WeekPlanTab.tsx` | 15.3% |
+| `frontend/src/pages/Tax/TravelTab.tsx` | 14.8% |
+| `backend/app/api/v1/meals.py` | 14.2% |
+| `backend/app/api/v1/tax_travel.py` | 13.1% |
+| `frontend/src/pages/Tax/WFHTab.tsx` | 13.0% |
+| `backend/app/api/v1/tax_wfh.py` | 12.7% |
+| `frontend/src/pages/Projects/ProjectsTab.tsx` | 11.2% |
+
+**Why:**
+- TravelTab and WFHTab are likely near-identical — shared components would eliminate the duplication and keep them in sync
+- tax_travel.py and tax_wfh.py backend routes share the same CRUD structure
+- Reducing duplication makes future changes easier and reduces bug surface
+
+**Tasks:**
+- [ ] Compare TravelTab.tsx and WFHTab.tsx — extract shared dialog/form component
+- [ ] Compare tax_travel.py and tax_wfh.py — extract shared route utilities
+- [ ] Review ProjectsTab.tsx duplication — extract internal repeated sections
+- [ ] Re-run SonarQube duplication analysis and confirm reduction
+
+---
+
 ## v1.2 - UX Enhancements (6-9 Months Post-v1.0)
 
 ### 1. Email Notifications (SMTP Integration)

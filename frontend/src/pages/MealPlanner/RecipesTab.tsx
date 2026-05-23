@@ -32,6 +32,8 @@ import { Plus, Pencil, Trash2, Search, X, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 import { mealPlannerService, type Recipe, type RecipeDetail, type IngredientCreate, type MeasurementUnit } from '@/services/mealPlannerService';
 
+type FormIngredient = IngredientCreate & { id: string };
+
 const getErrorMessage = (error: any): string => {
   return error.response?.data?.detail || error.message || 'An error occurred';
 };
@@ -48,8 +50,8 @@ export default function RecipesTab() {
   // Form state
   const [formName, setFormName] = useState('');
   const [formSteps, setFormSteps] = useState('');
-  const [formIngredients, setFormIngredients] = useState<IngredientCreate[]>([
-    { name: '', quantity_amount: 0, quantity_unit: 'g' }
+  const [formIngredients, setFormIngredients] = useState<FormIngredient[]>([
+    { name: '', quantity_amount: 0, quantity_unit: 'g', id: crypto.randomUUID() }
   ]);
 
   const loadRecipes = async () => {
@@ -75,12 +77,12 @@ export default function RecipesTab() {
   const resetForm = () => {
     setFormName('');
     setFormSteps('');
-    setFormIngredients([{ name: '', quantity_amount: 0, quantity_unit: 'g' }]);
+    setFormIngredients([{ name: '', quantity_amount: 0, quantity_unit: 'g', id: crypto.randomUUID() }]);
     setSelectedRecipe(null);
   };
 
   const addIngredient = () => {
-    setFormIngredients([...formIngredients, { name: '', quantity_amount: 0, quantity_unit: 'g' }]);
+    setFormIngredients([...formIngredients, { name: '', quantity_amount: 0, quantity_unit: 'g', id: crypto.randomUUID() }]);
   };
 
   const removeIngredient = (index: number) => {
@@ -123,9 +125,10 @@ export default function RecipesTab() {
           ? detail.ingredients.map(ing => ({
               name: ing.name,
               quantity_amount: Number.parseFloat(ing.quantity_amount),
-              quantity_unit: ing.quantity_unit as MeasurementUnit
+              quantity_unit: ing.quantity_unit as MeasurementUnit,
+              id: crypto.randomUUID()
             }))
-          : [{ name: '', quantity_amount: 0, quantity_unit: 'g' }]
+          : [{ name: '', quantity_amount: 0, quantity_unit: 'g', id: crypto.randomUUID() }]
       );
       setIsEditDialogOpen(true);
     } catch (error: any) {
@@ -133,7 +136,7 @@ export default function RecipesTab() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     // Validate
@@ -319,7 +322,7 @@ export default function RecipesTab() {
               <Label className="text-base font-semibold">Ingredients *</Label>
               <div className="space-y-3">
                 {formIngredients.map((ingredient, index) => (
-                  <div key={`ingredient-${index}`} className="grid grid-cols-12 gap-3 items-start">
+                  <div key={ingredient.id} className="grid grid-cols-12 gap-3 items-start">
                     <div className="col-span-5">
                       <Label htmlFor={`ingredient-name-${index}`} className="text-xs text-muted-foreground mb-1 block">
                         Ingredient Name

@@ -60,5 +60,11 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
+# Create and use non-root user
+RUN addgroup --system appgroup && \
+    adduser --system --ingroup appgroup --no-create-home appuser && \
+    chown -R appuser:appgroup /app/uploads
+USER appuser
+
 # Run the application (production mode - no --reload)
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

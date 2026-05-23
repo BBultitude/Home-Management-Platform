@@ -24,6 +24,11 @@ interface User {
   mfa_enabled: boolean;
 }
 
+const ROLE_CLASSES: Record<string, string> = {
+  ADMIN: 'bg-red-100 text-red-800',
+  EDITOR: 'bg-blue-100 text-blue-800',
+};
+
 export default function AdminUsers() {
   const navigate = useNavigate();
   const { user } = useAuthStore();
@@ -79,7 +84,7 @@ export default function AdminUsers() {
   }, []);
 
   // Create new user
-  const handleCreateUser = async (e: React.FormEvent) => {
+  const handleCreateUser = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
     setSuccess('');
@@ -174,7 +179,7 @@ export default function AdminUsers() {
     try {
       const response = await apiClient.get('/admin/backup/download', {
         responseType: 'blob',
-      }) as Blob;
+      }) as unknown as Blob;
       const url = globalThis.URL.createObjectURL(response);
       const now = new Date();
       const filename = `backup_${now.toISOString().replaceAll(':', '-').replaceAll('.', '-').slice(0, 19)}.zip`;
@@ -321,9 +326,7 @@ export default function AdminUsers() {
                 </thead>
                 <tbody>
                   {users.map((u) => {
-                    const roleClass = u.role === 'ADMIN' ? 'bg-red-100 text-red-800' :
-                      u.role === 'EDITOR' ? 'bg-blue-100 text-blue-800' :
-                      'bg-gray-100 text-gray-800';
+                    const roleClass = ROLE_CLASSES[u.role] ?? 'bg-gray-100 text-gray-800';
                     return (
                     <tr key={u.id} className="border-b">
                       <td className="py-3">{u.username}</td>

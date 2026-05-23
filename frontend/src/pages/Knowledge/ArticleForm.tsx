@@ -1153,7 +1153,8 @@ export const ArticleForm: React.FC<ArticleFormProps> = ({ open, onClose, onSucce
     );
   }
 
-  const submitButtonLabel = loading ? 'Saving...' : (article ? 'Update' : 'Create');
+  const editLabel = article ? 'Update' : 'Create';
+  const submitButtonLabel = loading ? 'Saving...' : editLabel;
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
