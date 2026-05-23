@@ -37,7 +37,7 @@ python-dateutil==2.8.2
 
 # Testing (development)
 pytest==9.0.3
-pytest-asyncio==0.23.4
+pytest-asyncio==0.25.3
 pytest-cov==4.1.0
 faker==22.6.0  # Test data generation
 
