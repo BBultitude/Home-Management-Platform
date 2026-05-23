@@ -13,6 +13,8 @@ from fastapi import HTTPException, status
 from app.models.tax_travel import TaxTravelEntry
 from app.models.user import User
 
+_ENTRY_NOT_FOUND = "Travel entry not found"
+
 
 class TaxTravelService:
     """Service for work travel tax entry operations"""
@@ -98,7 +100,7 @@ class TaxTravelService:
         if not entry:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Travel entry not found"
+                detail=_ENTRY_NOT_FOUND
             )
 
         # Check access - user can view their own entries, admins can view all
@@ -144,7 +146,7 @@ class TaxTravelService:
         if not entry:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Travel entry not found"
+                detail=_ENTRY_NOT_FOUND
             )
 
         # Check ownership - only owner or admin can modify
@@ -201,7 +203,7 @@ class TaxTravelService:
         if not entry:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Travel entry not found"
+                detail=_ENTRY_NOT_FOUND
             )
 
         # Check ownership

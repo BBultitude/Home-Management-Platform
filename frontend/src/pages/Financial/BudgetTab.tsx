@@ -201,8 +201,8 @@ export function BudgetTab() {
                               <div className="py-3 px-4">
                                 <p className="text-sm font-medium text-gray-700 mb-2">Expenses included:</p>
                                 <ul className="list-disc list-inside space-y-1">
-                                  {transfer.expenses.map((expense, idx) => (
-                                    <li key={idx} className="text-sm text-gray-600">{expense}</li>
+                                  {transfer.expenses.map((expense) => (
+                                    <li key={expense} className="text-sm text-gray-600">{expense}</li>
                                   ))}
                                 </ul>
                               </div>

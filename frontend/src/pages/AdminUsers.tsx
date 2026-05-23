@@ -320,17 +320,17 @@ export default function AdminUsers() {
                   </tr>
                 </thead>
                 <tbody>
-                  {users.map((u) => (
+                  {users.map((u) => {
+                    const roleClass = u.role === 'ADMIN' ? 'bg-red-100 text-red-800' :
+                      u.role === 'EDITOR' ? 'bg-blue-100 text-blue-800' :
+                      'bg-gray-100 text-gray-800';
+                    return (
                     <tr key={u.id} className="border-b">
                       <td className="py-3">{u.username}</td>
                       <td className="py-3">{u.full_name}</td>
                       <td className="py-3">{u.email}</td>
                       <td className="py-3">
-                        <span className={`px-2 py-1 rounded text-xs ${
-                          u.role === 'ADMIN' ? 'bg-red-100 text-red-800' :
-                          u.role === 'EDITOR' ? 'bg-blue-100 text-blue-800' :
-                          'bg-gray-100 text-gray-800'
-                        }`}>
+                        <span className={`px-2 py-1 rounded text-xs ${roleClass}`}>
                           {u.role}
                         </span>
                       </td>
@@ -372,7 +372,8 @@ export default function AdminUsers() {
                         </div>
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

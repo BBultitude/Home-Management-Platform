@@ -12,6 +12,8 @@ from app.models.expense import Expense, ExpenseFrequency
 from app.models.expense_category import ExpenseCategory
 from app.models.bank_account import BankAccount
 
+_CATEGORY_NOT_FOUND = "Expense category not found"
+
 
 class ExpenseCategoryService:
     """Service for expense category operations"""
@@ -66,7 +68,7 @@ class ExpenseCategoryService:
         if not category:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Expense category not found"
+                detail=_CATEGORY_NOT_FOUND
             )
 
         return category
@@ -177,7 +179,7 @@ class ExpenseService:
         if not category:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Expense category not found"
+                detail=_CATEGORY_NOT_FOUND
             )
 
         expense = Expense(
@@ -258,7 +260,7 @@ class ExpenseService:
             if not category:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
-                    detail="Expense category not found"
+                    detail=_CATEGORY_NOT_FOUND
                 )
             expense.category_id = category_id
 

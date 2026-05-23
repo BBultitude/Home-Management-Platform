@@ -37,7 +37,9 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 
 # Create a script to inject runtime environment variables
 RUN echo '#!/bin/sh' > /docker-entrypoint.d/40-inject-env.sh && \
-    echo 'echo "window.ENV = { VITE_API_URL: \"${VITE_API_URL}\" };" > /usr/share/nginx/html/env-config.js' >> /docker-entrypoint.d/40-inject-env.sh && \
+    echo 'echo "window.ENV = { VITE_API_URL: \"${VITE_API_URL}\" };"' \
+      '> /usr/share/nginx/html/env-config.js' \
+      >> /docker-entrypoint.d/40-inject-env.sh && \
     chmod +x /docker-entrypoint.d/40-inject-env.sh
 
 # Expose port 80

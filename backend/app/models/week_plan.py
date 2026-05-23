@@ -11,6 +11,9 @@ import uuid
 
 from app.db.database import Base
 
+_RECIPE_FK = "recipes.id"
+_ON_DELETE = "SET NULL"
+
 
 class WeekPlan(Base):
     """Weekly meal plan model"""
@@ -18,13 +21,13 @@ class WeekPlan(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     week_starting = Column(Date, nullable=False, unique=True)  # Monday of the week
-    monday_meal_id = Column(UUID(as_uuid=True), ForeignKey("recipes.id", ondelete="SET NULL"), nullable=True)
-    tuesday_meal_id = Column(UUID(as_uuid=True), ForeignKey("recipes.id", ondelete="SET NULL"), nullable=True)
-    wednesday_meal_id = Column(UUID(as_uuid=True), ForeignKey("recipes.id", ondelete="SET NULL"), nullable=True)
-    thursday_meal_id = Column(UUID(as_uuid=True), ForeignKey("recipes.id", ondelete="SET NULL"), nullable=True)
-    friday_meal_id = Column(UUID(as_uuid=True), ForeignKey("recipes.id", ondelete="SET NULL"), nullable=True)
-    saturday_meal_id = Column(UUID(as_uuid=True), ForeignKey("recipes.id", ondelete="SET NULL"), nullable=True)
-    sunday_meal_id = Column(UUID(as_uuid=True), ForeignKey("recipes.id", ondelete="SET NULL"), nullable=True)
+    monday_meal_id = Column(UUID(as_uuid=True), ForeignKey(_RECIPE_FK, ondelete=_ON_DELETE), nullable=True)
+    tuesday_meal_id = Column(UUID(as_uuid=True), ForeignKey(_RECIPE_FK, ondelete=_ON_DELETE), nullable=True)
+    wednesday_meal_id = Column(UUID(as_uuid=True), ForeignKey(_RECIPE_FK, ondelete=_ON_DELETE), nullable=True)
+    thursday_meal_id = Column(UUID(as_uuid=True), ForeignKey(_RECIPE_FK, ondelete=_ON_DELETE), nullable=True)
+    friday_meal_id = Column(UUID(as_uuid=True), ForeignKey(_RECIPE_FK, ondelete=_ON_DELETE), nullable=True)
+    saturday_meal_id = Column(UUID(as_uuid=True), ForeignKey(_RECIPE_FK, ondelete=_ON_DELETE), nullable=True)
+    sunday_meal_id = Column(UUID(as_uuid=True), ForeignKey(_RECIPE_FK, ondelete=_ON_DELETE), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 

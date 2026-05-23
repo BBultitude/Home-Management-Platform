@@ -75,13 +75,14 @@ export default function WeekPlanTab() {
       const selections: Record<number, string> = {};
       MEAL_SLOTS.forEach((slot) => {
         const meal = plan.meals.find(m => m.day.toLowerCase() === slot.dayField.replace('_meal_id', ''));
-        if (meal && meal.meal_id) {
+        if (meal?.meal_id) {
           selections[slot.slot] = meal.meal_id;
         }
       });
       setMealSelections(selections);
     } catch (error: any) {
       // Week plan doesn't exist yet - that's okay
+      console.error(error);
       setWeekPlan(null);
       setMealSelections({});
       // Calculate current week starting date for display
@@ -159,6 +160,68 @@ export default function WeekPlanTab() {
     }
   };
 
+  const planContent = loading ? (
+    <div className="text-center py-8 text-muted-foreground">Loading week plan...</div>
+  ) : recipes.length === 0 ? (
+    <Card className="p-8 text-center text-muted-foreground">
+      <p>No recipes available. Create some recipes first!</p>
+    </Card>
+  ) : (
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {MEAL_SLOTS.map((slot) => (
+        <Card key={slot.slot} className="p-4">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-base font-semibold">{slot.label}</Label>
+              {mealSelections[slot.slot] && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleMealChange(slot.slot, 'none')}
+                >
+                  Clear
+                </Button>
+              )}
+            </div>
+
+            <Select
+              value={mealSelections[slot.slot] || 'none'}
+              onValueChange={(value) => handleMealChange(slot.slot, value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select a recipe" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">No meal</SelectItem>
+                {recipes.map((recipe) => (
+                  <SelectItem key={recipe.id} value={recipe.id}>
+                    {recipe.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {mealSelections[slot.slot] && (
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-muted-foreground">
+                  {recipes.find(r => r.id === mealSelections[slot.slot])?.ingredient_count || 0} ingredients
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleViewRecipe(mealSelections[slot.slot])}
+                >
+                  <Eye className="h-4 w-4 mr-1" />
+                  View
+                </Button>
+              </div>
+            )}
+          </div>
+        </Card>
+      ))}
+    </div>
+  );
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -184,67 +247,7 @@ export default function WeekPlanTab() {
       </div>
 
       {/* Meal Planning Grid */}
-      {loading ? (
-        <div className="text-center py-8 text-muted-foreground">Loading week plan...</div>
-      ) : recipes.length === 0 ? (
-        <Card className="p-8 text-center text-muted-foreground">
-          <p>No recipes available. Create some recipes first!</p>
-        </Card>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {MEAL_SLOTS.map((slot) => (
-            <Card key={slot.slot} className="p-4">
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <Label className="text-base font-semibold">{slot.label}</Label>
-                  {mealSelections[slot.slot] && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleMealChange(slot.slot, 'none')}
-                    >
-                      Clear
-                    </Button>
-                  )}
-                </div>
-
-                <Select
-                  value={mealSelections[slot.slot] || 'none'}
-                  onValueChange={(value) => handleMealChange(slot.slot, value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a recipe" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">No meal</SelectItem>
-                    {recipes.map((recipe) => (
-                      <SelectItem key={recipe.id} value={recipe.id}>
-                        {recipe.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                {mealSelections[slot.slot] && (
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm text-muted-foreground">
-                      {recipes.find(r => r.id === mealSelections[slot.slot])?.ingredient_count || 0} ingredients
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleViewRecipe(mealSelections[slot.slot])}
-                    >
-                      <Eye className="h-4 w-4 mr-1" />
-                      View
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </Card>
-          ))}
-        </div>
-      )}
+      {planContent}
 
       {/* Save Button */}
       <div className="flex justify-end">

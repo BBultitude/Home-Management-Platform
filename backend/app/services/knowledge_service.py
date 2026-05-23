@@ -317,7 +317,7 @@ class KnowledgeService:
     def add_attachment(db: Session, article_id: UUID, file_id: UUID) -> KnowledgeAttachment:
         """Add an attachment to a knowledge article"""
         # Verify article exists
-        article = KnowledgeService.get_article(db, article_id)
+        KnowledgeService.get_article(db, article_id)
 
         # Verify file exists
         file = db.query(File).filter(File.id == file_id).first()

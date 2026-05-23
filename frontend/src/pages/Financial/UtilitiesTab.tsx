@@ -640,7 +640,7 @@ export function UtilitiesTab() {
       </TabsContent>
 
       <TabsContent value="graphs">
-        <UtilityGraphs selectedType={typeFilter !== 'all' ? (typeFilter as UtilityType) : null} />
+        <UtilityGraphs selectedType={typeFilter === 'all' ? null : (typeFilter as UtilityType)} />
       </TabsContent>
     </Tabs>
   );

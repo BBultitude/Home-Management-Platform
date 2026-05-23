@@ -266,7 +266,7 @@ def require_tax_ownership(tax_id_param: str = "tax_id"):
     Returns:
         Dependency function
     """
-    async def ownership_checker(
+    def ownership_checker(
         request: Request,
         current_user: Annotated[User, Depends(get_current_active_user)],
         db: Annotated[Session, Depends(get_db)]

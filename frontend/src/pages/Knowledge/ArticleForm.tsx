@@ -1137,17 +1137,15 @@ export const ArticleForm: React.FC<ArticleFormProps> = ({ open, onClose, onSucce
           </DialogHeader>
           <div className="grid grid-cols-2 gap-4 py-4">
             {ARTICLE_TYPES.map((type) => (
-              <div
+              <button
                 key={type.value}
-                role="button"
-                tabIndex={0}
-                className="border rounded-lg p-4 hover:border-primary hover:bg-gray-50 cursor-pointer transition-colors"
+                type="button"
+                className="border rounded-lg p-4 hover:border-primary hover:bg-gray-50 transition-colors text-left w-full"
                 onClick={() => handleTypeSelect(type.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.currentTarget.click(); } }}
               >
                 <h3 className="font-semibold text-lg mb-2">{type.label}</h3>
                 <p className="text-sm text-muted-foreground">{type.description}</p>
-              </div>
+              </button>
             ))}
           </div>
         </DialogContent>

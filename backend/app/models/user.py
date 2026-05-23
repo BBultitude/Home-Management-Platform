@@ -10,6 +10,10 @@ from typing import List
 
 from app.db.database import Base
 
+_CASCADE_ALL_DELETE_ORPHAN = "all, delete-orphan"
+_PERM_TAX_READ_ALL = "tax:read_all"
+_PERM_ALL_READ = "*:read"
+
 
 class UserRole(str, enum.Enum):
     """User roles for RBAC"""
@@ -74,27 +78,27 @@ class User(Base):
     trusted_devices: Mapped[List["TrustedDevice"]] = relationship(
         "TrustedDevice",
         back_populates="user",
-        cascade="all, delete-orphan"
+        cascade=_CASCADE_ALL_DELETE_ORPHAN
     )
     audit_logs: Mapped[List["AuditLog"]] = relationship(
         "AuditLog",
         back_populates="user",
-        cascade="all, delete-orphan"
+        cascade=_CASCADE_ALL_DELETE_ORPHAN
     )
     files: Mapped[List["File"]] = relationship(
         "File",
         back_populates="uploaded_by_user",
-        cascade="all, delete-orphan"
+        cascade=_CASCADE_ALL_DELETE_ORPHAN
     )
     tax_wfh_entries: Mapped[List["TaxWFHEntry"]] = relationship(
         "TaxWFHEntry",
         back_populates="user",
-        cascade="all, delete-orphan"
+        cascade=_CASCADE_ALL_DELETE_ORPHAN
     )
     tax_travel_entries: Mapped[List["TaxTravelEntry"]] = relationship(
         "TaxTravelEntry",
         back_populates="user",
-        cascade="all, delete-orphan"
+        cascade=_CASCADE_ALL_DELETE_ORPHAN
     )
 
     def __repr__(self) -> str:
@@ -131,8 +135,8 @@ class User(Base):
                 "user:manage",
                 "audit:read",
                 "tax:read_own",
-                "tax:read_all",
-                "*:read",
+                _PERM_TAX_READ_ALL,
+                _PERM_ALL_READ,
                 "*:write"
             ]
             # Special case: Admins CANNOT write to others' tax records
@@ -144,15 +148,15 @@ class User(Base):
         if self.is_editor:
             editor_permissions = [
                 "tax:write_own",
-                "tax:read_all",
-                "*:read",
+                _PERM_TAX_READ_ALL,
+                _PERM_ALL_READ,
                 "*:write"
             ]
             return permission in editor_permissions
 
         # Reader permissions (read-only)
         if self.is_reader:
-            reader_permissions = ["tax:read_all", "*:read"]
+            reader_permissions = [_PERM_TAX_READ_ALL, _PERM_ALL_READ]
             return permission in reader_permissions
 
         return False

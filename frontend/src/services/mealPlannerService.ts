@@ -162,6 +162,7 @@ export const mealPlannerService = {
         return await apiClient.put(`/meals/week-plans/${current.id}`, data) as WeekPlanDetail;
       } catch (error: any) {
         // Week plan doesn't exist, create it
+        console.error(error);
         return await apiClient.post('/meals/week-plans', data) as WeekPlanDetail;
       }
     },

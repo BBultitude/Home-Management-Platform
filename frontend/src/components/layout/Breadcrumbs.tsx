@@ -21,7 +21,7 @@ const routeLabels: Record<string, string> = {
 
 export function Breadcrumbs() {
   const location = useLocation();
-  const pathnames = location.pathname.split('/').filter((x) => x);
+  const pathnames = location.pathname.split('/').filter(Boolean);
 
   // Don't show breadcrumbs on dashboard
   if (pathnames.length === 0 || pathnames[0] === 'dashboard') {

@@ -3,8 +3,10 @@ Admin API endpoints
 User management, system statistics, and administrative oversight
 """
 
+import asyncio
 import io
 import os
+import pathlib
 import shutil
 import subprocess
 import tempfile
@@ -401,7 +403,7 @@ async def get_action_audit_logs(
 
 # ===== Backup Endpoint =====
 
-@router.get("/backup/download")
+@router.get("/backup/download", responses={500: {"description": "Server error"}})
 async def download_backup(
     current_user: Annotated[User, Depends(require_admin)],
     db: Annotated[Session, Depends(get_db)]
@@ -431,7 +433,8 @@ async def download_backup(
     env["PGPASSWORD"] = db_pass
 
     try:
-        result = subprocess.run(
+        result = await asyncio.to_thread(
+            subprocess.run,
             [
                 "pg_dump",
                 "-h", db_host,
@@ -491,7 +494,7 @@ async def download_backup(
     )
 
 
-@router.post("/backup/restore")
+@router.post("/backup/restore", responses={400: {"description": "Invalid request"}, 500: {"description": "Server error"}})
 async def restore_backup(
     file: Annotated[UploadFile, File(...)],
     current_user: Annotated[User, Depends(require_admin)],
@@ -510,8 +513,7 @@ async def restore_backup(
     with tempfile.TemporaryDirectory() as tmpdir:
         zip_path = os.path.join(tmpdir, "restore.zip")
         content = await file.read()
-        with open(zip_path, "wb") as f:
-            f.write(content)
+        await asyncio.to_thread(pathlib.Path(zip_path).write_bytes, content)
 
         # Validate and extract ZIP
         try:
@@ -542,7 +544,8 @@ async def restore_backup(
         env["PGPASSWORD"] = db_pass
 
         try:
-            result = subprocess.run(
+            result = await asyncio.to_thread(
+                subprocess.run,
                 [
                     "psql",
                     "-h", db_host,

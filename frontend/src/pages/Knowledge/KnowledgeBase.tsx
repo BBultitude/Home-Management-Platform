@@ -91,7 +91,7 @@ export default function KnowledgeBase() {
   const loadArticles = async () => {
     try {
       setLoading(true);
-      const params = filterType !== 'all' ? { article_type: filterType } : {};
+      const params = filterType === 'all' ? {} : { article_type: filterType };
       const response = await knowledgeService.articles.list(params);
       setArticles(response.articles);
     } catch (error: any) {
@@ -106,7 +106,7 @@ export default function KnowledgeBase() {
       setLoading(true);
       const searchParams = {
         query: searchQuery,
-        article_types: filterType !== 'all' ? [filterType] : undefined,
+        article_types: filterType === 'all' ? undefined : [filterType],
       };
       const response = await knowledgeService.articles.search(searchParams);
       setArticles(response.articles);

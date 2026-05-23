@@ -217,18 +217,18 @@ class NotificationService:
 
                 if not existing:
                     if days <= 7:
-                        type = NotificationType.WARNING
+                        notification_type = NotificationType.WARNING
                         title = f"Insurance renewal due in {days} days"
                     else:
-                        type = NotificationType.REMINDER
-                        title = f"Insurance renewal coming up"
+                        notification_type = NotificationType.REMINDER
+                        title = "Insurance renewal coming up"
 
                     NotificationService.create_notification(
                         db=db,
                         user_id=user.id,
                         title=title,
                         message=f"{policy.policy_type.value} policy '{policy.policy_name}' renews on {policy.renewal_date.strftime('%B %d, %Y')}",
-                        type=type,
+                        type=notification_type,
                         category=NotificationCategory.ASSETS,
                         action_url=f"/assets/insurance/{policy.id}",
                         action_label="View Policy"
@@ -274,18 +274,18 @@ class NotificationService:
 
                 if not existing:
                     if days <= 7:
-                        type = NotificationType.WARNING
+                        notification_type = NotificationType.WARNING
                         title = f"Document expires in {days} days"
                     else:
-                        type = NotificationType.REMINDER
-                        title = f"Document expiring soon"
+                        notification_type = NotificationType.REMINDER
+                        title = "Document expiring soon"
 
                     NotificationService.create_notification(
                         db=db,
                         user_id=user.id,
                         title=title,
                         message=f"{doc.document_type.value} '{doc.title}' expires on {doc.expiry_date.strftime('%B %d, %Y')}",
-                        type=type,
+                        type=notification_type,
                         category=NotificationCategory.ASSETS,
                         action_url=f"/assets/documents/{doc.id}",
                         action_label="View Document"
@@ -331,14 +331,14 @@ class NotificationService:
                 ).first()
 
                 if not existing:
-                    type = NotificationType.WARNING if days <= 7 else NotificationType.REMINDER
+                    notification_type = NotificationType.WARNING if days <= 7 else NotificationType.REMINDER
 
                     NotificationService.create_notification(
                         db=db,
                         user_id=user.id,
                         title=f"Quote expires in {days} days",
                         message=f"Quote from {quote.contractor_name} ({quote.contractor_email}) expires on {quote.expires_at.strftime('%B %d, %Y')}",
-                        type=type,
+                        type=notification_type,
                         category=NotificationCategory.PROJECTS,
                         action_url=f"/projects/quotes/{quote.id}",
                         action_label="View Quote"

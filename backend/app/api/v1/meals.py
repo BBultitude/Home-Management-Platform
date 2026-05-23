@@ -7,7 +7,7 @@ Ported from: https://github.com/BBultitude/Meal-Planner
 from typing import Annotated, Optional
 from datetime import date
 from uuid import UUID
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.api.dependencies import get_current_active_user, get_db, require_permission
@@ -202,7 +202,7 @@ async def create_week_plan(
     return WeekPlanResponse(**plan.to_dict())
 
 
-@router.get("/week-plans/current", response_model=WeekPlanDetailResponse)
+@router.get("/week-plans/current", response_model=WeekPlanDetailResponse, responses={404: {"description": "Not found"}})
 async def get_current_week_plan(
     current_user: Annotated[User, Depends(get_current_active_user)],
     db: Annotated[Session, Depends(get_db)]
@@ -215,7 +215,6 @@ async def get_current_week_plan(
     plan = MealPlannerService.get_current_week_plan(db)
 
     if not plan:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="No meal plan for current week")
 
     # Build meal assignments with names
@@ -247,7 +246,7 @@ async def get_current_week_plan(
     )
 
 
-@router.get("/week-plans/by-date/{target_date}", response_model=WeekPlanDetailResponse)
+@router.get("/week-plans/by-date/{target_date}", response_model=WeekPlanDetailResponse, responses={404: {"description": "Not found"}})
 async def get_week_plan_by_date(
     target_date: date,
     current_user: Annotated[User, Depends(get_current_active_user)],
@@ -257,7 +256,6 @@ async def get_week_plan_by_date(
     plan = MealPlannerService.get_week_plan_by_date(db, target_date)
 
     if not plan:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail=f"No meal plan for week containing {target_date}")
 
     # Build meal assignments with names

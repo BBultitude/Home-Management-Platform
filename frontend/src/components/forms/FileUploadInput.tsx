@@ -262,19 +262,18 @@ export const FileUploadInput: React.FC<FileUploadInputProps> = ({
         </label>
       )}
 
-      <div
-        role="button"
-        tabIndex={disabled ? -1 : 0}
+      <button
+        type="button"
+        disabled={disabled}
         className={`
-          border-2 border-dashed rounded-lg p-6 text-center transition-colors
+          w-full border-2 border-dashed rounded-lg p-6 text-center transition-colors
           ${isDragging ? 'border-blue-500 bg-blue-50 dark:bg-blue-950' : 'border-gray-300 hover:border-blue-400'}
-          ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+          ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
         `}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         onClick={() => !disabled && fileInputRef.current?.click()}
-        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.currentTarget.click(); } }}
       >
         <input
           ref={fileInputRef}
@@ -307,7 +306,7 @@ export const FileUploadInput: React.FC<FileUploadInputProps> = ({
             </p>
           </div>
         )}
-      </div>
+      </button>
 
       {error && (
         <p className="text-sm text-red-500">{error}</p>

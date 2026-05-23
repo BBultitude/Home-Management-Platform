@@ -16,7 +16,7 @@ import KnowledgeBase from '@/pages/Knowledge/KnowledgeBase';
 import MealPlanner from '@/pages/MealPlanner/MealPlanner';
 
 // Protected Route Component
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
+function ProtectedRoute({ children }: Readonly<{ children: React.ReactNode }>) {
   const { isAuthenticated, _hasHydrated } = useAuthStore();
 
   if (!_hasHydrated) {
@@ -35,7 +35,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 // Public Route Component (redirect to dashboard if already logged in)
-function PublicRoute({ children }: { children: React.ReactNode }) {
+function PublicRoute({ children }: Readonly<{ children: React.ReactNode }>) {
   const { isAuthenticated } = useAuthStore();
 
   if (isAuthenticated) {

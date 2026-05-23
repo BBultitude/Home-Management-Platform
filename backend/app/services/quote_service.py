@@ -14,6 +14,21 @@ from app.models.quote import Quote
 from app.models.project import Project
 
 
+def _validate_quote_amount(quote_amount: Decimal) -> None:
+    if quote_amount <= 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Quote amount must be greater than 0"
+        )
+
+
+def _deselect_other_quotes(db: Session, quote: Quote) -> None:
+    db.query(Quote).filter(
+        Quote.project_id == quote.project_id,
+        Quote.id != quote.id
+    ).update({"selected": False})
+
+
 class QuoteService:
     """Service for quote operations"""
 
@@ -132,11 +147,7 @@ class QuoteService:
             quote.contact_email = contact_email
 
         if quote_amount is not None:
-            if quote_amount <= 0:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Quote amount must be greater than 0"
-                )
+            _validate_quote_amount(quote_amount)
             quote.quote_amount = quote_amount
 
         if quote_date is not None:
@@ -156,12 +167,8 @@ class QuoteService:
             quote.scope_of_work = scope_of_work
 
         if selected is not None:
-            # If marking as selected, unselect other quotes for same project
             if selected:
-                db.query(Quote).filter(
-                    Quote.project_id == quote.project_id,
-                    Quote.id != quote.id
-                ).update({"selected": False})
+                _deselect_other_quotes(db, quote)
             quote.selected = selected
 
         if document_id is not None:

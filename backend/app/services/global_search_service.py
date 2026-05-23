@@ -111,7 +111,7 @@ class GlobalSearchService:
             articles = db.query(KnowledgeArticle).filter(
                 KnowledgeArticle.search_vector.op('@@')(func.to_tsquery('english', query_text))
             ).limit(limit).all()
-        except:
+        except Exception:
             # Fallback to ILIKE if FTS fails (e.g., invalid query)
             search_pattern = f"%{query}%"
             articles = db.query(KnowledgeArticle).filter(

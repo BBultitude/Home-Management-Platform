@@ -57,7 +57,7 @@ export function Sidebar({ collapsed, onToggle, className }: SidebarProps) {
 
   const canAccessItem = (item: NavItem) => {
     if (!item.roles) return true;
-    return item.roles.some(role => user?.role?.toUpperCase() === role);
+    return item.roles.includes(user?.role?.toUpperCase() ?? '');
   };
 
   return (

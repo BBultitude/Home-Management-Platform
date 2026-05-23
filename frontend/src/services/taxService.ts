@@ -127,14 +127,14 @@ export const taxService = {
     summary: async (financialYear: string, ratePerHour?: number): Promise<WFHSummary> => {
       // financialYear format: "2024-2025" - backend expects END year (2025)
       const [, endYear] = financialYear.split('-').map(Number);
-      const params = ratePerHour !== undefined ? { rate_per_hour: ratePerHour } : {};
+      const params = ratePerHour === undefined ? {} : { rate_per_hour: ratePerHour };
       return await apiClient.get(`/tax/wfh/summary/fy/${endYear}`, { params }) as WFHSummary;
     },
 
     export: async (financialYear: string, ratePerHour?: number): Promise<Blob> => {
       // financialYear format: "2024-2025" - backend expects END year (2025)
       const [, endYear] = financialYear.split('-').map(Number);
-      const params = ratePerHour !== undefined ? { rate_per_hour: ratePerHour } : {};
+      const params = ratePerHour === undefined ? {} : { rate_per_hour: ratePerHour };
       return await apiClient.get(`/tax/wfh/export/fy/${endYear}/csv`, {
         params,
         responseType: 'blob'
@@ -167,14 +167,14 @@ export const taxService = {
     summary: async (financialYear: string, ratePerKm?: number): Promise<TravelSummary> => {
       // financialYear format: "2024-2025" - backend expects END year (2025)
       const [, endYear] = financialYear.split('-').map(Number);
-      const params = ratePerKm !== undefined ? { rate_per_km: ratePerKm } : {};
+      const params = ratePerKm === undefined ? {} : { rate_per_km: ratePerKm };
       return await apiClient.get(`/tax/travel/summary/fy/${endYear}`, { params }) as TravelSummary;
     },
 
     export: async (financialYear: string, ratePerKm?: number): Promise<Blob> => {
       // financialYear format: "2024-2025" - backend expects END year (2025)
       const [, endYear] = financialYear.split('-').map(Number);
-      const params = ratePerKm !== undefined ? { rate_per_km: ratePerKm } : {};
+      const params = ratePerKm === undefined ? {} : { rate_per_km: ratePerKm };
       return await apiClient.get(`/tax/travel/export/fy/${endYear}/csv`, {
         params,
         responseType: 'blob'

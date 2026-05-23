@@ -71,7 +71,7 @@ export function SummaryTab({ financialYear }: SummaryTabProps) {
       a.download = `wfh-${financialYear}.csv`;
       document.body.appendChild(a);
       a.click();
-      document.body.removeChild(a);
+      a.remove();
       globalThis.URL.revokeObjectURL(url);
       toast.success('WFH export downloaded');
     } catch (error) {
@@ -92,7 +92,7 @@ export function SummaryTab({ financialYear }: SummaryTabProps) {
       a.download = `travel-${financialYear}.csv`;
       document.body.appendChild(a);
       a.click();
-      document.body.removeChild(a);
+      a.remove();
       globalThis.URL.revokeObjectURL(url);
       toast.success('Travel export downloaded');
     } catch (error) {
