@@ -36,7 +36,8 @@ async def upload_file(
     request: Request,
     file: Annotated[UploadFile, File(...)],
     category: Annotated[FileCategory, Form(...)],
-    description: Annotated[Optional[str], Form(None)],
+    description: Annotated[Optional[str], Form()] = None,
+    *,
     current_user: Annotated[User, Depends(require_permission("files:upload"))],
     db: Annotated[Session, Depends(get_db)]
 ):
