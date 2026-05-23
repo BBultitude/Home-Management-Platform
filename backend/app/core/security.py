@@ -4,7 +4,7 @@ Security utilities for authentication and authorization
 
 import re
 import hashlib
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 from passlib.context import CryptContext
 from jose import JWTError, jwt
@@ -50,11 +50,11 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     to_encode = data.copy()
 
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(hours=settings.SESSION_EXPIRY_HOURS)
+        expire = datetime.now(timezone.utc) + timedelta(hours=settings.SESSION_EXPIRY_HOURS)
 
-    to_encode.update({"exp": expire, "iat": datetime.utcnow()})
+    to_encode.update({"exp": expire, "iat": datetime.now(timezone.utc)})
 
     encoded_jwt = jwt.encode(to_encode, settings.jwt_secret, algorithm="HS256")
     return encoded_jwt
@@ -247,6 +247,44 @@ def generate_device_fingerprint(request: Request) -> str:
     return fingerprint
 
 
+def _detect_browser(user_agent: str) -> str:
+    """Detect browser name from a lowercase user agent string."""
+    if "edg/" in user_agent or "edge/" in user_agent:
+        return "Edge"
+    if "chrome/" in user_agent and "edg/" not in user_agent:
+        return "Chrome"
+    if "firefox/" in user_agent:
+        return "Firefox"
+    if "safari/" in user_agent and "chrome/" not in user_agent:
+        return "Safari"
+    if "opera/" in user_agent or "opr/" in user_agent:
+        return "Opera"
+    return "Browser"
+
+
+def _detect_os(user_agent: str) -> str:
+    """Detect operating system name from a lowercase user agent string."""
+    if "windows nt 10" in user_agent:
+        return "Windows 10/11"
+    if "windows nt 6.3" in user_agent:
+        return "Windows 8.1"
+    if "windows nt 6.2" in user_agent:
+        return "Windows 8"
+    if "windows nt 6.1" in user_agent:
+        return "Windows 7"
+    if "mac os x" in user_agent or "macos" in user_agent:
+        return "macOS"
+    if "iphone" in user_agent:
+        return "iPhone"
+    if "ipad" in user_agent:
+        return "iPad"
+    if "android" in user_agent:
+        return "Android"
+    if "linux" in user_agent:
+        return "Linux"
+    return "Unknown OS"
+
+
 def parse_device_name(request: Request) -> str:
     """
     Parse user agent string to extract readable device name
@@ -267,44 +305,10 @@ def parse_device_name(request: Request) -> str:
 
     # Simple parsing - extract browser and OS
     # This is a basic implementation; could use user-agents library for more accuracy
-
     ua_lower = user_agent.lower()
 
-    # Detect browser
-    if "edg/" in ua_lower or "edge/" in ua_lower:
-        browser = "Edge"
-    elif "chrome/" in ua_lower and "edg/" not in ua_lower:
-        browser = "Chrome"
-    elif "firefox/" in ua_lower:
-        browser = "Firefox"
-    elif "safari/" in ua_lower and "chrome/" not in ua_lower:
-        browser = "Safari"
-    elif "opera/" in ua_lower or "opr/" in ua_lower:
-        browser = "Opera"
-    else:
-        browser = "Browser"
-
-    # Detect OS
-    if "windows nt 10" in ua_lower:
-        os_name = "Windows 10/11"
-    elif "windows nt 6.3" in ua_lower:
-        os_name = "Windows 8.1"
-    elif "windows nt 6.2" in ua_lower:
-        os_name = "Windows 8"
-    elif "windows nt 6.1" in ua_lower:
-        os_name = "Windows 7"
-    elif "mac os x" in ua_lower or "macos" in ua_lower:
-        os_name = "macOS"
-    elif "iphone" in ua_lower:
-        os_name = "iPhone"
-    elif "ipad" in ua_lower:
-        os_name = "iPad"
-    elif "android" in ua_lower:
-        os_name = "Android"
-    elif "linux" in ua_lower:
-        os_name = "Linux"
-    else:
-        os_name = "Unknown OS"
+    browser = _detect_browser(ua_lower)
+    os_name = _detect_os(ua_lower)
 
     return f"{browser} on {os_name}"
 

@@ -3,7 +3,7 @@ import { Inbox } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-interface EmptyStateProps {
+type EmptyStateProps = Readonly<{
   icon?: LucideIcon;
   title: string;
   description?: string;
@@ -12,7 +12,7 @@ interface EmptyStateProps {
     onClick: () => void;
   };
   className?: string;
-}
+}>
 
 export function EmptyState({
   icon: Icon = Inbox,

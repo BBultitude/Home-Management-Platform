@@ -4,10 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertTriangle } from 'lucide-react';
 
-interface Props {
+type Props = Readonly<{
   children: ReactNode;
   fallback?: ReactNode;
-}
+}>
 
 interface State {
   hasError: boolean;
@@ -27,12 +27,12 @@ export class ErrorBoundary extends Component<Props, State> {
     console.error('ErrorBoundary caught an error:', error, errorInfo);
   }
 
-  private handleReset = () => {
+  private readonly handleReset = () => {
     this.setState({ hasError: false, error: undefined });
   };
 
-  private handleReload = () => {
-    window.location.reload();
+  private readonly handleReload = () => {
+    globalThis.location.reload();
   };
 
   public render() {

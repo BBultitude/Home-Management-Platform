@@ -3,7 +3,7 @@ Knowledge Base API endpoints
 Handles household knowledge articles with full-text search and attachments
 """
 
-from typing import Optional
+from typing import Annotated, Optional
 from uuid import UUID
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
@@ -29,8 +29,8 @@ router = APIRouter(prefix="/knowledge", tags=["knowledge"])
 @router.post("", response_model=KnowledgeArticleResponse)
 async def create_knowledge_article(
     article_data: KnowledgeArticleCreate,
-    current_user: User = Depends(require_permission("knowledge:write")),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(require_permission("knowledge:write"))],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Create a new knowledge article
@@ -62,12 +62,12 @@ async def create_knowledge_article(
 
 @router.get("", response_model=KnowledgeArticleListResponse)
 async def list_knowledge_articles(
-    article_type: Optional[ArticleType] = Query(None, description="Filter by article type"),
-    tag: Optional[str] = Query(None, description="Filter by tag"),
-    limit: int = Query(100, ge=1, le=500),
-    offset: int = Query(0, ge=0),
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    article_type: Annotated[Optional[ArticleType], Query(None, description="Filter by article type")],
+    tag: Annotated[Optional[str], Query(None, description="Filter by tag")],
+    limit: Annotated[int, Query(100, ge=1, le=500)],
+    offset: Annotated[int, Query(0, ge=0)],
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     List knowledge articles with optional filters
@@ -93,8 +93,8 @@ async def list_knowledge_articles(
 @router.post("/search", response_model=KnowledgeArticleListResponse)
 async def search_knowledge_articles(
     search_request: KnowledgeSearchRequest,
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Full-text search across knowledge articles
@@ -121,9 +121,9 @@ async def search_knowledge_articles(
 @router.get("/{article_id}", response_model=KnowledgeArticleResponse)
 async def get_knowledge_article(
     article_id: UUID,
-    decrypt_passwords: bool = Query(False, description="Decrypt passwords (requires knowledge:admin)"),
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    decrypt_passwords: Annotated[bool, Query(False, description="Decrypt passwords (requires knowledge:admin)")],
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Get a specific knowledge article
@@ -145,8 +145,8 @@ async def get_knowledge_article(
 async def update_knowledge_article(
     article_id: UUID,
     article_data: KnowledgeArticleUpdate,
-    current_user: User = Depends(require_permission("knowledge:write")),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(require_permission("knowledge:write"))],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Update a knowledge article
@@ -167,8 +167,8 @@ async def update_knowledge_article(
 @router.delete("/{article_id}")
 async def delete_knowledge_article(
     article_id: UUID,
-    current_user: User = Depends(require_permission("knowledge:write")),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(require_permission("knowledge:write"))],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Delete a knowledge article (cascade deletes attachments)"""
     KnowledgeService.delete_article(db, article_id)
@@ -181,8 +181,8 @@ async def delete_knowledge_article(
 async def add_attachment(
     article_id: UUID,
     file_id: UUID,
-    current_user: User = Depends(require_permission("knowledge:write")),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(require_permission("knowledge:write"))],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Add a file attachment to a knowledge article
@@ -197,8 +197,8 @@ async def add_attachment(
 @router.get("/{article_id}/attachments", response_model=list[AttachmentResponse])
 async def list_attachments(
     article_id: UUID,
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """List all attachments for a knowledge article"""
     attachments = KnowledgeService.list_attachments(db, article_id)
@@ -209,8 +209,8 @@ async def list_attachments(
 @router.delete("/attachments/{attachment_id}")
 async def remove_attachment(
     attachment_id: UUID,
-    current_user: User = Depends(require_permission("knowledge:write")),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(require_permission("knowledge:write"))],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Remove an attachment from a knowledge article"""
     KnowledgeService.remove_attachment(db, attachment_id)

@@ -7,7 +7,7 @@ import pyotp
 import qrcode
 import io
 import base64
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 from sqlalchemy.orm import Session
 
@@ -247,7 +247,7 @@ class MFAService:
             return None
 
         # Update last used timestamp
-        device.last_used_at = datetime.utcnow()
+        device.last_used_at = datetime.now(timezone.utc)
         db.commit()
 
         return device

@@ -14,8 +14,10 @@ from app.db.database import SessionLocal
 from app.models.user import User
 from app.core.security import hash_password
 
+DEFAULT_ADMIN_FULL_NAME = "System Administrator"
 
-def create_admin_user(username: str, email: str, password: str, full_name: str = "System Administrator"):
+
+def create_admin_user(username: str, email: str, password: str, full_name: str = DEFAULT_ADMIN_FULL_NAME):
     """Create an admin user"""
     db = SessionLocal()
 
@@ -60,6 +62,52 @@ def create_admin_user(username: str, email: str, password: str, full_name: str =
         db.close()
 
 
+def _get_cli_args() -> tuple:
+    """Read username, email, password, and full_name from command-line arguments."""
+    username = sys.argv[1]
+    email = sys.argv[2]
+    password = sys.argv[3]
+    full_name = sys.argv[4] if len(sys.argv) >= 5 else DEFAULT_ADMIN_FULL_NAME
+    return username, email, password, full_name
+
+
+def _get_interactive_args() -> tuple:
+    """Prompt the user interactively for username, email, password, and full_name."""
+    print("Create a new admin user:")
+    print()
+
+    username = input("Username: ").strip()
+    if not username:
+        print("❌ Username is required!")
+        sys.exit(1)
+
+    email = input("Email address: ").strip()
+    if not email:
+        print("❌ Email is required!")
+        sys.exit(1)
+
+    password = getpass("Password (input hidden): ").strip()
+    password_confirm = getpass("Confirm password: ").strip()
+
+    if password != password_confirm:
+        print("❌ Passwords do not match!")
+        sys.exit(1)
+
+    if len(password) < 8:
+        print("⚠️  Warning: Password is shorter than 8 characters")
+        confirm = input("Continue anyway? (y/N): ").strip().lower()
+        if confirm != 'y':
+            print("Cancelled.")
+            sys.exit(0)
+
+    full_name = input(f"Full name (default: {DEFAULT_ADMIN_FULL_NAME}): ").strip()
+    if not full_name:
+        full_name = DEFAULT_ADMIN_FULL_NAME
+
+    print()
+    return username, email, password, full_name
+
+
 def main():
     """Main function - interactive or command-line args"""
     print("=" * 60)
@@ -67,47 +115,10 @@ def main():
     print("=" * 60)
     print()
 
-    # Check if arguments provided
     if len(sys.argv) >= 4:
-        # Command-line mode
-        username = sys.argv[1]
-        email = sys.argv[2]
-        password = sys.argv[3]
-        full_name = sys.argv[4] if len(sys.argv) >= 5 else "System Administrator"
+        username, email, password, full_name = _get_cli_args()
     else:
-        # Interactive mode
-        print("Create a new admin user:")
-        print()
-        username = input("Username: ").strip()
-        if not username:
-            print("❌ Username is required!")
-            sys.exit(1)
-
-        email = input("Email address: ").strip()
-
-        if not email:
-            print("❌ Email is required!")
-            sys.exit(1)
-
-        password = getpass("Password (input hidden): ").strip()
-        password_confirm = getpass("Confirm password: ").strip()
-
-        if password != password_confirm:
-            print("❌ Passwords do not match!")
-            sys.exit(1)
-
-        if len(password) < 8:
-            print("⚠️  Warning: Password is shorter than 8 characters")
-            confirm = input("Continue anyway? (y/N): ").strip().lower()
-            if confirm != 'y':
-                print("Cancelled.")
-                sys.exit(0)
-
-        full_name = input("Full name (default: System Administrator): ").strip()
-        if not full_name:
-            full_name = "System Administrator"
-
-        print()
+        username, email, password, full_name = _get_interactive_args()
 
     # Create the user
     success = create_admin_user(username, email, password, full_name)

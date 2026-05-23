@@ -8,14 +8,14 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-interface FinancialYearPickerProps {
+type FinancialYearPickerProps = Readonly<{
   value?: string; // Format: "2024-2025"
   onChange: (value: string) => void;
   yearsBack?: number; // How many years back to show
   yearsForward?: number; // How many years forward to show
   disabled?: boolean;
   className?: string;
-}
+}>
 
 /**
  * Gets the current Australian financial year in format "2024-2025"

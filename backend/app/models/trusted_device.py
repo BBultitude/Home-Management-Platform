@@ -2,7 +2,7 @@
 Trusted Device model for MFA remember-me functionality
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from sqlalchemy import String, DateTime, Integer, ForeignKey, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -72,17 +72,17 @@ class TrustedDevice(Base):
 
     def is_expired(self) -> bool:
         """Check if trusted device token has expired"""
-        return datetime.utcnow() > self.expires_at
+        return datetime.now(timezone.utc) > self.expires_at
 
     @property
     def days_until_expiry(self) -> int:
         """Calculate days until expiry"""
         if self.is_expired():
             return 0
-        delta = self.expires_at - datetime.utcnow()
+        delta = self.expires_at - datetime.now(timezone.utc)
         return delta.days
 
     @classmethod
     def calculate_expiry(cls, days: int = 30) -> datetime:
         """Calculate expiry datetime (default 30 days from now)"""
-        return datetime.utcnow() + timedelta(days=days)
+        return datetime.now(timezone.utc) + timedelta(days=days)

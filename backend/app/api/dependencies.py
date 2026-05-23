@@ -2,7 +2,7 @@
 Dependency injection for FastAPI routes
 """
 
-from typing import Optional
+from typing import Annotated, Optional
 from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
@@ -19,7 +19,7 @@ security = HTTPBearer()
 
 def get_current_user(
     request: Request,
-    db: Session = Depends(get_db)
+    db: Annotated[Session, Depends(get_db)]
 ) -> User:
     """
     Get current authenticated user from JWT token in cookie or Authorization header
@@ -78,7 +78,7 @@ def get_current_user(
 
 
 def get_current_active_user(
-    current_user: User = Depends(get_current_user)
+    current_user: Annotated[User, Depends(get_current_user)]
 ) -> User:
     """
     Get current active user (not deleted, not inactive)
@@ -256,7 +256,7 @@ def require_tax_ownership(tax_id_param: str = "tax_id"):
         @app.get("/tax/{tax_id}")
         async def get_tax_record(
             tax_id: int,
-            user: User = Depends(require_tax_ownership("tax_id"))
+            user: Annotated[User, Depends(require_tax_ownership("tax_id"))]
         ):
             ...
 
@@ -268,14 +268,10 @@ def require_tax_ownership(tax_id_param: str = "tax_id"):
     """
     async def ownership_checker(
         request: Request,
-        current_user: User = Depends(get_current_active_user),
-        db: Session = Depends(get_db)
+        current_user: Annotated[User, Depends(get_current_active_user)],
+        db: Annotated[Session, Depends(get_db)]
     ) -> User:
-        # Admin can access any tax record
-        if current_user.role == UserRole.ADMIN:
-            return current_user
-
-        # Get tax_id from path parameters
+        # Get tax_id from path parameters (admins still need a valid resource path)
         tax_id = request.path_params.get(tax_id_param)
         if not tax_id:
             raise HTTPException(
@@ -283,9 +279,9 @@ def require_tax_ownership(tax_id_param: str = "tax_id"):
                 detail=f"Missing path parameter: {tax_id_param}"
             )
 
-        # Note: Tax ownership validation is implemented in the tax service layer
-        # Tax endpoints verify ownership before performing CRUD operations
-        # This dependency enforces RBAC, service layer enforces record ownership
+        # Note: Tax ownership validation is implemented in the tax service layer.
+        # Admin bypass and per-user ownership checks are enforced there.
+        # This dependency validates RBAC preconditions; service layer enforces record ownership.
 
         return current_user
 
@@ -304,7 +300,7 @@ def allow_tax_read(tax_id_param: str = "tax_id"):
         @app.get("/tax/{tax_id}")
         async def view_tax_record(
             tax_id: int,
-            user: User = Depends(allow_tax_read("tax_id"))
+            user: Annotated[User, Depends(allow_tax_read("tax_id"))]
         ):
             ...
 

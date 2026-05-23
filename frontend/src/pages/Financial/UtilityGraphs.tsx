@@ -24,9 +24,9 @@ import { format, subMonths, startOfMonth, endOfMonth } from 'date-fns';
 
 type PeriodType = 'last12' | 'prior12' | 'custom';
 
-interface UtilityGraphsProps {
+type UtilityGraphsProps = Readonly<{
   selectedType: UtilityType | null;
-}
+}>
 
 export default function UtilityGraphs({ selectedType }: UtilityGraphsProps) {
   const [graphData, setGraphData] = useState<UtilityGraphsResponse | null>(null);
@@ -39,7 +39,7 @@ export default function UtilityGraphs({ selectedType }: UtilityGraphsProps) {
     const now = new Date();
 
     switch (period) {
-      case 'last12':
+      case 'last12': {
         // Last 12 months from today
         const last12Start = startOfMonth(subMonths(now, 11));
         const last12End = endOfMonth(now);
@@ -47,8 +47,9 @@ export default function UtilityGraphs({ selectedType }: UtilityGraphsProps) {
           start_date: format(last12Start, 'yyyy-MM-dd'),
           end_date: format(last12End, 'yyyy-MM-dd')
         };
+      }
 
-      case 'prior12':
+      case 'prior12': {
         // Months 13-24 ago
         const prior12Start = startOfMonth(subMonths(now, 23));
         const prior12End = endOfMonth(subMonths(now, 12));
@@ -56,8 +57,9 @@ export default function UtilityGraphs({ selectedType }: UtilityGraphsProps) {
           start_date: format(prior12Start, 'yyyy-MM-dd'),
           end_date: format(prior12End, 'yyyy-MM-dd')
         };
+      }
 
-      case 'custom':
+      case 'custom': {
         // Custom date range
         if (!customStartDate && !customEndDate) {
           return {};
@@ -66,6 +68,7 @@ export default function UtilityGraphs({ selectedType }: UtilityGraphsProps) {
           start_date: customStartDate ? format(customStartDate, 'yyyy-MM-dd') : undefined,
           end_date: customEndDate ? format(customEndDate, 'yyyy-MM-dd') : undefined
         };
+      }
 
       default:
         return {};
@@ -162,20 +165,23 @@ export default function UtilityGraphs({ selectedType }: UtilityGraphsProps) {
   const getPeriodDescription = (): string => {
     const now = new Date();
     switch (period) {
-      case 'last12':
+      case 'last12': {
         const last12Start = startOfMonth(subMonths(now, 11));
         return `${format(last12Start, 'MMM yyyy')} - ${format(now, 'MMM yyyy')}`;
-      case 'prior12':
+      }
+      case 'prior12': {
         const prior12Start = startOfMonth(subMonths(now, 23));
         const prior12End = endOfMonth(subMonths(now, 12));
         return `${format(prior12Start, 'MMM yyyy')} - ${format(prior12End, 'MMM yyyy')}`;
-      case 'custom':
+      }
+      case 'custom': {
         if (!customStartDate && !customEndDate) {
           return 'Select date range';
         }
         const start = customStartDate ? format(customStartDate, 'MMM yyyy') : 'Start';
         const end = customEndDate ? format(customEndDate, 'MMM yyyy') : 'End';
         return `${start} - ${end}`;
+      }
       default:
         return '';
     }
@@ -325,10 +331,10 @@ export default function UtilityGraphs({ selectedType }: UtilityGraphsProps) {
                 height={80}
               />
               <YAxis
-                tickFormatter={(value: number | undefined) => value !== undefined ? `$${value}` : '$0'}
+                tickFormatter={(value: number | undefined) => value === undefined ? '$0' : `$${value}`}
               />
               <Tooltip
-                formatter={(value: number | undefined) => value !== undefined ? formatCurrency(value) : '$0.00'}
+                formatter={(value: number | undefined) => value === undefined ? '$0.00' : formatCurrency(value)}
                 labelFormatter={(label) => `Month: ${label}`}
               />
               <Legend />
@@ -368,7 +374,7 @@ export default function UtilityGraphs({ selectedType }: UtilityGraphsProps) {
               />
               <YAxis />
               <Tooltip
-                formatter={(value: number | undefined) => value !== undefined ? value.toFixed(2) : '0.00'}
+                formatter={(value: number | undefined) => value === undefined ? '0.00' : value.toFixed(2)}
                 labelFormatter={(label) => `Month: ${label}`}
               />
               <Legend />
@@ -404,10 +410,10 @@ export default function UtilityGraphs({ selectedType }: UtilityGraphsProps) {
                 height={80}
               />
               <YAxis
-                tickFormatter={(value: number | undefined) => value !== undefined ? `$${value.toFixed(3)}` : '$0.000'}
+                tickFormatter={(value: number | undefined) => value === undefined ? '$0.000' : `$${value.toFixed(3)}`}
               />
               <Tooltip
-                formatter={(value: number | undefined) => value !== undefined ? `$${value.toFixed(4)} per unit` : '$0.0000 per unit'}
+                formatter={(value: number | undefined) => value === undefined ? '$0.0000 per unit' : `$${value.toFixed(4)} per unit`}
                 labelFormatter={(label) => `Month: ${label}`}
               />
               <Legend />

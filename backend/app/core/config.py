@@ -47,7 +47,7 @@ class Settings(BaseSettings):
         return [origin.strip() for origin in self.ALLOWED_ORIGINS.split(",")]
 
     # Database
-    DATABASE_URL: str = "postgresql+psycopg://homeuser@db:5432/homedb"
+    DATABASE_URL: str = "postgresql+psycopg://homeuser@db:5432/homedb"  # noqa: S2115 — password sourced from DB_PASSWORD_FILE secret; see database_url_with_password property
     DB_PASSWORD_FILE: str = "/run/secrets/db_password"
     DB_POOL_SIZE: int = 5
     DB_MAX_OVERFLOW: int = 10

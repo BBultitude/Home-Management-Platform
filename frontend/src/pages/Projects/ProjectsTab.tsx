@@ -121,8 +121,8 @@ export default function ProjectsTab() {
         status: formStatus,
         start_date: formStartDate ? format(formStartDate, 'yyyy-MM-dd') : undefined,
         completion_date: formCompletionDate ? format(formCompletionDate, 'yyyy-MM-dd') : undefined,
-        budget: formBudget ? parseFloat(formBudget) : undefined,
-        actual_cost: formActualCost ? parseFloat(formActualCost) : undefined,
+        budget: formBudget ? Number.parseFloat(formBudget) : undefined,
+        actual_cost: formActualCost ? Number.parseFloat(formActualCost) : undefined,
         notes: formNotes.trim() || undefined,
       });
       toast.success('Project created');
@@ -149,8 +149,8 @@ export default function ProjectsTab() {
         status: formStatus,
         start_date: formStartDate ? format(formStartDate, 'yyyy-MM-dd') : undefined,
         completion_date: formCompletionDate ? format(formCompletionDate, 'yyyy-MM-dd') : undefined,
-        budget: formBudget ? parseFloat(formBudget) : undefined,
-        actual_cost: formActualCost ? parseFloat(formActualCost) : undefined,
+        budget: formBudget ? Number.parseFloat(formBudget) : undefined,
+        actual_cost: formActualCost ? Number.parseFloat(formActualCost) : undefined,
         notes: formNotes.trim() || undefined,
       });
       toast.success('Project updated');

@@ -3,7 +3,7 @@ Audit Logging Service
 Handles logging of all critical system events for compliance and security
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, Any
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, or_
@@ -514,7 +514,7 @@ class AuditService:
         Returns:
             Number of logs deleted
         """
-        cutoff_date = datetime.utcnow() - timedelta(days=retention_days)
+        cutoff_date = datetime.now(timezone.utc) - timedelta(days=retention_days)
 
         # For tax records, enforce 5-year retention
         tax_event_types = [
@@ -549,7 +549,7 @@ class AuditService:
         Returns:
             Number of logs deleted
         """
-        cutoff_date = datetime.utcnow() - timedelta(days=retention_days)
+        cutoff_date = datetime.now(timezone.utc) - timedelta(days=retention_days)
 
         tax_event_types = [
             EventType.TAX_WFH_CREATE,

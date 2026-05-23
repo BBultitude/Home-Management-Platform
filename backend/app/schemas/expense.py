@@ -34,7 +34,7 @@ class ExpenseCategoryResponse(BaseModel):
     id: int
     category_name: str
     bank_account_id: int
-    color: Optional[str]
+    color: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 
@@ -70,7 +70,7 @@ class ExpenseResponse(BaseModel):
     amount: float
     frequency: str
     category_id: int
-    notes: Optional[str]
+    notes: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 

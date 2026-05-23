@@ -45,14 +45,14 @@ class ProjectResponse(BaseModel):
     """Schema for project response"""
     id: str
     project_name: str
-    description: Optional[str]
-    priority_item_id: Optional[str]
+    description: Optional[str] = None
+    priority_item_id: Optional[str] = None
     status: str
-    start_date: Optional[str]
-    completion_date: Optional[str]
-    budget: Optional[float]
-    actual_cost: Optional[float]
-    notes: Optional[str]
+    start_date: Optional[str] = None
+    completion_date: Optional[str] = None
+    budget: Optional[float] = None
+    actual_cost: Optional[float] = None
+    notes: Optional[str] = None
     created_at: str
     updated_at: str
 

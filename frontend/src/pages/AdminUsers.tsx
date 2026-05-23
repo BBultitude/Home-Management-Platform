@@ -175,16 +175,16 @@ export default function AdminUsers() {
       const response = await apiClient.get('/admin/backup/download', {
         responseType: 'blob',
       }) as Blob;
-      const url = window.URL.createObjectURL(response);
+      const url = globalThis.URL.createObjectURL(response);
       const now = new Date();
-      const filename = `backup_${now.toISOString().replace(/[:.]/g, '-').slice(0, 19)}.zip`;
+      const filename = `backup_${now.toISOString().replaceAll(':', '-').replaceAll('.', '-').slice(0, 19)}.zip`;
       const a = document.createElement('a');
       a.href = url;
       a.download = filename;
       document.body.appendChild(a);
       a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
+      a.remove();
+      globalThis.URL.revokeObjectURL(url);
       setLastBackupTime(now.toLocaleString());
       toast.success('Backup downloaded successfully');
     } catch {

@@ -63,7 +63,7 @@ class FileService:
         if file.content_type not in FileService.ALLOWED_MIME_TYPES:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"File type not allowed. Allowed types: PDF, JPG, PNG, GIF, WEBP, DOCX, XLSX, TXT, CSV"
+                detail="File type not allowed. Allowed types: PDF, JPG, PNG, GIF, WEBP, DOCX, XLSX, TXT, CSV"
             )
 
         # Check file size (read file to get actual size)

@@ -125,9 +125,9 @@ export default function PrioritiesTab() {
       setSubmitting(true);
       await projectsService.priorities.create({
         description: formDescription.trim(),
-        cost: parseFloat(formCost),
-        severity: parseInt(formSeverity),
-        frequency: parseInt(formFrequency),
+        cost: Number.parseFloat(formCost),
+        severity: Number.parseInt(formSeverity),
+        frequency: Number.parseInt(formFrequency),
       });
       toast.success('Priority item created');
       setAddDialogOpen(false);
@@ -149,9 +149,9 @@ export default function PrioritiesTab() {
       setSubmitting(true);
       await projectsService.priorities.update(selectedItem.id, {
         description: formDescription.trim(),
-        cost: formCost ? parseFloat(formCost) : undefined,
-        severity: parseInt(formSeverity),
-        frequency: parseInt(formFrequency),
+        cost: formCost ? Number.parseFloat(formCost) : undefined,
+        severity: Number.parseInt(formSeverity),
+        frequency: Number.parseInt(formFrequency),
         status: formStatus,
       });
       toast.success('Priority item updated');
@@ -176,7 +176,7 @@ export default function PrioritiesTab() {
       await projectsService.priorities.convertToProject(selectedItem.id, {
         project_name: projectName.trim(),
         description: projectDescription.trim() || undefined,
-        budget: projectBudget ? parseFloat(projectBudget) : undefined,
+        budget: projectBudget ? Number.parseFloat(projectBudget) : undefined,
       });
       toast.success('Converted to project successfully');
       setConvertDialogOpen(false);

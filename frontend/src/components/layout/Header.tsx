@@ -11,10 +11,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { User, Settings, LogOut, Menu } from 'lucide-react';
 
-interface HeaderProps {
+type HeaderProps = Readonly<{
   onMenuClick: () => void;
   showMenuButton?: boolean;
-}
+}>
 
 export function Header({ onMenuClick, showMenuButton = false }: HeaderProps) {
   const navigate = useNavigate();

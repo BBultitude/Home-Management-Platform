@@ -38,7 +38,7 @@ class TestCreateTravelEntry:
         data = response.json()
         assert data["date"] == "2024-01-15"
         assert data["purpose"] == "Client meeting"
-        assert data["distance_km"] == 45.5
+        assert data["distance_km"] == pytest.approx(45.5)
         assert data["deduction_amount"] == pytest.approx(38.675, rel=0.01)  # 45.5 * 0.85
 
     def test_create_entry_unauthorized(self, client: TestClient):
@@ -201,7 +201,7 @@ class TestUpdateTravelEntry:
         assert response.status_code == 200
 
         data = response.json()
-        assert data["distance_km"] == 50.0
+        assert data["distance_km"] == pytest.approx(50.0)
         assert data["notes"] == "Updated route"
 
 

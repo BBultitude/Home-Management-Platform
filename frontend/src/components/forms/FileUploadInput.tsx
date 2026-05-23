@@ -5,7 +5,7 @@ import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
 import { fileService, type FileCategory, type FileMetadata } from '@/services/fileService';
 
-interface FileUploadInputProps {
+type FileUploadInputProps = Readonly<{
   category: FileCategory;
   fileId?: number | null;
   onUploadSuccess: (fileId: number) => void;
@@ -13,7 +13,7 @@ interface FileUploadInputProps {
   label?: string;
   required?: boolean;
   disabled?: boolean;
-}
+}>
 
 const ALLOWED_TYPES = [
   'application/pdf',
@@ -199,15 +199,16 @@ export const FileUploadInput: React.FC<FileUploadInputProps> = ({
 
     try {
       const blob = await fileService.download(currentFile.id);
-      const url = window.URL.createObjectURL(blob);
+      const url = globalThis.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
       a.download = currentFile.original_filename;
       document.body.appendChild(a);
       a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      globalThis.URL.revokeObjectURL(url);
+      a.remove();
     } catch (err) {
+      console.error('Failed to download file:', err);
       toast.error('Failed to download file');
     }
   };
@@ -262,6 +263,8 @@ export const FileUploadInput: React.FC<FileUploadInputProps> = ({
       )}
 
       <div
+        role="button"
+        tabIndex={disabled ? -1 : 0}
         className={`
           border-2 border-dashed rounded-lg p-6 text-center transition-colors
           ${isDragging ? 'border-blue-500 bg-blue-50 dark:bg-blue-950' : 'border-gray-300 hover:border-blue-400'}
@@ -271,6 +274,7 @@ export const FileUploadInput: React.FC<FileUploadInputProps> = ({
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         onClick={() => !disabled && fileInputRef.current?.click()}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.currentTarget.click(); } }}
       >
         <input
           ref={fileInputRef}

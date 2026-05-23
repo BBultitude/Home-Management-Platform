@@ -4,7 +4,7 @@ Handles recipes, weekly meal planning, and shopping list generation
 Ported from: https://github.com/BBultitude/Meal-Planner
 """
 
-from typing import Optional
+from typing import Annotated, Optional
 from datetime import date
 from uuid import UUID
 from fastapi import APIRouter, Depends, Query
@@ -37,8 +37,8 @@ router = APIRouter(prefix="/meals", tags=["meals"])
 @router.post("/recipes", response_model=RecipeDetailResponse)
 async def create_recipe(
     recipe_data: RecipeCreate,
-    current_user: User = Depends(require_permission("meals:write")),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(require_permission("meals:write"))],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Create a new recipe with ingredients
@@ -74,11 +74,11 @@ async def create_recipe(
 
 @router.get("/recipes", response_model=RecipeListResponse)
 async def list_recipes(
-    search: Optional[str] = Query(None, description="Search by recipe or ingredient name"),
-    limit: int = Query(100, ge=1, le=500),
-    offset: int = Query(0, ge=0),
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    search: Annotated[Optional[str], Query(None, description="Search by recipe or ingredient name")],
+    limit: Annotated[int, Query(100, ge=1, le=500)],
+    offset: Annotated[int, Query(0, ge=0)],
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     List recipes with optional search
@@ -103,8 +103,8 @@ async def list_recipes(
 @router.get("/recipes/{recipe_id}", response_model=RecipeDetailResponse)
 async def get_recipe(
     recipe_id: UUID,
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Get a specific recipe with ingredients"""
     recipe = MealPlannerService.get_recipe(db, recipe_id)
@@ -123,8 +123,8 @@ async def get_recipe(
 async def update_recipe(
     recipe_id: UUID,
     recipe_data: RecipeUpdate,
-    current_user: User = Depends(require_permission("meals:write")),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(require_permission("meals:write"))],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Update a recipe"""
     ingredients_data = None
@@ -160,8 +160,8 @@ async def update_recipe(
 @router.delete("/recipes/{recipe_id}")
 async def delete_recipe(
     recipe_id: UUID,
-    current_user: User = Depends(require_permission("meals:write")),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(require_permission("meals:write"))],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Delete a recipe (cannot delete if assigned to a week plan)"""
     MealPlannerService.delete_recipe(db, recipe_id)
@@ -173,8 +173,8 @@ async def delete_recipe(
 @router.post("/week-plans", response_model=WeekPlanResponse)
 async def create_week_plan(
     plan_data: WeekPlanCreate,
-    current_user: User = Depends(require_permission("meals:write")),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(require_permission("meals:write"))],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Create a new weekly meal plan
@@ -204,8 +204,8 @@ async def create_week_plan(
 
 @router.get("/week-plans/current", response_model=WeekPlanDetailResponse)
 async def get_current_week_plan(
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Get week plan for current week
@@ -250,8 +250,8 @@ async def get_current_week_plan(
 @router.get("/week-plans/by-date/{target_date}", response_model=WeekPlanDetailResponse)
 async def get_week_plan_by_date(
     target_date: date,
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Get week plan for the week containing target_date"""
     plan = MealPlannerService.get_week_plan_by_date(db, target_date)
@@ -292,8 +292,8 @@ async def get_week_plan_by_date(
 @router.get("/week-plans/{plan_id}", response_model=WeekPlanResponse)
 async def get_week_plan(
     plan_id: UUID,
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Get a specific week plan"""
     plan = MealPlannerService.get_week_plan(db, plan_id)
@@ -305,8 +305,8 @@ async def get_week_plan(
 async def update_week_plan(
     plan_id: UUID,
     plan_data: WeekPlanUpdate,
-    current_user: User = Depends(require_permission("meals:write")),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(require_permission("meals:write"))],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Update a week plan"""
     meal_ids = {}
@@ -337,8 +337,8 @@ async def update_week_plan(
 @router.delete("/week-plans/{plan_id}")
 async def delete_week_plan(
     plan_id: UUID,
-    current_user: User = Depends(require_permission("meals:write")),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(require_permission("meals:write"))],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Delete a week plan"""
     MealPlannerService.delete_week_plan(db, plan_id)
@@ -350,8 +350,8 @@ async def delete_week_plan(
 @router.get("/week-plans/{plan_id}/shopping-list", response_model=ShoppingListResponse)
 async def generate_shopping_list(
     plan_id: UUID,
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Generate shopping list from week plan

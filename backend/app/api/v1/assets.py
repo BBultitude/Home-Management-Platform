@@ -3,7 +3,7 @@ Assets & Documents API endpoints
 Handles insurance policies and important documents
 """
 
-from typing import Optional
+from typing import Annotated, Optional
 from uuid import UUID
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
@@ -37,8 +37,8 @@ router = APIRouter(prefix="/assets", tags=["assets"])
 @router.post("/insurance", response_model=InsurancePolicyResponse)
 async def create_insurance_policy(
     policy_data: InsurancePolicyCreate,
-    current_user: User = Depends(require_permission("assets:write")),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(require_permission("assets:write"))],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Create a new insurance policy
@@ -68,11 +68,11 @@ async def create_insurance_policy(
 
 @router.get("/insurance", response_model=InsurancePolicyListResponse)
 async def list_insurance_policies(
-    policy_type: Optional[PolicyType] = Query(None),
-    limit: int = Query(100, ge=1, le=500),
-    offset: int = Query(0, ge=0),
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    policy_type: Annotated[Optional[PolicyType], Query(None)],
+    limit: Annotated[int, Query(100, ge=1, le=500)],
+    offset: Annotated[int, Query(0, ge=0)],
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """List all insurance policies"""
     policies = InsurancePolicyService.list_policies(
@@ -97,8 +97,8 @@ async def list_insurance_policies(
 @router.get("/insurance/{policy_id}", response_model=InsurancePolicyResponse)
 async def get_insurance_policy(
     policy_id: UUID,
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Get a specific insurance policy"""
     policy = InsurancePolicyService.get_policy(db, policy_id)
@@ -113,8 +113,8 @@ async def get_insurance_policy(
 async def update_insurance_policy(
     policy_id: UUID,
     policy_data: InsurancePolicyUpdate,
-    current_user: User = Depends(require_permission("assets:write")),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(require_permission("assets:write"))],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Update an insurance policy"""
     policy = InsurancePolicyService.update_policy(
@@ -142,8 +142,8 @@ async def update_insurance_policy(
 @router.delete("/insurance/{policy_id}")
 async def delete_insurance_policy(
     policy_id: UUID,
-    current_user: User = Depends(require_permission("assets:write")),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(require_permission("assets:write"))],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Delete an insurance policy"""
     InsurancePolicyService.delete_policy(db, policy_id)
@@ -153,9 +153,9 @@ async def delete_insurance_policy(
 
 @router.get("/insurance/alerts/renewals", response_model=list[RenewalAlertResponse])
 async def get_renewal_alerts(
-    days: int = Query(30, ge=1, le=365, description="Days before renewal to alert"),
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    days: Annotated[int, Query(30, ge=1, le=365, description="Days before renewal to alert")],
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Get insurance renewal alerts
@@ -182,8 +182,8 @@ async def get_renewal_alerts(
 
 @router.get("/insurance/summary/costs")
 async def get_insurance_cost_summary(
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Get insurance cost summary for budget integration
@@ -197,8 +197,8 @@ async def get_insurance_cost_summary(
 @router.post("/documents", response_model=DocumentResponse)
 async def create_document(
     document_data: DocumentCreate,
-    current_user: User = Depends(require_permission("assets:write")),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(require_permission("assets:write"))],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Create a new document
@@ -226,13 +226,13 @@ async def create_document(
 
 @router.get("/documents", response_model=DocumentListResponse)
 async def list_documents(
-    document_type: Optional[DocumentType] = Query(None),
-    category: Optional[str] = Query(None),
-    tag: Optional[str] = Query(None),
-    limit: int = Query(100, ge=1, le=500),
-    offset: int = Query(0, ge=0),
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    document_type: Annotated[Optional[DocumentType], Query(None)],
+    category: Annotated[Optional[str], Query(None)],
+    tag: Annotated[Optional[str], Query(None)],
+    limit: Annotated[int, Query(100, ge=1, le=500)],
+    offset: Annotated[int, Query(0, ge=0)],
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """List documents with optional filters"""
     documents = DocumentService.list_documents(
@@ -259,10 +259,10 @@ async def list_documents(
 
 @router.get("/documents/search")
 async def search_documents(
-    q: str = Query(..., min_length=1, description="Search term"),
-    limit: int = Query(50, ge=1, le=100),
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    q: Annotated[str, Query(..., min_length=1, description="Search term")],
+    limit: Annotated[int, Query(50, ge=1, le=100)],
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Search documents by title, description, category, or tags
@@ -287,8 +287,8 @@ async def search_documents(
 @router.get("/documents/{document_id}", response_model=DocumentResponse)
 async def get_document(
     document_id: UUID,
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Get a specific document"""
     document = DocumentService.get_document(db, document_id)
@@ -304,8 +304,8 @@ async def get_document(
 async def update_document(
     document_id: UUID,
     document_data: DocumentUpdate,
-    current_user: User = Depends(require_permission("assets:write")),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(require_permission("assets:write"))],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Update a document"""
     document = DocumentService.update_document(
@@ -329,8 +329,8 @@ async def update_document(
 @router.delete("/documents/{document_id}")
 async def delete_document(
     document_id: UUID,
-    current_user: User = Depends(require_permission("assets:write")),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(require_permission("assets:write"))],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Delete a document (cascade deletes file)"""
     DocumentService.delete_document(db, document_id)
@@ -340,9 +340,9 @@ async def delete_document(
 
 @router.get("/documents/alerts/expiry", response_model=list[ExpiryAlertResponse])
 async def get_expiry_alerts(
-    days: int = Query(30, ge=1, le=365, description="Days before expiry to alert"),
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    days: Annotated[int, Query(30, ge=1, le=365, description="Days before expiry to alert")],
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Get document expiry alerts

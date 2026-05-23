@@ -4,7 +4,7 @@ Tax Travel Entry API endpoints
 
 from datetime import date
 from decimal import Decimal
-from typing import Optional
+from typing import Annotated, Optional
 from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import Response
 from sqlalchemy.orm import Session
@@ -40,9 +40,9 @@ def get_client_info(request: Request) -> tuple[str, str]:
 async def create_travel_entry(
     request: Request,
     entry_data: TaxTravelEntryCreate,
-    rate_per_km: Decimal = Query(DEFAULT_RATE_PER_KM, description="Rate per kilometer for deduction calculation"),
-    current_user: User = Depends(require_permission("tax:create")),
-    db: Session = Depends(get_db)
+    rate_per_km: Annotated[Decimal, Query(DEFAULT_RATE_PER_KM, description="Rate per kilometer for deduction calculation")],
+    current_user: Annotated[User, Depends(require_permission("tax:create"))],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Create a new travel entry
@@ -94,13 +94,13 @@ async def create_travel_entry(
 
 @router.get("", response_model=TaxTravelEntryListResponse)
 async def list_travel_entries(
-    start_date: Optional[date] = Query(None),
-    end_date: Optional[date] = Query(None),
-    rate_per_km: Decimal = Query(DEFAULT_RATE_PER_KM, description="Rate per kilometer for deduction calculation"),
-    limit: int = Query(100, ge=1, le=500),
-    offset: int = Query(0, ge=0),
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    start_date: Annotated[Optional[date], Query(None)],
+    end_date: Annotated[Optional[date], Query(None)],
+    rate_per_km: Annotated[Decimal, Query(DEFAULT_RATE_PER_KM, description="Rate per kilometer for deduction calculation")],
+    limit: Annotated[int, Query(100, ge=1, le=500)],
+    offset: Annotated[int, Query(0, ge=0)],
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     List current user's travel entries
@@ -144,13 +144,13 @@ async def list_travel_entries(
 @router.get("/users/{user_id}", response_model=TaxTravelEntryListResponse)
 async def list_user_travel_entries(
     user_id: int,
-    start_date: Optional[date] = Query(None),
-    end_date: Optional[date] = Query(None),
-    rate_per_km: Decimal = Query(DEFAULT_RATE_PER_KM, description="Rate per kilometer for deduction calculation"),
-    limit: int = Query(100, ge=1, le=500),
-    offset: int = Query(0, ge=0),
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    start_date: Annotated[Optional[date], Query(None)],
+    end_date: Annotated[Optional[date], Query(None)],
+    rate_per_km: Annotated[Decimal, Query(DEFAULT_RATE_PER_KM, description="Rate per kilometer for deduction calculation")],
+    limit: Annotated[int, Query(100, ge=1, le=500)],
+    offset: Annotated[int, Query(0, ge=0)],
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     List another user's travel entries (household transparency)
@@ -194,9 +194,9 @@ async def list_user_travel_entries(
 @router.get("/{entry_id}", response_model=TaxTravelEntryResponse)
 async def get_travel_entry(
     entry_id: int,
-    rate_per_km: Decimal = Query(DEFAULT_RATE_PER_KM, description="Rate per kilometer for deduction calculation"),
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    rate_per_km: Annotated[Decimal, Query(DEFAULT_RATE_PER_KM, description="Rate per kilometer for deduction calculation")],
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Get a specific travel entry
@@ -225,9 +225,9 @@ async def update_travel_entry(
     request: Request,
     entry_id: int,
     entry_data: TaxTravelEntryUpdate,
-    rate_per_km: Decimal = Query(DEFAULT_RATE_PER_KM, description="Rate per kilometer for deduction calculation"),
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    rate_per_km: Annotated[Decimal, Query(DEFAULT_RATE_PER_KM, description="Rate per kilometer for deduction calculation")],
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Update a travel entry
@@ -293,8 +293,8 @@ async def update_travel_entry(
 async def delete_travel_entry(
     request: Request,
     entry_id: int,
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Delete a travel entry
@@ -337,9 +337,9 @@ async def delete_travel_entry(
 @router.get("/summary/fy/{fy_year}", response_model=TaxTravelFYSummaryResponse)
 async def get_fy_summary(
     fy_year: int,
-    rate_per_km: Decimal = Query(DEFAULT_RATE_PER_KM, description="Rate per kilometer for deduction calculation"),
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    rate_per_km: Annotated[Decimal, Query(DEFAULT_RATE_PER_KM, description="Rate per kilometer for deduction calculation")],
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Get financial year summary for current user's travel entries
@@ -361,9 +361,9 @@ async def get_fy_summary(
 async def export_fy_csv(
     request: Request,
     fy_year: int,
-    rate_per_km: Decimal = Query(DEFAULT_RATE_PER_KM, description="Rate per kilometer for deduction calculation"),
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    rate_per_km: Annotated[Decimal, Query(DEFAULT_RATE_PER_KM, description="Rate per kilometer for deduction calculation")],
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Export financial year travel entries to CSV format
@@ -403,9 +403,9 @@ async def export_fy_csv(
 async def export_fy_text(
     request: Request,
     fy_year: int,
-    rate_per_km: Decimal = Query(DEFAULT_RATE_PER_KM, description="Rate per kilometer for deduction calculation"),
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    rate_per_km: Annotated[Decimal, Query(DEFAULT_RATE_PER_KM, description="Rate per kilometer for deduction calculation")],
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Export financial year travel entries to plain text format

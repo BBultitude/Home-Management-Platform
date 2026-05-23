@@ -64,7 +64,7 @@ export default function ShoppingListTab() {
     a.download = `shopping-list-${shoppingList.week_starting}.txt`;
     document.body.appendChild(a);
     a.click();
-    document.body.removeChild(a);
+    a.remove();
     URL.revokeObjectURL(url);
 
     toast.success('Shopping list downloaded');

@@ -3,7 +3,7 @@ Insurance Policy Service
 Handles CRUD operations and renewal alerts for insurance policies
 """
 
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from decimal import Decimal
 from typing import Optional
 from uuid import UUID
@@ -157,7 +157,7 @@ class InsurancePolicyService:
         if vehicle_id is not None:
             policy.vehicle_id = vehicle_id
 
-        policy.updated_at = datetime.utcnow()
+        policy.updated_at = datetime.now(timezone.utc)
 
         db.commit()
         db.refresh(policy)

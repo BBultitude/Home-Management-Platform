@@ -5,7 +5,7 @@ Provides access to audit trail for admins and users
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
-from typing import Optional
+from typing import Annotated, Optional
 
 from app.db.database import get_db
 from app.services.audit_service import AuditService
@@ -23,13 +23,13 @@ router = APIRouter(prefix="/audit", tags=["audit"])
     summary="Get all audit logs (Admin only)"
 )
 async def get_all_audit_logs(
-    limit: int = Query(100, ge=1, le=1000, description="Maximum number of logs to return"),
-    offset: int = Query(0, ge=0, description="Number of logs to skip"),
-    event_type: Optional[EventType] = Query(None, description="Filter by event type"),
-    user_id: Optional[int] = Query(None, description="Filter by user ID"),
-    severity: Optional[Severity] = Query(None, description="Filter by severity"),
-    db: Session = Depends(get_db),
-    current_user: User = Depends(require_admin)
+    limit: Annotated[int, Query(100, ge=1, le=1000, description="Maximum number of logs to return")],
+    offset: Annotated[int, Query(0, ge=0, description="Number of logs to skip")],
+    event_type: Annotated[Optional[EventType], Query(None, description="Filter by event type")],
+    user_id: Annotated[Optional[int], Query(None, description="Filter by user ID")],
+    severity: Annotated[Optional[Severity], Query(None, description="Filter by severity")],
+    db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[User, Depends(require_admin)]
 ):
     """
     Get all audit logs (Admin-only)
@@ -75,10 +75,10 @@ async def get_all_audit_logs(
     summary="Get user's own tax audit logs"
 )
 async def get_user_tax_audit_logs(
-    limit: int = Query(100, ge=1, le=1000, description="Maximum number of logs to return"),
-    offset: int = Query(0, ge=0, description="Number of logs to skip"),
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
+    limit: Annotated[int, Query(100, ge=1, le=1000, description="Maximum number of logs to return")],
+    offset: Annotated[int, Query(0, ge=0, description="Number of logs to skip")],
+    db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_active_user)]
 ):
     """
     Get current user's tax-related audit logs

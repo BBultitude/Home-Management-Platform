@@ -3,7 +3,7 @@ Tax Travel Service
 Handles CRUD operations for work travel tax entries
 """
 
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from decimal import Decimal
 from typing import Optional
 from sqlalchemy.orm import Session
@@ -176,7 +176,7 @@ class TaxTravelService:
         if notes is not None:
             entry.notes = notes
 
-        entry.updated_at = datetime.utcnow()
+        entry.updated_at = datetime.now(timezone.utc)
 
         db.commit()
         db.refresh(entry)

@@ -6,12 +6,14 @@ Tests TOTP generation, QR codes, verification, and trusted devices
 import pytest
 import pyotp
 import re
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from unittest.mock import Mock, patch
 
 from app.services.mfa_service import MFAService
 from app.models.user import User, UserRole
 from app.models.trusted_device import TrustedDevice
+
+TEST_MFA_SECRET = "JBSWY3DPEHPK3PXP"  # Test-only TOTP secret (not used in production)
 
 
 class TestMFASecretGeneration:
@@ -54,7 +56,7 @@ class TestQRCodeGeneration:
         """Test that QR code encodes correct provisioning URI"""
         user = Mock(spec=User)
         user.username = "testuser"
-        secret = "JBSWY3DPEHPK3PXP"  # Fixed secret for testing
+        secret = TEST_MFA_SECRET
 
         # Generate QR code
         qr_code = MFAService.generate_qr_code(user, secret)
@@ -245,7 +247,7 @@ class TestTrustedDevices:
         assert device.device_fingerprint == "unique-fingerprint-123"
         assert device.is_active is True
         assert device.device_token is not None
-        assert device.expires_at > datetime.utcnow()
+        assert device.expires_at > datetime.now(timezone.utc)
 
     def test_verify_trusted_device_success(self, test_db, test_user):
         """Test verifying a valid trusted device"""
@@ -292,7 +294,7 @@ class TestTrustedDevices:
         )
 
         # Manually expire the device
-        device.expires_at = datetime.utcnow() - timedelta(days=1)
+        device.expires_at = datetime.now(timezone.utc) - timedelta(days=1)
         test_db.commit()
 
         # Verify should fail

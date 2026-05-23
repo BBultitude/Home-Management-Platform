@@ -3,6 +3,7 @@ MFA API Endpoints
 Handles multi-factor authentication operations
 """
 
+from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 
@@ -29,8 +30,8 @@ router = APIRouter(prefix="/mfa", tags=["mfa"])
 
 @router.post("/setup", response_model=MFASetupResponse)
 async def setup_mfa(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Initiate MFA setup for current user
@@ -58,8 +59,8 @@ async def setup_mfa(
 @router.post("/enable", response_model=MFAEnableResponse)
 async def enable_mfa(
     request: MFAEnableRequest,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Enable MFA after verifying TOTP code
@@ -89,8 +90,8 @@ async def enable_mfa(
 @router.post("/disable", response_model=MFADisableResponse)
 async def disable_mfa(
     request: MFADisableRequest,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Disable MFA for current user
@@ -126,8 +127,8 @@ async def disable_mfa(
 
 @router.get("/trusted-devices", response_model=TrustedDeviceListResponse)
 async def list_trusted_devices(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     List all trusted devices for current user
@@ -145,8 +146,8 @@ async def list_trusted_devices(
 @router.post("/trusted-devices/{device_id}/revoke", response_model=RevokeDeviceResponse)
 async def revoke_trusted_device(
     device_id: int,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Revoke a specific trusted device
@@ -169,8 +170,8 @@ async def revoke_trusted_device(
 
 @router.post("/trusted-devices/revoke-all", response_model=RevokeDeviceResponse)
 async def revoke_all_trusted_devices(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Revoke all trusted devices for current user

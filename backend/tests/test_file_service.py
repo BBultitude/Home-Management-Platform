@@ -9,6 +9,8 @@ from app.services.file_service import FileService
 from app.models.file import File, FileCategory
 from app.models.user import User, UserRole
 
+TEST_HASHED_PASSWORD = "hashed"  # Test-only placeholder for hashed_password field
+
 
 class TestFilenameSanitization:
     """Test filename sanitization"""
@@ -126,7 +128,7 @@ class TestFileAccess:
         other_user = User(
             username="otheruser",
             email="other@example.com",
-            hashed_password="hashed",
+            hashed_password=TEST_HASHED_PASSWORD,
             full_name="Other User",
             role=UserRole.READER
         )
@@ -156,7 +158,7 @@ class TestFileAccess:
         regular_user = User(
             username="regular",
             email="regular@example.com",
-            hashed_password="hashed",
+            hashed_password=TEST_HASHED_PASSWORD,
             full_name="Regular User",
             role=UserRole.READER
         )
@@ -179,7 +181,7 @@ class TestFileAccess:
         admin_user = User(
             username="admin",
             email="admin@example.com",
-            hashed_password="hashed",
+            hashed_password=TEST_HASHED_PASSWORD,
             full_name="Admin User",
             role=UserRole.ADMIN
         )

@@ -4,13 +4,13 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-interface SearchInputProps {
+type SearchInputProps = Readonly<{
   value?: string;
   onSearch: (query: string) => void;
   placeholder?: string;
   debounceMs?: number;
   className?: string;
-}
+}>
 
 export function SearchInput({
   value: externalValue = '',

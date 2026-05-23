@@ -2,7 +2,7 @@
 Authentication service for user management and session handling
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
@@ -158,7 +158,7 @@ class AuthService:
             db: Database session
             user: User object
         """
-        user.last_login = datetime.utcnow()
+        user.last_login = datetime.now(timezone.utc)
         db.commit()
 
     @staticmethod

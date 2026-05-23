@@ -1,10 +1,10 @@
 import { cn } from '@/lib/utils';
 import { Loader2 } from 'lucide-react';
 
-interface SpinnerProps {
+type SpinnerProps = Readonly<{
   size?: 'sm' | 'md' | 'lg';
   className?: string;
-}
+}>
 
 const sizeClasses = {
   sm: 'h-4 w-4',

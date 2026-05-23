@@ -110,7 +110,7 @@ def client(db):
         try:
             yield db
         finally:
-            pass
+            pass  # intentional - db lifecycle is managed by the db fixture
 
     app.dependency_overrides[get_db] = override_get_db
 

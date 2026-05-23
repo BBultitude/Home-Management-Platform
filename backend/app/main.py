@@ -131,16 +131,16 @@ else:
 @app.on_event("startup")
 async def startup_event():
     """Run on application startup"""
-    print(f"🚀 Starting Home Management Platform API")
+    print("🚀 Starting Home Management Platform API")
     print(f"📍 Environment: {settings.ENVIRONMENT}")
     print(f"🔒 CORS Origins: {settings.allowed_origins_list}")
-    print(f"💾 Database: Connected to PostgreSQL")
+    print("💾 Database: Connected to PostgreSQL")
 
     # Check if serving frontend
     if STATIC_DIR.exists() and not is_development():
         print(f"🎨 Serving React frontend from {STATIC_DIR}")
     else:
-        print(f"⚙️  Development mode: Frontend runs separately on port 5173")
+        print("⚙️  Development mode: Frontend runs separately on port 5173")
 
     # Future: Initialize database connection pool, cache, etc.
 

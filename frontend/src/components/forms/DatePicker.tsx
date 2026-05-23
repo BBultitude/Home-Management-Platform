@@ -5,13 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
-interface DatePickerProps {
+type DatePickerProps = Readonly<{
   date?: Date;
   onDateChange: (date: Date | undefined) => void;
   placeholder?: string;
   disabled?: boolean;
   className?: string;
-}
+}>
 
 export function DatePicker({
   date,

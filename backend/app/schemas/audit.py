@@ -14,12 +14,12 @@ class AuditLogResponse(BaseModel):
     """Schema for audit log response"""
     id: int
     event_type: EventType
-    user_id: Optional[int]
+    user_id: Optional[int] = None
     username: str
-    ip_address: Optional[str]
-    user_agent: Optional[str]
-    resource_type: Optional[str]
-    resource_id: Optional[int]
+    ip_address: Optional[str] = None
+    user_agent: Optional[str] = None
+    resource_type: Optional[str] = None
+    resource_id: Optional[int] = None
     details: Dict[str, Any]
     severity: Severity
     timestamp: datetime

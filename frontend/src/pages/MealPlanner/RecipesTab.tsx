@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -122,7 +122,7 @@ export default function RecipesTab() {
         detail.ingredients.length > 0
           ? detail.ingredients.map(ing => ({
               name: ing.name,
-              quantity_amount: parseFloat(ing.quantity_amount),
+              quantity_amount: Number.parseFloat(ing.quantity_amount),
               quantity_unit: ing.quantity_unit as MeasurementUnit
             }))
           : [{ name: '', quantity_amount: 0, quantity_unit: 'g' }]
@@ -197,6 +197,71 @@ export default function RecipesTab() {
     }
   };
 
+  let recipesTableContent: React.ReactNode;
+  if (loading) {
+    recipesTableContent = <div className="text-center py-8 text-muted-foreground">Loading recipes...</div>;
+  } else if (recipes.length === 0) {
+    recipesTableContent = (
+      <Card className="p-8 text-center text-muted-foreground">
+        <p>No recipes found. Create your first recipe to get started!</p>
+      </Card>
+    );
+  } else {
+    recipesTableContent = (
+      <div className="border rounded-lg">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Ingredients</TableHead>
+              <TableHead>Created</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {recipes.map((recipe) => (
+              <TableRow key={recipe.id}>
+                <TableCell className="font-medium">{recipe.name}</TableCell>
+                <TableCell>
+                  <Badge variant="secondary">{recipe.ingredient_count} items</Badge>
+                </TableCell>
+                <TableCell>{new Date(recipe.created_at).toLocaleDateString()}</TableCell>
+                <TableCell className="text-right">
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => openViewDialog(recipe)}
+                      title="View recipe"
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => openEditDialog(recipe)}
+                      title="Edit recipe"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleDelete(recipe)}
+                      title="Delete recipe"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       {/* Search and Add */}
@@ -219,65 +284,7 @@ export default function RecipesTab() {
       </div>
 
       {/* Recipes Table */}
-      {loading ? (
-        <div className="text-center py-8 text-muted-foreground">Loading recipes...</div>
-      ) : recipes.length === 0 ? (
-        <Card className="p-8 text-center text-muted-foreground">
-          <p>No recipes found. Create your first recipe to get started!</p>
-        </Card>
-      ) : (
-        <div className="border rounded-lg">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Ingredients</TableHead>
-                <TableHead>Created</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {recipes.map((recipe) => (
-                <TableRow key={recipe.id}>
-                  <TableCell className="font-medium">{recipe.name}</TableCell>
-                  <TableCell>
-                    <Badge variant="secondary">{recipe.ingredient_count} items</Badge>
-                  </TableCell>
-                  <TableCell>{new Date(recipe.created_at).toLocaleDateString()}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => openViewDialog(recipe)}
-                        title="View recipe"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => openEditDialog(recipe)}
-                        title="Edit recipe"
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDelete(recipe)}
-                        title="Delete recipe"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      )}
+      {recipesTableContent}
 
       {/* Add/Edit Dialog */}
       <Dialog open={isAddDialogOpen || isEditDialogOpen} onOpenChange={(open) => {
@@ -312,7 +319,7 @@ export default function RecipesTab() {
               <Label className="text-base font-semibold">Ingredients *</Label>
               <div className="space-y-3">
                 {formIngredients.map((ingredient, index) => (
-                  <div key={index} className="grid grid-cols-12 gap-3 items-start">
+                  <div key={`ingredient-${index}`} className="grid grid-cols-12 gap-3 items-start">
                     <div className="col-span-5">
                       <Label htmlFor={`ingredient-name-${index}`} className="text-xs text-muted-foreground mb-1 block">
                         Ingredient Name

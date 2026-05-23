@@ -29,7 +29,7 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401 && !error.config?.url?.includes('/auth/login')) {
       // Session expired - clear auth and redirect to login
       localStorage.removeItem('auth-storage');
-      window.location.href = '/';
+      globalThis.location.href = '/';
     }
     return Promise.reject(error);
   }

@@ -27,59 +27,41 @@ export default function Settings() {
   const [verificationCode, setVerificationCode] = useState('');
   const [mfaLoading, setMfaLoading] = useState(false);
 
+  const validateNewPassword = (password: string, confirm: string): string | null => {
+    if (password.length < 12) return 'Password must be at least 12 characters';
+    if (password.length > 128) return 'Password must be less than 128 characters';
+    if (!/[A-Z]/.test(password)) return 'Password must contain at least one uppercase letter (A-Z)';
+    if (!/[a-z]/.test(password)) return 'Password must contain at least one lowercase letter (a-z)';
+    if (!/\d/.test(password)) return 'Password must contain at least one digit (0-9)';
+
+    const lower = password.toLowerCase();
+    const weakPattern = /^[\d!@#$%^&*()_+=\-[\]{};:,.<>?/\\|~`]*(password|admin|welcome|letmein|qwerty|monkey|dragon|master|login|user|homelab|docker|home)[\d!@#$%^&*()_+=\-[\]{};:,.<>?/\\|~`]*$/;
+    if (weakPattern.test(lower)) return "Don't use common words (password, admin, etc.) with just numbers/symbols";
+    if (/(12345|23456|34567|45678|56789|78901|67890|abcde|bcdef|qwerty|asdfg|zxcvb)/.test(lower)) {
+      return 'Avoid sequential patterns (12345, qwerty, etc.)';
+    }
+    if (/(.)\1{3,}/.test(password)) return 'Avoid repeated characters (aaaa, 1111, etc.)';
+    if (password !== confirm) return 'New passwords do not match';
+    return null;
+  };
+
+  const extractApiErrorMessage = (err: any): string => {
+    const detail = err.response?.data?.detail;
+    if (!detail) return 'Failed to change password. Please check your current password.';
+    if (Array.isArray(detail)) return detail.map((e: any) => e.msg || e.message).join(', ');
+    if (typeof detail === 'string') return detail;
+    if (detail.msg) return detail.msg;
+    return 'Failed to change password. Please check your current password.';
+  };
+
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccess('');
 
-    // Validation - Match backend NIST requirements
-    if (newPassword.length < 12) {
-      setError('Password must be at least 12 characters');
-      return;
-    }
-
-    if (newPassword.length > 128) {
-      setError('Password must be less than 128 characters');
-      return;
-    }
-
-    if (!/[A-Z]/.test(newPassword)) {
-      setError('Password must contain at least one uppercase letter (A-Z)');
-      return;
-    }
-
-    if (!/[a-z]/.test(newPassword)) {
-      setError('Password must contain at least one lowercase letter (a-z)');
-      return;
-    }
-
-    if (!/\d/.test(newPassword)) {
-      setError('Password must contain at least one digit (0-9)');
-      return;
-    }
-
-    // Check weak patterns
-    const passwordLower = newPassword.toLowerCase();
-    const weakPattern = /^[\d!@#$%^&*()_+=\-\[\]{};:,.<>?/\\|~`]*(password|admin|welcome|letmein|qwerty|monkey|dragon|master|login|user|homelab|docker|home)[\d!@#$%^&*()_+=\-\[\]{};:,.<>?/\\|~`]*$/;
-    if (weakPattern.test(passwordLower)) {
-      setError("Don't use common words (password, admin, etc.) with just numbers/symbols");
-      return;
-    }
-
-    // Check sequential patterns
-    if (/(12345|23456|34567|45678|56789|78901|67890|abcde|bcdef|qwerty|asdfg|zxcvb)/.test(passwordLower)) {
-      setError('Avoid sequential patterns (12345, qwerty, etc.)');
-      return;
-    }
-
-    // Check repeated characters
-    if (/(.)\1{3,}/.test(newPassword)) {
-      setError('Avoid repeated characters (aaaa, 1111, etc.)');
-      return;
-    }
-
-    if (newPassword !== confirmPassword) {
-      setError('New passwords do not match');
+    const validationError = validateNewPassword(newPassword, confirmPassword);
+    if (validationError) {
+      setError(validationError);
       return;
     }
 
@@ -102,23 +84,7 @@ export default function Settings() {
       }, 2000);
     } catch (err: any) {
       console.error('Password change error:', err);
-
-      // Extract error message from various backend response formats
-      let errorMessage = 'Failed to change password. Please check your current password.';
-
-      if (err.response?.data?.detail) {
-        const detail = err.response.data.detail;
-        // Pydantic validation errors are arrays
-        if (Array.isArray(detail)) {
-          errorMessage = detail.map((e: any) => e.msg || e.message).join(', ');
-        } else if (typeof detail === 'string') {
-          errorMessage = detail;
-        } else if (detail.msg) {
-          errorMessage = detail.msg;
-        }
-      }
-
-      setError(errorMessage);
+      setError(extractApiErrorMessage(err));
     } finally {
       setIsLoading(false);
     }
@@ -362,7 +328,7 @@ export default function Settings() {
                     id="verificationCode"
                     type="text"
                     value={verificationCode}
-                    onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6))} // NOSONAR
                     placeholder="000000"
                     required
                     minLength={6}

@@ -3,7 +3,7 @@ Priority Item Service
 Handles CRUD operations and scoring for repair/upgrade prioritization
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Optional
 from uuid import UUID
@@ -163,9 +163,9 @@ class PriorityItemService:
         if status_update is not None:
             item.status = status_update.value
             if status_update in [PriorityStatus.DONE, PriorityStatus.DISMISSED]:
-                item.completed_at = datetime.utcnow()
+                item.completed_at = datetime.now(timezone.utc)
 
-        item.updated_at = datetime.utcnow()
+        item.updated_at = datetime.now(timezone.utc)
 
         db.commit()
         db.refresh(item)
@@ -233,7 +233,7 @@ class PriorityItemService:
         # Update priority item
         item.project_id = project.id
         item.status = PriorityStatus.CONVERTED_TO_PROJECT.value
-        item.updated_at = datetime.utcnow()
+        item.updated_at = datetime.now(timezone.utc)
 
         db.commit()
         db.refresh(project)

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { format, subMonths, startOfMonth, endOfMonth } from 'date-fns';
 import { useAuthStore } from '@/stores/authStore';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -75,6 +75,86 @@ export default function Dashboard() {
       alerts.quote_expiries
     : 0;
 
+  let alertsContent: React.ReactNode;
+  if (alertsLoading) {
+    alertsContent = <div className="text-sm text-gray-500">Loading...</div>;
+  } else if (alerts) {
+    if (totalAlerts === 0) {
+      alertsContent = <p className="text-sm text-green-600 font-medium">✅ Nothing expiring soon</p>;
+    } else {
+      alertsContent = (
+        <div className="space-y-2 text-sm">
+          {alerts.insurance_renewals.urgent > 0 && (
+            <div className="flex items-center justify-between">
+              <span className="text-red-600 font-medium">Insurance (within 7 days)</span>
+              <Badge variant="destructive">{alerts.insurance_renewals.urgent}</Badge>
+            </div>
+          )}
+          {alerts.insurance_renewals.upcoming > 0 && (
+            <div className="flex items-center justify-between">
+              <span className="text-amber-600">Insurance (7–30 days)</span>
+              <Badge className="bg-amber-100 text-amber-800">{alerts.insurance_renewals.upcoming}</Badge>
+            </div>
+          )}
+          {alerts.document_expiries.urgent > 0 && (
+            <div className="flex items-center justify-between">
+              <span className="text-red-600 font-medium">Documents (within 7 days)</span>
+              <Badge variant="destructive">{alerts.document_expiries.urgent}</Badge>
+            </div>
+          )}
+          {alerts.document_expiries.upcoming > 0 && (
+            <div className="flex items-center justify-between">
+              <span className="text-amber-600">Documents (7–30 days)</span>
+              <Badge className="bg-amber-100 text-amber-800">{alerts.document_expiries.upcoming}</Badge>
+            </div>
+          )}
+          {alerts.quote_expiries > 0 && (
+            <div className="flex items-center justify-between">
+              <span className="text-gray-600">Quotes expiring</span>
+              <Badge variant="secondary">{alerts.quote_expiries}</Badge>
+            </div>
+          )}
+          <a href="/assets" className="text-xs text-blue-600 hover:underline flex items-center gap-1 pt-1">
+            View in Assets <ExternalLink className="h-3 w-3" />
+          </a>
+        </div>
+      );
+    }
+  } else {
+    alertsContent = <p className="text-sm text-gray-500">Unable to load alerts</p>;
+  }
+
+  let prioritiesContent: React.ReactNode;
+  if (prioritiesLoading) {
+    prioritiesContent = <div className="text-sm text-gray-500">Loading...</div>;
+  } else if (priorities && priorities.top_priorities.length > 0) {
+    prioritiesContent = (
+      <div className="space-y-2">
+        {priorities.top_priorities.map((item, i) => (
+          <div key={item.id} className="flex items-start justify-between gap-2 text-sm">
+            <div className="flex items-start gap-2 min-w-0">
+              <span className="text-gray-400 font-mono text-xs mt-0.5 shrink-0">#{i + 1}</span>
+              <span className="text-gray-800 truncate">{item.name}</span>
+            </div>
+            <div className="flex items-center gap-1 shrink-0">
+              <Badge variant="secondary" className="text-xs">{item.net_score.toFixed(1)}</Badge>
+              <span className="text-xs text-gray-400">{formatCurrency(item.estimated_cost)}</span>
+            </div>
+          </div>
+        ))}
+        <a href="/projects" className="text-xs text-blue-600 hover:underline flex items-center gap-1 pt-1">
+          View all priorities <ExternalLink className="h-3 w-3" />
+        </a>
+      </div>
+    );
+  } else {
+    prioritiesContent = (
+      <p className="text-sm text-gray-500">
+        No priorities yet. <a href="/projects" className="text-blue-600 hover:underline">Add items</a>
+      </p>
+    );
+  }
+
   return (
     <div>
       {/* Welcome Header */}
@@ -98,51 +178,7 @@ export default function Dashboard() {
             <CardDescription>Insurance, documents & quotes</CardDescription>
           </CardHeader>
           <CardContent>
-            {alertsLoading ? (
-              <div className="text-sm text-gray-500">Loading...</div>
-            ) : alerts ? (
-              totalAlerts === 0 ? (
-                <p className="text-sm text-green-600 font-medium">✅ Nothing expiring soon</p>
-              ) : (
-                <div className="space-y-2 text-sm">
-                  {alerts.insurance_renewals.urgent > 0 && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-red-600 font-medium">Insurance (within 7 days)</span>
-                      <Badge variant="destructive">{alerts.insurance_renewals.urgent}</Badge>
-                    </div>
-                  )}
-                  {alerts.insurance_renewals.upcoming > 0 && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-amber-600">Insurance (7–30 days)</span>
-                      <Badge className="bg-amber-100 text-amber-800">{alerts.insurance_renewals.upcoming}</Badge>
-                    </div>
-                  )}
-                  {alerts.document_expiries.urgent > 0 && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-red-600 font-medium">Documents (within 7 days)</span>
-                      <Badge variant="destructive">{alerts.document_expiries.urgent}</Badge>
-                    </div>
-                  )}
-                  {alerts.document_expiries.upcoming > 0 && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-amber-600">Documents (7–30 days)</span>
-                      <Badge className="bg-amber-100 text-amber-800">{alerts.document_expiries.upcoming}</Badge>
-                    </div>
-                  )}
-                  {alerts.quote_expiries > 0 && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-600">Quotes expiring</span>
-                      <Badge variant="secondary">{alerts.quote_expiries}</Badge>
-                    </div>
-                  )}
-                  <a href="/assets" className="text-xs text-blue-600 hover:underline flex items-center gap-1 pt-1">
-                    View in Assets <ExternalLink className="h-3 w-3" />
-                  </a>
-                </div>
-              )
-            ) : (
-              <p className="text-sm text-gray-500">Unable to load alerts</p>
-            )}
+            {alertsContent}
           </CardContent>
         </Card>
 
@@ -158,31 +194,7 @@ export default function Dashboard() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {prioritiesLoading ? (
-              <div className="text-sm text-gray-500">Loading...</div>
-            ) : priorities && priorities.top_priorities.length > 0 ? (
-              <div className="space-y-2">
-                {priorities.top_priorities.map((item, i) => (
-                  <div key={item.id} className="flex items-start justify-between gap-2 text-sm">
-                    <div className="flex items-start gap-2 min-w-0">
-                      <span className="text-gray-400 font-mono text-xs mt-0.5 shrink-0">#{i + 1}</span>
-                      <span className="text-gray-800 truncate">{item.name}</span>
-                    </div>
-                    <div className="flex items-center gap-1 shrink-0">
-                      <Badge variant="secondary" className="text-xs">{item.net_score.toFixed(1)}</Badge>
-                      <span className="text-xs text-gray-400">{formatCurrency(item.estimated_cost)}</span>
-                    </div>
-                  </div>
-                ))}
-                <a href="/projects" className="text-xs text-blue-600 hover:underline flex items-center gap-1 pt-1">
-                  View all priorities <ExternalLink className="h-3 w-3" />
-                </a>
-              </div>
-            ) : (
-              <p className="text-sm text-gray-500">
-                No priorities yet. <a href="/projects" className="text-blue-600 hover:underline">Add items</a>
-              </p>
-            )}
+            {prioritiesContent}
           </CardContent>
         </Card>
       </div>
@@ -260,7 +272,7 @@ export default function Dashboard() {
 
 // ── Utility Widget Component ─────────────────────────────────────────────────
 
-interface UtilityWidgetProps {
+type UtilityWidgetProps = Readonly<{
   label: string;
   icon: React.ReactNode;
   stats: UtilityStatsResponse | null;
@@ -269,7 +281,7 @@ interface UtilityWidgetProps {
   href: string;
   unit?: string;
   isRates?: boolean;
-}
+}>
 
 const colorMap = {
   yellow: '!border-yellow-400',
@@ -281,6 +293,44 @@ const colorMap = {
 function UtilityWidget({ label, icon, stats, loading, color, href, unit, isRates }: UtilityWidgetProps) {
   const hasData = stats && stats.entry_count > 0;
 
+  let widgetContent: React.ReactNode;
+  if (loading) {
+    widgetContent = <div className="text-xs text-gray-500">Loading...</div>;
+  } else if (hasData) {
+    widgetContent = (
+      <div className="space-y-1">
+        {isRates ? (
+          <div>
+            <p className="text-2xl font-bold text-gray-900">{formatCurrency(stats.average_cost)}</p>
+            <p className="text-xs text-gray-500">avg bill cost</p>
+          </div>
+        ) : (
+          <div>
+            <p className="text-2xl font-bold text-gray-900">
+              {stats.avg_daily_usage.toFixed(2)}
+              <span className="text-sm font-normal text-gray-500 ml-1">{unit}/day</span>
+            </p>
+            <p className="text-xs text-gray-500">avg daily usage</p>
+          </div>
+        )}
+        <div className="pt-1 border-t border-gray-200">
+          <p className="text-sm text-gray-600">{formatCurrency(stats.average_cost)} avg / bill</p>
+          <p className="text-xs text-gray-400">{stats.entry_count} bills recorded</p>
+        </div>
+        <a href={href} className="text-xs text-blue-600 hover:underline flex items-center gap-1 pt-1">
+          View details <ExternalLink className="h-3 w-3" />
+        </a>
+      </div>
+    );
+  } else {
+    widgetContent = (
+      <div>
+        <p className="text-xs text-gray-500 mb-2">No data in last 12 months</p>
+        <a href={href} className="text-xs text-blue-600 hover:underline">Add entry</a>
+      </div>
+    );
+  }
+
   return (
     <Card className={`${colorMap[color]} border-2 bg-background`}>
       <CardHeader className="pb-2">
@@ -290,38 +340,7 @@ function UtilityWidget({ label, icon, stats, loading, color, href, unit, isRates
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {loading ? (
-          <div className="text-xs text-gray-500">Loading...</div>
-        ) : hasData ? (
-          <div className="space-y-1">
-            {isRates ? (
-              <div>
-                <p className="text-2xl font-bold text-gray-900">{formatCurrency(stats.average_cost)}</p>
-                <p className="text-xs text-gray-500">avg bill cost</p>
-              </div>
-            ) : (
-              <div>
-                <p className="text-2xl font-bold text-gray-900">
-                  {stats.avg_daily_usage.toFixed(2)}
-                  <span className="text-sm font-normal text-gray-500 ml-1">{unit}/day</span>
-                </p>
-                <p className="text-xs text-gray-500">avg daily usage</p>
-              </div>
-            )}
-            <div className="pt-1 border-t border-gray-200">
-              <p className="text-sm text-gray-600">{formatCurrency(stats.average_cost)} avg / bill</p>
-              <p className="text-xs text-gray-400">{stats.entry_count} bills recorded</p>
-            </div>
-            <a href={href} className="text-xs text-blue-600 hover:underline flex items-center gap-1 pt-1">
-              View details <ExternalLink className="h-3 w-3" />
-            </a>
-          </div>
-        ) : (
-          <div>
-            <p className="text-xs text-gray-500 mb-2">No data in last 12 months</p>
-            <a href={href} className="text-xs text-blue-600 hover:underline">Add entry</a>
-          </div>
-        )}
+        {widgetContent}
       </CardContent>
     </Card>
   );

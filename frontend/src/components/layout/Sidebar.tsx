@@ -36,11 +36,11 @@ const navigationItems: NavItem[] = [
   { name: 'Admin Panel', icon: Shield, path: '/admin/users', roles: ['ADMIN'] },
 ];
 
-interface SidebarProps {
+type SidebarProps = Readonly<{
   collapsed: boolean;
   onToggle: () => void;
   className?: string;
-}
+}>
 
 export function Sidebar({ collapsed, onToggle, className }: SidebarProps) {
   const navigate = useNavigate();

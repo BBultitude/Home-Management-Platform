@@ -126,83 +126,81 @@ export function UtilitiesTab() {
     resetForm();
   };
 
-  const handleSubmit = async () => {
-    // Rates (council tax) is a fixed cost with no usage metering
+  type ParsedFormValues = {
+    cost: number;
+    usage: number | null;
+    solarFeedIn: number | null;
+    solarFeedInCredit: number | null;
+  };
+
+  const validateAndParseForm = (): { error: string } | { values: ParsedFormValues } => {
     const isFixedCost = formType === 'rates';
 
-    // Basic validation - all types need provider, dates, and cost
     if (!formProvider || !formPeriodStart || !formPeriodEnd || !formCost) {
-      toast.error('Please fill in all required fields');
-      return;
+      return { error: 'Please fill in all required fields' };
     }
-
-    // Metered utilities need usage and unit
     if (!isFixedCost && (!formUsage || !formUnit)) {
-      toast.error('Please enter usage and unit for metered utilities');
-      return;
+      return { error: 'Please enter usage and unit for metered utilities' };
     }
-
     if (formPeriodStart >= formPeriodEnd) {
-      toast.error('End date must be after start date');
+      return { error: 'End date must be after start date' };
+    }
+
+    const cost = Number.parseFloat(formCost);
+    if (Number.isNaN(cost) || cost <= 0) {
+      return { error: 'Cost must be greater than 0' };
+    }
+
+    const usage = formUsage ? Number.parseFloat(formUsage) : null;
+    if (usage !== null && (Number.isNaN(usage) || usage <= 0)) {
+      return { error: 'Usage must be greater than 0' };
+    }
+
+    const solarFeedIn = formSolarFeedIn ? Number.parseFloat(formSolarFeedIn) : null;
+    if (solarFeedIn !== null && (Number.isNaN(solarFeedIn) || solarFeedIn < 0)) {
+      return { error: 'Solar feed-in must be 0 or greater' };
+    }
+
+    const solarFeedInCredit = formSolarFeedInCredit ? Number.parseFloat(formSolarFeedInCredit) : null;
+    if (solarFeedInCredit !== null && (Number.isNaN(solarFeedInCredit) || solarFeedInCredit < 0)) {
+      return { error: 'Solar feed-in credit must be 0 or greater' };
+    }
+
+    return { values: { cost, usage, solarFeedIn, solarFeedInCredit } };
+  };
+
+  const handleSubmit = async () => {
+    const result = validateAndParseForm();
+    if ('error' in result) {
+      toast.error(result.error);
       return;
     }
 
-    // Validate cost
-    const cost = parseFloat(formCost);
-    if (isNaN(cost) || cost <= 0) {
-      toast.error('Cost must be greater than 0');
-      return;
-    }
+    const { cost, usage, solarFeedIn, solarFeedInCredit } = result.values;
+    // formPeriodStart and formPeriodEnd are guaranteed non-null after validation
+    const periodStart = formPeriodStart!;
+    const periodEnd = formPeriodEnd!;
 
-    // Validate usage (only if provided for metered utilities)
-    const usage = formUsage ? parseFloat(formUsage) : null;
-    if (usage !== null && (isNaN(usage) || usage <= 0)) {
-      toast.error('Usage must be greater than 0');
-      return;
-    }
-
-    // Parse solar fields (electricity only)
-    const solarFeedIn = formSolarFeedIn ? parseFloat(formSolarFeedIn) : null;
-    const solarFeedInCredit = formSolarFeedInCredit ? parseFloat(formSolarFeedInCredit) : null;
-    if (solarFeedIn !== null && (isNaN(solarFeedIn) || solarFeedIn < 0)) {
-      toast.error('Solar feed-in must be 0 or greater');
-      return;
-    }
-    if (solarFeedInCredit !== null && (isNaN(solarFeedInCredit) || solarFeedInCredit < 0)) {
-      toast.error('Solar feed-in credit must be 0 or greater');
-      return;
-    }
+    const payload = {
+      utility_type: formType,
+      provider: formProvider,
+      billing_period_start: format(periodStart, 'yyyy-MM-dd'),
+      billing_period_end: format(periodEnd, 'yyyy-MM-dd'),
+      usage,
+      unit: formUnit || null,
+      cost,
+      solar_feed_in: formType === 'electricity' ? solarFeedIn : null,
+      solar_feed_in_credit: formType === 'electricity' ? solarFeedInCredit : null,
+      notes: formNotes || undefined,
+    };
 
     setSubmitting(true);
     try {
       if (editingUtility) {
-        await financialService.utilities.update(editingUtility.id, {
-          utility_type: formType,
-          provider: formProvider,
-          billing_period_start: format(formPeriodStart, 'yyyy-MM-dd'),
-          billing_period_end: format(formPeriodEnd, 'yyyy-MM-dd'),
-          usage,
-          unit: formUnit || null,
-          cost,
-          solar_feed_in: formType === 'electricity' ? solarFeedIn : null,
-          solar_feed_in_credit: formType === 'electricity' ? solarFeedInCredit : null,
-          notes: formNotes || undefined,
-        });
+        await financialService.utilities.update(editingUtility.id, payload);
         toast.success('Utility entry updated');
       } else {
-        const data: UtilityCreate = {
-          utility_type: formType,
-          provider: formProvider,
-          billing_period_start: format(formPeriodStart, 'yyyy-MM-dd'),
-          billing_period_end: format(formPeriodEnd, 'yyyy-MM-dd'),
-          usage,
-          unit: formUnit || null,
-          cost,
-          solar_feed_in: formType === 'electricity' ? solarFeedIn : null,
-          solar_feed_in_credit: formType === 'electricity' ? solarFeedInCredit : null,
-          notes: formNotes || undefined,
-        };
-        await financialService.utilities.create(data);
+        await financialService.utilities.create(payload as UtilityCreate);
         toast.success('Utility entry created');
       }
       handleCloseDialog();

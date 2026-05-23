@@ -3,7 +3,7 @@ Admin Service
 Administrative functions for user management, system maintenance, and oversight
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 from uuid import UUID
 from sqlalchemy.orm import Session
@@ -160,7 +160,7 @@ class AdminService:
         if full_name is not None:
             user.full_name = full_name
 
-        user.updated_at = datetime.utcnow()
+        user.updated_at = datetime.now(timezone.utc)
 
         db.commit()
         db.refresh(user)
@@ -231,7 +231,7 @@ class AdminService:
 
         old_role = user.role
         user.role = new_role
-        user.updated_at = datetime.utcnow()
+        user.updated_at = datetime.now(timezone.utc)
 
         db.commit()
         db.refresh(user)
@@ -298,7 +298,7 @@ class AdminService:
                 )
 
         user.is_active = is_active
-        user.updated_at = datetime.utcnow()
+        user.updated_at = datetime.now(timezone.utc)
 
         db.commit()
         db.refresh(user)
@@ -406,7 +406,7 @@ class AdminService:
         # Save encrypted secret
         user.mfa_secret = MFAService.encrypt_secret(secret)
         user.mfa_enabled = False  # User must re-enable after scanning
-        user.updated_at = datetime.utcnow()
+        user.updated_at = datetime.now(timezone.utc)
 
         db.commit()
 
@@ -459,7 +459,7 @@ class AdminService:
 
         # Recent activity (last 7 days)
         from datetime import timedelta
-        seven_days_ago = datetime.utcnow() - timedelta(days=7)
+        seven_days_ago = datetime.now(timezone.utc) - timedelta(days=7)
         recent_logins = db.query(AuditLog).filter(
             AuditLog.action == AuditAction.LOGIN,
             AuditLog.created_at >= seven_days_ago

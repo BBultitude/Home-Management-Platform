@@ -48,15 +48,15 @@ class QuoteResponse(BaseModel):
     id: str
     project_id: str
     contractor_name: str
-    contact_phone: Optional[str]
-    contact_email: Optional[str]
+    contact_phone: Optional[str] = None
+    contact_email: Optional[str] = None
     quote_amount: float
     quote_date: str
-    expiry_date: Optional[str]
-    scope_of_work: Optional[str]
+    expiry_date: Optional[str] = None
+    scope_of_work: Optional[str] = None
     selected: bool
-    document_id: Optional[str]
-    notes: Optional[str]
+    document_id: Optional[str] = None
+    notes: Optional[str] = None
     created_at: str
     is_expired: Optional[bool] = None
     days_until_expiry: Optional[int] = None
@@ -75,5 +75,5 @@ class QuoteComparisonResponse(BaseModel):
     project_id: str
     project_name: str
     quotes: list[QuoteResponse]
-    lowest_quote: Optional[QuoteResponse]
-    selected_quote: Optional[QuoteResponse]
+    lowest_quote: Optional[QuoteResponse] = None
+    selected_quote: Optional[QuoteResponse] = None

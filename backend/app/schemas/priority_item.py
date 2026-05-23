@@ -44,10 +44,10 @@ class PriorityItemResponse(BaseModel):
     cost_score: int
     net_score: int
     status: str
-    project_id: Optional[str]
+    project_id: Optional[str] = None
     created_at: str
     updated_at: str
-    completed_at: Optional[str]
+    completed_at: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 

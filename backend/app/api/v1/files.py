@@ -5,7 +5,7 @@ File Upload/Download API endpoints
 from fastapi import APIRouter, Depends, File, UploadFile, Form, Query, Request
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
-from typing import Optional
+from typing import Annotated, Optional
 
 from app.api.dependencies import get_current_active_user, get_db, require_permission
 from app.models.user import User
@@ -34,11 +34,11 @@ def get_client_info(request: Request) -> tuple[str, str]:
 @router.post("/upload", response_model=FileUploadResponse)
 async def upload_file(
     request: Request,
-    file: UploadFile = File(...),
-    category: FileCategory = Form(...),
-    description: Optional[str] = Form(None),
-    current_user: User = Depends(require_permission("files:upload")),
-    db: Session = Depends(get_db)
+    file: Annotated[UploadFile, File(...)],
+    category: Annotated[FileCategory, Form(...)],
+    description: Annotated[Optional[str], Form(None)],
+    current_user: Annotated[User, Depends(require_permission("files:upload"))],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Upload a file
@@ -88,8 +88,8 @@ async def upload_file(
 @router.get("/{file_id}", response_model=FileResponse)
 async def get_file_metadata(
     file_id: int,
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Get file metadata
@@ -115,8 +115,8 @@ async def get_file_metadata(
 async def download_file(
     request: Request,
     file_id: int,
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Download a file
@@ -152,8 +152,8 @@ async def download_file(
 async def delete_file(
     request: Request,
     file_id: int,
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Delete a file (permanent delete)
@@ -186,11 +186,11 @@ async def delete_file(
 
 @router.get("", response_model=FileListResponse)
 async def list_files(
-    category: Optional[FileCategory] = Query(None),
-    limit: int = Query(100, ge=1, le=500),
-    offset: int = Query(0, ge=0),
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    category: Annotated[Optional[FileCategory], Query(None)],
+    limit: Annotated[int, Query(100, ge=1, le=500)],
+    offset: Annotated[int, Query(0, ge=0)],
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     List user's files
@@ -233,8 +233,8 @@ async def list_files(
 
 @router.get("/storage/quota", response_model=UserStorageResponse)
 async def get_storage_quota(
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Get user's storage quota information

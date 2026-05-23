@@ -4,7 +4,7 @@ Handles recipes, week plans, and shopping list generation
 Ported from: https://github.com/BBultitude/Meal-Planner
 """
 
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from typing import Optional
 from uuid import UUID
 from collections import defaultdict
@@ -14,6 +14,8 @@ from fastapi import HTTPException, status
 
 from app.models.recipe import Recipe, Ingredient
 from app.models.week_plan import WeekPlan
+
+PANTRY_STAPLE_QUANTITY = "As needed"
 
 
 class MealPlannerService:
@@ -161,7 +163,7 @@ class MealPlannerService:
                 )
                 db.add(ingredient)
 
-        recipe.updated_at = datetime.utcnow()
+        recipe.updated_at = datetime.now(timezone.utc)
 
         db.commit()
         db.refresh(recipe)
@@ -279,7 +281,7 @@ class MealPlannerService:
             if hasattr(plan, day):
                 setattr(plan, day, meal_id)
 
-        plan.updated_at = datetime.utcnow()
+        plan.updated_at = datetime.now(timezone.utc)
 
         db.commit()
         db.refresh(plan)
@@ -322,7 +324,7 @@ class MealPlannerService:
 
             if is_staple:
                 groups[key]["amount"] = 0  # Don't accumulate pantry staples
-                groups[key]["unit"] = "As needed"
+                groups[key]["unit"] = PANTRY_STAPLE_QUANTITY
                 groups[key]["name"] = ing_name  # Keep original name
             else:
                 groups[key]["amount"] += amount
@@ -340,8 +342,8 @@ class MealPlannerService:
             amount = data["amount"]
             recipes = data["recipes"]
 
-            if unit == "As needed":
-                quantity_str = "As needed"
+            if unit == PANTRY_STAPLE_QUANTITY:
+                quantity_str = PANTRY_STAPLE_QUANTITY
             else:
                 # Format amount nicely (remove trailing zeros)
                 amount_str = f"{amount:.2f}".rstrip('0').rstrip('.')

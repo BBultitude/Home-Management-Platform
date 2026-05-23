@@ -3,7 +3,7 @@ Knowledge Service
 Handles CRUD operations for knowledge base articles with password encryption
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, Any
 from uuid import UUID
 from sqlalchemy.orm import Session
@@ -252,7 +252,7 @@ class KnowledgeService:
             {"search_text": search_text, "article_id": article.id}
         )
 
-        article.updated_at = datetime.utcnow()
+        article.updated_at = datetime.now(timezone.utc)
 
         db.commit()
         db.refresh(article)

@@ -9,6 +9,9 @@ from sqlalchemy.orm import Session
 from app.models.user import User, UserRole
 from app.models.file import File, FileCategory
 
+TEST_PASSWORD = "TestPassword123"  # Test-only credential
+TEST_HASHED_PASSWORD = "hashed"  # Test-only placeholder for hashed_password field
+
 
 class TestFileMetadata:
     """Test get file metadata endpoint"""
@@ -36,7 +39,7 @@ class TestFileMetadata:
         # Login
         client.post(
             "/api/v1/auth/login",
-            json={"username": "testuser", "password": "TestPassword123"}
+            json={"username": "testuser", "password": TEST_PASSWORD}
         )
 
         # Get metadata
@@ -59,7 +62,7 @@ class TestFileMetadata:
         other_user = User(
             username="otheruser",
             email="other@example.com",
-            hashed_password="hashed",
+            hashed_password=TEST_HASHED_PASSWORD,
             full_name="Other User",
             role=UserRole.READER
         )
@@ -82,7 +85,7 @@ class TestFileMetadata:
         # Login as test_user
         client.post(
             "/api/v1/auth/login",
-            json={"username": "testuser", "password": "TestPassword123"}
+            json={"username": "testuser", "password": TEST_PASSWORD}
         )
 
         # Try to get metadata
@@ -98,7 +101,7 @@ class TestFileMetadata:
         # Login
         client.post(
             "/api/v1/auth/login",
-            json={"username": "testuser", "password": "TestPassword123"}
+            json={"username": "testuser", "password": TEST_PASSWORD}
         )
 
         response = client.get("/api/v1/files/99999")
@@ -132,7 +135,7 @@ class TestFileDelete:
         # Login
         client.post(
             "/api/v1/auth/login",
-            json={"username": "testuser", "password": "TestPassword123"}
+            json={"username": "testuser", "password": TEST_PASSWORD}
         )
 
         # Delete
@@ -155,7 +158,7 @@ class TestFileDelete:
         other_user = User(
             username="otheruser",
             email="other@example.com",
-            hashed_password="hashed",
+            hashed_password=TEST_HASHED_PASSWORD,
             full_name="Other User",
             role=UserRole.READER
         )
@@ -178,7 +181,7 @@ class TestFileDelete:
         # Login as test_user
         client.post(
             "/api/v1/auth/login",
-            json={"username": "testuser", "password": "TestPassword123"}
+            json={"username": "testuser", "password": TEST_PASSWORD}
         )
 
         # Try to delete
@@ -221,7 +224,7 @@ class TestFileList:
         # Login
         client.post(
             "/api/v1/auth/login",
-            json={"username": "testuser", "password": "TestPassword123"}
+            json={"username": "testuser", "password": TEST_PASSWORD}
         )
 
         # List files
@@ -265,7 +268,7 @@ class TestFileList:
         # Login
         client.post(
             "/api/v1/auth/login",
-            json={"username": "testuser", "password": "TestPassword123"}
+            json={"username": "testuser", "password": TEST_PASSWORD}
         )
 
         # List tax files only
@@ -303,7 +306,7 @@ class TestStorageQuota:
         # Login
         client.post(
             "/api/v1/auth/login",
-            json={"username": "testuser", "password": "TestPassword123"}
+            json={"username": "testuser", "password": TEST_PASSWORD}
         )
 
         # Get quota
@@ -313,7 +316,7 @@ class TestStorageQuota:
         data = response.json()
         assert data["storage_used_bytes"] == 10 * 1024 * 1024
         assert data["storage_limit_bytes"] == 200 * 1024 * 1024
-        assert data["storage_used_mb"] == 10.0
-        assert data["storage_limit_mb"] == 200.0
-        assert data["storage_percentage"] == 5.0
+        assert data["storage_used_mb"] == pytest.approx(10.0)
+        assert data["storage_limit_mb"] == pytest.approx(200.0)
+        assert data["storage_percentage"] == pytest.approx(5.0)
         assert data["files_count"] == 1

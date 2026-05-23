@@ -11,6 +11,11 @@ from app.models.user import User
 from app.services.auth_service import AuthService
 from app.services.mfa_service import MFAService
 
+TEST_MFA_SECRET = "JBSWY3DPEHPK3PXP"  # Test-only TOTP secret (not used in production)
+TEST_PASSWORD = "TestPassword123"  # Test-only credential
+TEST_PASSWORD_MFA_USER = "MfaPassword123"  # Test-only credential (MFA user fixtures)
+TEST_PASSWORD_WRONG = "WrongPassword123"  # Test-only: intentionally incorrect password
+
 
 class TestMFASetup:
     """Test MFA setup endpoint"""
@@ -101,7 +106,7 @@ class TestMFAEnable:
 
         response = client.post(
             "/api/v1/mfa/enable",
-            json={"secret": "JBSWY3DPEHPK3PXP", "code": "123456"}
+            json={"secret": TEST_MFA_SECRET, "code": "123456"}
         )
 
         assert response.status_code == 400
@@ -119,7 +124,7 @@ class TestMFADisable:
         # Disable MFA with correct password
         response = client.post(
             "/api/v1/mfa/disable",
-            json={"password": "MfaPassword123"}
+            json={"password": TEST_PASSWORD_MFA_USER}
         )
 
         assert response.status_code == 200
@@ -135,7 +140,7 @@ class TestMFADisable:
 
         response = client.post(
             "/api/v1/mfa/disable",
-            json={"password": "WrongPassword123"}
+            json={"password": TEST_PASSWORD_WRONG}
         )
 
         assert response.status_code == 401
@@ -148,7 +153,7 @@ class TestMFADisable:
 
         response = client.post(
             "/api/v1/mfa/disable",
-            json={"password": "TestPassword123"}
+            json={"password": TEST_PASSWORD}
         )
 
         assert response.status_code == 400
@@ -163,7 +168,7 @@ class TestMFALoginFlow:
         # Step 1: Login with username/password
         response = client.post(
             "/api/v1/auth/login",
-            json={"username": "mfauser", "password": "MfaPassword123"}
+            json={"username": "mfauser", "password": TEST_PASSWORD_MFA_USER}
         )
 
         assert response.status_code == 200
@@ -202,7 +207,7 @@ class TestMFALoginFlow:
         # Step 1: Login with username/password
         response = client.post(
             "/api/v1/auth/login",
-            json={"username": "mfauser", "password": "MfaPassword123"}
+            json={"username": "mfauser", "password": TEST_PASSWORD_MFA_USER}
         )
 
         mfa_token = response.json()["mfa_token"]
@@ -224,7 +229,7 @@ class TestMFALoginFlow:
         """Test login flow when MFA is not enabled"""
         response = client.post(
             "/api/v1/auth/login",
-            json={"username": "testuser", "password": "TestPassword123"}
+            json={"username": "testuser", "password": TEST_PASSWORD}
         )
 
         assert response.status_code == 200
@@ -398,7 +403,7 @@ class TestMFAEndToEnd:
         # Step 5: Login with MFA
         login_response = client.post(
             "/api/v1/auth/login",
-            json={"username": "testuser", "password": "TestPassword123"}
+            json={"username": "testuser", "password": TEST_PASSWORD}
         )
         assert login_response.status_code == 200
         assert login_response.json()["requires_mfa"] is True
@@ -417,7 +422,7 @@ class TestMFAEndToEnd:
         # Step 7: Disable MFA
         disable_response = client.post(
             "/api/v1/mfa/disable",
-            json={"password": "TestPassword123"}
+            json={"password": TEST_PASSWORD}
         )
         assert disable_response.status_code == 200
         assert disable_response.json()["mfa_enabled"] is False
@@ -426,7 +431,7 @@ class TestMFAEndToEnd:
         client.cookies.clear()
         final_login = client.post(
             "/api/v1/auth/login",
-            json={"username": "testuser", "password": "TestPassword123"}
+            json={"username": "testuser", "password": TEST_PASSWORD}
         )
         assert final_login.status_code == 200
         assert final_login.json()["requires_mfa"] is False

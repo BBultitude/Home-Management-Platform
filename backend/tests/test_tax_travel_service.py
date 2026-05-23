@@ -12,6 +12,8 @@ from app.services.tax_travel_service import TaxTravelService
 from app.models.tax_travel import TaxTravelEntry
 from app.models.user import User, UserRole
 
+TEST_HASHED_PASSWORD = "hashed"  # Test-only placeholder for hashed_password field
+
 
 class TestCreateEntry:
     """Test creating travel entries"""
@@ -152,7 +154,7 @@ class TestUpdateEntry:
         other_user = User(
             username="otheruser",
             email="other@example.com",
-            hashed_password="hashed",
+            hashed_password=TEST_HASHED_PASSWORD,
             full_name="Other User",
             role=UserRole.READER
         )
@@ -205,7 +207,7 @@ class TestDeleteEntry:
         other_user = User(
             username="otheruser",
             email="other@example.com",
-            hashed_password="hashed",
+            hashed_password=TEST_HASHED_PASSWORD,
             full_name="Other User",
             role=UserRole.READER
         )
@@ -327,7 +329,7 @@ class TestFYSummary:
 
         assert summary["financial_year"] == 2024
         assert summary["total_trips"] == 3
-        assert summary["total_km"] == 100.0  # 45.5 + 30 + 24.5
+        assert summary["total_km"] == pytest.approx(100.0)  # 45.5 + 30 + 24.5
         assert summary["total_deduction"] == pytest.approx(85.0, rel=0.01)  # 100 * 0.85
 
     def test_fy_summary_custom_rate(self, test_db: Session, test_user: User):
@@ -349,6 +351,6 @@ class TestFYSummary:
             rate_per_km=Decimal("0.72")
         )
 
-        assert summary["total_km"] == 100.0
-        assert summary["rate_per_km"] == 0.72
+        assert summary["total_km"] == pytest.approx(100.0)
+        assert summary["rate_per_km"] == pytest.approx(0.72)
         assert summary["total_deduction"] == pytest.approx(72.0, rel=0.01)

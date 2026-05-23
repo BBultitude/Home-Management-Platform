@@ -3,7 +3,7 @@ Notification Service
 Manages user notifications for alerts, reminders, and system messages
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 from uuid import UUID
 from sqlalchemy.orm import Session
@@ -129,7 +129,7 @@ class NotificationService:
 
         if not notification.is_read:
             notification.is_read = True
-            notification.read_at = datetime.utcnow()
+            notification.read_at = datetime.now(timezone.utc)
             db.commit()
             db.refresh(notification)
 
@@ -143,7 +143,7 @@ class NotificationService:
             Notification.is_read == False
         ).update({
             "is_read": True,
-            "read_at": datetime.utcnow()
+            "read_at": datetime.now(timezone.utc)
         })
 
         db.commit()
@@ -212,7 +212,7 @@ class NotificationService:
                     Notification.user_id == user.id,
                     Notification.category == NotificationCategory.ASSETS,
                     Notification.action_url == f"/assets/insurance/{policy.id}",
-                    Notification.created_at >= datetime.utcnow() - timedelta(days=7)
+                    Notification.created_at >= datetime.now(timezone.utc) - timedelta(days=7)
                 ).first()
 
                 if not existing:
@@ -269,7 +269,7 @@ class NotificationService:
                     Notification.user_id == user.id,
                     Notification.category == NotificationCategory.ASSETS,
                     Notification.action_url == f"/assets/documents/{doc.id}",
-                    Notification.created_at >= datetime.utcnow() - timedelta(days=7)
+                    Notification.created_at >= datetime.now(timezone.utc) - timedelta(days=7)
                 ).first()
 
                 if not existing:
@@ -327,7 +327,7 @@ class NotificationService:
                     Notification.user_id == user.id,
                     Notification.category == NotificationCategory.PROJECTS,
                     Notification.action_url.like(f"%/quotes/{quote.id}%"),
-                    Notification.created_at >= datetime.utcnow() - timedelta(days=7)
+                    Notification.created_at >= datetime.now(timezone.utc) - timedelta(days=7)
                 ).first()
 
                 if not existing:

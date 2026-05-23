@@ -128,14 +128,14 @@ export function ExpensesTab() {
       if (editingCategory) {
         await financialService.categories.update(editingCategory.id, {
           category_name: formCategoryName,
-          bank_account_id: parseInt(formBankAccountId),
+          bank_account_id: Number.parseInt(formBankAccountId),
           color: formColor,
         });
         toast.success('Category updated');
       } else {
         const data: ExpenseCategoryCreate = {
           category_name: formCategoryName,
-          bank_account_id: parseInt(formBankAccountId),
+          bank_account_id: Number.parseInt(formBankAccountId),
           color: formColor,
         };
         await financialService.categories.create(data);
@@ -199,8 +199,8 @@ export function ExpensesTab() {
       return;
     }
 
-    const amount = parseFloat(formAmount);
-    if (isNaN(amount) || amount <= 0) {
+    const amount = Number.parseFloat(formAmount);
+    if (Number.isNaN(amount) || amount <= 0) {
       toast.error('Amount must be greater than 0');
       return;
     }
@@ -212,7 +212,7 @@ export function ExpensesTab() {
           expense_name: formExpenseName,
           amount,
           frequency: formFrequency,
-          category_id: parseInt(formCategoryId),
+          category_id: Number.parseInt(formCategoryId),
           notes: formNotes || undefined,
         });
         toast.success('Expense updated');
@@ -221,7 +221,7 @@ export function ExpensesTab() {
           expense_name: formExpenseName,
           amount,
           frequency: formFrequency,
-          category_id: parseInt(formCategoryId),
+          category_id: Number.parseInt(formCategoryId),
           notes: formNotes || undefined,
         };
         await financialService.expenses.create(data);

@@ -10,9 +10,9 @@ import type { WFHSummary, TravelSummary } from '@/services/taxService';
 import { getErrorMessage } from '@/lib/errorMessages';
 import { toast } from 'sonner';
 
-interface SummaryTabProps {
+type SummaryTabProps = Readonly<{
   financialYear: string;
-}
+}>
 
 export function SummaryTab({ financialYear }: SummaryTabProps) {
   const [wfhSummary, setWfhSummary] = useState<WFHSummary | null>(null);
@@ -29,8 +29,8 @@ export function SummaryTab({ financialYear }: SummaryTabProps) {
   const fetchSummaries = async () => {
     setLoading(true);
     try {
-      const wfhRateNum = parseFloat(wfhRate) || 0.67;
-      const travelRateNum = parseFloat(travelRate) || 0.85;
+      const wfhRateNum = Number.parseFloat(wfhRate) || 0.67;
+      const travelRateNum = Number.parseFloat(travelRate) || 0.85;
 
       console.log('[Summary] Fetching for FY:', financialYear, 'WFH rate:', wfhRateNum, 'Travel rate:', travelRateNum);
 
@@ -63,16 +63,16 @@ export function SummaryTab({ financialYear }: SummaryTabProps) {
   const handleExportWFH = async () => {
     setExportingWFH(true);
     try {
-      const wfhRateNum = parseFloat(wfhRate) || 0.67;
+      const wfhRateNum = Number.parseFloat(wfhRate) || 0.67;
       const blob = await taxService.wfh.export(financialYear, wfhRateNum);
-      const url = window.URL.createObjectURL(blob);
+      const url = globalThis.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
       a.download = `wfh-${financialYear}.csv`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
+      globalThis.URL.revokeObjectURL(url);
       toast.success('WFH export downloaded');
     } catch (error) {
       toast.error(getErrorMessage(error));
@@ -84,16 +84,16 @@ export function SummaryTab({ financialYear }: SummaryTabProps) {
   const handleExportTravel = async () => {
     setExportingTravel(true);
     try {
-      const travelRateNum = parseFloat(travelRate) || 0.85;
+      const travelRateNum = Number.parseFloat(travelRate) || 0.85;
       const blob = await taxService.travel.export(financialYear, travelRateNum);
-      const url = window.URL.createObjectURL(blob);
+      const url = globalThis.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
       a.download = `travel-${financialYear}.csv`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
+      globalThis.URL.revokeObjectURL(url);
       toast.success('Travel export downloaded');
     } catch (error) {
       toast.error(getErrorMessage(error));

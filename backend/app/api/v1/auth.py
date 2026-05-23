@@ -2,6 +2,7 @@
 Authentication API endpoints
 """
 
+from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status, Response, Request
 from sqlalchemy.orm import Session
 from datetime import timedelta
@@ -42,8 +43,8 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 )
 async def register_user(
     user_data: UserRegister,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(require_admin)
+    db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[User, Depends(require_admin)]
 ):
     """
     Register a new user (Admin only)
@@ -86,7 +87,7 @@ async def login(
     user_data: UserLogin,
     request: Request,
     response: Response,
-    db: Session = Depends(get_db)
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Authenticate user with username and password
@@ -194,7 +195,7 @@ async def verify_mfa(
     mfa_data: MFAVerify,
     request: Request,
     response: Response,
-    db: Session = Depends(get_db)
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Verify MFA code and complete login
@@ -309,7 +310,7 @@ async def verify_mfa(
 )
 async def logout(
     response: Response,
-    current_user: User = Depends(get_current_active_user)
+    current_user: Annotated[User, Depends(get_current_active_user)]
 ):
     """
     Logout current user
@@ -344,7 +345,7 @@ async def logout(
     summary="Get current user info"
 )
 async def get_current_user_info(
-    current_user: User = Depends(get_current_active_user)
+    current_user: Annotated[User, Depends(get_current_active_user)]
 ):
     """
     Get current authenticated user information
@@ -371,8 +372,8 @@ async def get_current_user_info(
 )
 async def change_password(
     password_data: PasswordChange,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
+    db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_active_user)]
 ):
     """
     Change current user's password

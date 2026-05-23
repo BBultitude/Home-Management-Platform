@@ -41,7 +41,7 @@ class KnowledgeArticleResponse(BaseModel):
     title: str
     data: dict[str, Any]
     tags: list[str]
-    created_by: Optional[str]
+    created_by: Optional[str] = None
     created_at: str
     updated_at: str
     attachment_count: int

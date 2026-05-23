@@ -3,7 +3,7 @@ Projects & Tasks API endpoints
 Handles priority items (repair prioritization), projects, and contractor quotes
 """
 
-from typing import Optional
+from typing import Annotated, Optional
 from uuid import UUID
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
@@ -44,8 +44,8 @@ router = APIRouter(prefix="/projects", tags=["projects"])
 @router.post("/priorities", response_model=PriorityItemResponse)
 async def create_priority_item(
     item_data: PriorityItemCreate,
-    current_user: User = Depends(require_permission("projects:write")),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(require_permission("projects:write"))],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Create a new priority item with cost-benefit scoring
@@ -70,11 +70,11 @@ async def create_priority_item(
 
 @router.get("/priorities", response_model=PriorityItemListResponse)
 async def list_priority_items(
-    status: Optional[PriorityStatus] = Query(None, description="Filter by status"),
-    limit: int = Query(100, ge=1, le=500),
-    offset: int = Query(0, ge=0),
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    status: Annotated[Optional[PriorityStatus], Query(None, description="Filter by status")],
+    limit: Annotated[int, Query(100, ge=1, le=500)],
+    offset: Annotated[int, Query(0, ge=0)],
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     List priority items sorted by net_score (highest priority first)
@@ -99,8 +99,8 @@ async def list_priority_items(
 @router.get("/priorities/{item_id}", response_model=PriorityItemResponse)
 async def get_priority_item(
     item_id: UUID,
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Get a specific priority item"""
     item = PriorityItemService.get_priority_item(db, item_id)
@@ -112,8 +112,8 @@ async def get_priority_item(
 async def update_priority_item(
     item_id: UUID,
     item_data: PriorityItemUpdate,
-    current_user: User = Depends(require_permission("projects:write")),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(require_permission("projects:write"))],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Update a priority item
@@ -136,8 +136,8 @@ async def update_priority_item(
 @router.delete("/priorities/{item_id}")
 async def delete_priority_item(
     item_id: UUID,
-    current_user: User = Depends(require_permission("projects:write")),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(require_permission("projects:write"))],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Delete a priority item (cannot delete if converted to project)"""
     PriorityItemService.delete_priority_item(db, item_id)
@@ -149,8 +149,8 @@ async def delete_priority_item(
 async def convert_priority_to_project(
     item_id: UUID,
     conversion_data: ConvertToProjectRequest,
-    current_user: User = Depends(require_permission("projects:write")),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(require_permission("projects:write"))],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Convert a priority item to a project
@@ -174,8 +174,8 @@ async def convert_priority_to_project(
 @router.post("", response_model=ProjectResponse)
 async def create_project(
     project_data: ProjectCreate,
-    current_user: User = Depends(require_permission("projects:write")),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(require_permission("projects:write"))],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Create a new project
@@ -203,11 +203,11 @@ async def create_project(
 
 @router.get("", response_model=ProjectListResponse)
 async def list_projects(
-    status: Optional[ProjectStatus] = Query(None, description="Filter by status"),
-    limit: int = Query(100, ge=1, le=500),
-    offset: int = Query(0, ge=0),
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    status: Annotated[Optional[ProjectStatus], Query(None, description="Filter by status")],
+    limit: Annotated[int, Query(100, ge=1, le=500)],
+    offset: Annotated[int, Query(0, ge=0)],
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """List projects with optional status filter"""
     projects = ProjectService.list_projects(
@@ -227,8 +227,8 @@ async def list_projects(
 
 @router.get("/summary")
 async def get_project_summary(
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Get project summary statistics
@@ -241,8 +241,8 @@ async def get_project_summary(
 @router.get("/{project_id}", response_model=ProjectResponse)
 async def get_project(
     project_id: UUID,
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Get a specific project"""
     project = ProjectService.get_project(db, project_id)
@@ -254,8 +254,8 @@ async def get_project(
 async def update_project(
     project_id: UUID,
     project_data: ProjectUpdate,
-    current_user: User = Depends(require_permission("projects:write")),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(require_permission("projects:write"))],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Update a project"""
     project = ProjectService.update_project(
@@ -277,8 +277,8 @@ async def update_project(
 @router.delete("/{project_id}")
 async def delete_project(
     project_id: UUID,
-    current_user: User = Depends(require_permission("projects:write")),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(require_permission("projects:write"))],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Delete a project (cascade deletes quotes, unlinks priority item)"""
     ProjectService.delete_project(db, project_id)
@@ -291,8 +291,8 @@ async def delete_project(
 async def create_quote(
     project_id: UUID,
     quote_data: QuoteCreate,
-    current_user: User = Depends(require_permission("projects:write")),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(require_permission("projects:write"))],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Create a new quote for a project
@@ -325,8 +325,8 @@ async def create_quote(
 @router.get("/{project_id}/quotes", response_model=QuoteListResponse)
 async def list_project_quotes(
     project_id: UUID,
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """List all quotes for a specific project"""
     quotes = QuoteService.list_quotes(db=db, project_id=project_id)
@@ -347,8 +347,8 @@ async def list_project_quotes(
 @router.get("/{project_id}/quotes/compare", response_model=QuoteComparisonResponse)
 async def compare_quotes(
     project_id: UUID,
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Get quote comparison for a project
@@ -392,8 +392,8 @@ async def compare_quotes(
 @router.get("/quotes/{quote_id}", response_model=QuoteResponse)
 async def get_quote(
     quote_id: UUID,
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Get a specific quote"""
     quote = QuoteService.get_quote(db, quote_id)
@@ -409,8 +409,8 @@ async def get_quote(
 async def update_quote(
     quote_id: UUID,
     quote_data: QuoteUpdate,
-    current_user: User = Depends(require_permission("projects:write")),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(require_permission("projects:write"))],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Update a quote
@@ -442,8 +442,8 @@ async def update_quote(
 @router.delete("/quotes/{quote_id}")
 async def delete_quote(
     quote_id: UUID,
-    current_user: User = Depends(require_permission("projects:write")),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(require_permission("projects:write"))],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Delete a quote"""
     QuoteService.delete_quote(db, quote_id)
@@ -453,9 +453,9 @@ async def delete_quote(
 
 @router.get("/quotes/alerts/expiry", response_model=list[QuoteResponse])
 async def get_quote_expiry_alerts(
-    days: int = Query(30, ge=1, le=365, description="Days before expiry to alert"),
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    days: Annotated[int, Query(30, ge=1, le=365, description="Days before expiry to alert")],
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Get quote expiry alerts

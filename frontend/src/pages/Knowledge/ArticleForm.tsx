@@ -24,12 +24,12 @@ import { toast } from 'sonner';
 import { knowledgeService, type ArticleType, type KnowledgeArticle } from '@/services/knowledgeService';
 import { Checkbox } from '@/components/ui/checkbox';
 
-interface ArticleFormProps {
+type ArticleFormProps = Readonly<{
   open: boolean;
   onClose: () => void;
   onSuccess: () => void;
   article?: KnowledgeArticle | null;
-}
+}>
 
 const ARTICLE_TYPES: { value: ArticleType; label: string; description: string }[] = [
   { value: 'Measurement', label: 'Measurement', description: 'Room dimensions, window sizes, etc.' },
@@ -146,50 +146,50 @@ export const ArticleForm: React.FC<ArticleFormProps> = ({ open, onClose, onSucce
     }
   };
 
+  const validateMeasurement = (data: Record<string, any>): string | null =>
+    (!data.location || !data.measurement_type || !data.value || !data.unit)
+      ? 'Please fill in location, measurement type, value, and unit' : null;
+
+  const validatePaint = (data: Record<string, any>): string | null =>
+    (!data.room_area || !data.surface_type || !data.brand || !data.product_line || !data.color_name || !data.finish)
+      ? 'Please fill in all required paint fields' : null;
+
+  const validateTechDevice = (data: Record<string, any>): string | null =>
+    (!data.device_type || !data.brand_model || !data.location)
+      ? 'Please fill in device type, brand/model, and location' : null;
+
+  const validateStorageLocation = (data: Record<string, any>): string | null =>
+    (!data.storage_area || !data.items_stored || data.items_stored.length === 0 || !data.category)
+      ? 'Please fill in storage area, items stored, and category' : null;
+
+  const validateVehicle = (data: Record<string, any>): string | null =>
+    (!data.vehicle_type || !data.make || !data.model || !data.year)
+      ? 'Please fill in vehicle type, make, model, and year' : null;
+
+  const validateEmergencyContact = (data: Record<string, any>): string | null =>
+    (!data.name || !data.relationship_role || !data.primary_phone || !data.category)
+      ? 'Please fill in name, relationship/role, phone, and category' : null;
+
+  const validateAppliance = (data: Record<string, any>): string | null =>
+    (!data.appliance_type || !data.brand || !data.location)
+      ? 'Please fill in appliance type, brand, and location' : null;
+
+  const validateVendor = (data: Record<string, any>): string | null =>
+    (!data.business_name || !data.service_type || !data.phone)
+      ? 'Please fill in business name, service type, and phone' : null;
+
   const validateDataForType = (type: ArticleType, data: Record<string, any>): string | null => {
-    switch (type) {
-      case 'Measurement':
-        if (!data.location || !data.measurement_type || !data.value || !data.unit) {
-          return 'Please fill in location, measurement type, value, and unit';
-        }
-        break;
-      case 'Paint':
-        if (!data.room_area || !data.surface_type || !data.brand || !data.product_line || !data.color_name || !data.finish) {
-          return 'Please fill in all required paint fields';
-        }
-        break;
-      case 'TechDevice':
-        if (!data.device_type || !data.brand_model || !data.location) {
-          return 'Please fill in device type, brand/model, and location';
-        }
-        break;
-      case 'StorageLocation':
-        if (!data.storage_area || !data.items_stored || data.items_stored.length === 0 || !data.category) {
-          return 'Please fill in storage area, items stored, and category';
-        }
-        break;
-      case 'Vehicle':
-        if (!data.vehicle_type || !data.make || !data.model || !data.year) {
-          return 'Please fill in vehicle type, make, model, and year';
-        }
-        break;
-      case 'EmergencyContact':
-        if (!data.name || !data.relationship_role || !data.primary_phone || !data.category) {
-          return 'Please fill in name, relationship/role, phone, and category';
-        }
-        break;
-      case 'Appliance':
-        if (!data.appliance_type || !data.brand || !data.location) {
-          return 'Please fill in appliance type, brand, and location';
-        }
-        break;
-      case 'Vendor':
-        if (!data.business_name || !data.service_type || !data.phone) {
-          return 'Please fill in business name, service type, and phone';
-        }
-        break;
-    }
-    return null;
+    const validators: Partial<Record<ArticleType, (d: Record<string, any>) => string | null>> = {
+      Measurement: validateMeasurement,
+      Paint: validatePaint,
+      TechDevice: validateTechDevice,
+      StorageLocation: validateStorageLocation,
+      Vehicle: validateVehicle,
+      EmergencyContact: validateEmergencyContact,
+      Appliance: validateAppliance,
+      Vendor: validateVendor,
+    };
+    return validators[type]?.(data) ?? null;
   };
 
   const updateData = (key: string, value: any) => {
@@ -252,7 +252,7 @@ export const ArticleForm: React.FC<ArticleFormProps> = ({ open, onClose, onSucce
             step="0.01"
             placeholder="e.g., 120.5"
             value={data.value || ''}
-            onChange={(e) => updateData('value', parseFloat(e.target.value))}
+            onChange={(e) => updateData('value', Number.parseFloat(e.target.value))}
           />
         </div>
         <div className="space-y-2">
@@ -567,7 +567,7 @@ export const ArticleForm: React.FC<ArticleFormProps> = ({ open, onClose, onSucce
 
     const addItem = () => {
       const input = document.getElementById('new_item') as HTMLInputElement;
-      if (input && input.value.trim()) {
+      if (input?.value.trim()) {
         updateData('items_stored', [...items, input.value.trim()]);
         input.value = '';
       }
@@ -594,7 +594,7 @@ export const ArticleForm: React.FC<ArticleFormProps> = ({ open, onClose, onSucce
             <Input
               id="new_item"
               placeholder="Add item..."
-              onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addItem())}
+              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addItem(); } }}
             />
             <Button type="button" onClick={addItem} variant="outline">
               <Plus className="h-4 w-4" />
@@ -602,7 +602,7 @@ export const ArticleForm: React.FC<ArticleFormProps> = ({ open, onClose, onSucce
           </div>
           <div className="flex flex-wrap gap-2 mt-2">
             {items.map((item: string, index: number) => (
-              <Badge key={index} variant="secondary">
+              <Badge key={`${item}-${index}`} variant="secondary">
                 {item}
                 <X
                   className="h-3 w-3 ml-1 cursor-pointer"
@@ -690,7 +690,7 @@ export const ArticleForm: React.FC<ArticleFormProps> = ({ open, onClose, onSucce
             type="number"
             placeholder="e.g., 2020"
             value={data.year || ''}
-            onChange={(e) => updateData('year', parseInt(e.target.value))}
+            onChange={(e) => updateData('year', Number.parseInt(e.target.value))}
           />
         </div>
       </div>
@@ -740,7 +740,7 @@ export const ArticleForm: React.FC<ArticleFormProps> = ({ open, onClose, onSucce
             type="number"
             placeholder="e.g., 10000"
             value={data.next_service_km || ''}
-            onChange={(e) => updateData('next_service_km', parseInt(e.target.value))}
+            onChange={(e) => updateData('next_service_km', Number.parseInt(e.target.value))}
           />
         </div>
       </div>
@@ -941,7 +941,7 @@ export const ArticleForm: React.FC<ArticleFormProps> = ({ open, onClose, onSucce
             step="0.01"
             placeholder="0.00"
             value={data.purchase_price || ''}
-            onChange={(e) => updateData('purchase_price', parseFloat(e.target.value))}
+            onChange={(e) => updateData('purchase_price', Number.parseFloat(e.target.value))}
           />
         </div>
         <div className="space-y-2">
@@ -1071,7 +1071,7 @@ export const ArticleForm: React.FC<ArticleFormProps> = ({ open, onClose, onSucce
           <Label htmlFor="rating">Rating (1-5)</Label>
           <Select
             value={data.rating?.toString() || ''}
-            onValueChange={(value) => updateData('rating', parseInt(value))}
+            onValueChange={(value) => updateData('rating', Number.parseInt(value))}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select rating" />
@@ -1139,8 +1139,11 @@ export const ArticleForm: React.FC<ArticleFormProps> = ({ open, onClose, onSucce
             {ARTICLE_TYPES.map((type) => (
               <div
                 key={type.value}
+                role="button"
+                tabIndex={0}
                 className="border rounded-lg p-4 hover:border-primary hover:bg-gray-50 cursor-pointer transition-colors"
                 onClick={() => handleTypeSelect(type.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.currentTarget.click(); } }}
               >
                 <h3 className="font-semibold text-lg mb-2">{type.label}</h3>
                 <p className="text-sm text-muted-foreground">{type.description}</p>
@@ -1151,6 +1154,8 @@ export const ArticleForm: React.FC<ArticleFormProps> = ({ open, onClose, onSucce
       </Dialog>
     );
   }
+
+  const submitButtonLabel = loading ? 'Saving...' : (article ? 'Update' : 'Create');
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -1185,7 +1190,7 @@ export const ArticleForm: React.FC<ArticleFormProps> = ({ open, onClose, onSucce
                 placeholder="Add tag..."
                 value={tagInput}
                 onChange={(e) => setTagInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
+                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddTag(); } }}
               />
               <Button type="button" onClick={handleAddTag} variant="outline">
                 <Plus className="h-4 w-4" />
@@ -1210,7 +1215,7 @@ export const ArticleForm: React.FC<ArticleFormProps> = ({ open, onClose, onSucce
             Cancel
           </Button>
           <Button onClick={handleSubmit} disabled={loading}>
-            {loading ? 'Saving...' : article ? 'Update' : 'Create'}
+            {submitButtonLabel}
           </Button>
         </DialogFooter>
       </DialogContent>

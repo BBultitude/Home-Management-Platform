@@ -9,6 +9,11 @@ from app.services.admin_service import AdminService
 from app.models.user import User, UserRole
 from app.services.auth_service import AuthService
 
+TEST_PASSWORD_ADMIN = "AdminPass123!@#"  # Test-only credential
+TEST_PASSWORD_EDITOR = "EditorPass123!@#"  # Test-only credential
+TEST_PASSWORD_READER = "ReaderPass123!@#"  # Test-only credential
+TEST_PASSWORD_ANOTHER_ADMIN = "AnotherAdmin123!@#"  # Test-only credential
+
 
 class TestAdminService:
     """Test cases for AdminService"""
@@ -20,7 +25,7 @@ class TestAdminService:
             db=db_session,
             username="admin_test",
             email="admin@test.com",
-            password="AdminPass123!@#",
+            password=TEST_PASSWORD_ADMIN,
             full_name="Admin User",
             role=UserRole.ADMIN
         )
@@ -33,7 +38,7 @@ class TestAdminService:
             db=db_session,
             username="editor_test",
             email="editor@test.com",
-            password="EditorPass123!@#",
+            password=TEST_PASSWORD_EDITOR,
             full_name="Editor User",
             role=UserRole.EDITOR
         )
@@ -46,7 +51,7 @@ class TestAdminService:
             db=db_session,
             username="reader_test",
             email="reader@test.com",
-            password="ReaderPass123!@#",
+            password=TEST_PASSWORD_READER,
             full_name="Reader User",
             role=UserRole.READER
         )
@@ -191,7 +196,7 @@ class TestAdminService:
             db=db_session,
             username="another_admin",
             email="another@admin.com",
-            password="AnotherAdmin123!@#",
+            password=TEST_PASSWORD_ANOTHER_ADMIN,
             role=UserRole.ADMIN
         )
 
@@ -242,7 +247,7 @@ class TestAdminService:
             db=db_session,
             username="another_admin",
             email="another@admin.com",
-            password="AnotherAdmin123!@#",
+            password=TEST_PASSWORD_ANOTHER_ADMIN,
             role=UserRole.ADMIN
         )
 
@@ -283,7 +288,7 @@ class TestAdminService:
             db=db_session,
             username="another_admin",
             email="another@admin.com",
-            password="AnotherAdmin123!@#",
+            password=TEST_PASSWORD_ANOTHER_ADMIN,
             role=UserRole.ADMIN
         )
 

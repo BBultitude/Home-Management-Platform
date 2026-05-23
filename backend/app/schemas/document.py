@@ -42,11 +42,11 @@ class DocumentResponse(BaseModel):
     id: str
     document_type: str
     title: str
-    description: Optional[str]
-    category: Optional[str]
+    description: Optional[str] = None
+    category: Optional[str] = None
     tags: list[str]
     uploaded_date: str
-    expiry_date: Optional[str]
+    expiry_date: Optional[str] = None
     file_id: str
     created_at: str
     is_expired: Optional[bool] = None

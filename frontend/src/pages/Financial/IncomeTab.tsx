@@ -80,8 +80,8 @@ export function IncomeTab() {
       return;
     }
 
-    const amount = parseFloat(formAmount);
-    if (isNaN(amount) || amount <= 0) {
+    const amount = Number.parseFloat(formAmount);
+    if (Number.isNaN(amount) || amount <= 0) {
       toast.error('Amount must be greater than 0');
       return;
     }

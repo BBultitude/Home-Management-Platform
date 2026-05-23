@@ -19,9 +19,9 @@ import type { WFHEntry, WFHEntryCreate } from '@/services/taxService';
 import { getErrorMessage } from '@/lib/errorMessages';
 import { toast } from 'sonner';
 
-interface WFHTabProps {
+type WFHTabProps = Readonly<{
   financialYear: string;
-}
+}>
 
 export function WFHTab({ financialYear }: WFHTabProps) {
   const [entries, setEntries] = useState<WFHEntry[]>([]);
@@ -97,8 +97,8 @@ export function WFHTab({ financialYear }: WFHTabProps) {
       return;
     }
 
-    const hours = parseFloat(formHours);
-    if (isNaN(hours) || hours <= 0 || hours > 24) {
+    const hours = Number.parseFloat(formHours);
+    if (Number.isNaN(hours) || hours <= 0 || hours > 24) {
       toast.error('Hours must be between 0 and 24');
       return;
     }
@@ -149,8 +149,8 @@ export function WFHTab({ financialYear }: WFHTabProps) {
       toast.error('Please select at least one date');
       return;
     }
-    const hours = parseFloat(bulkHours);
-    if (!bulkHours || isNaN(hours) || hours < 0.5 || hours > 24) {
+    const hours = Number.parseFloat(bulkHours);
+    if (!bulkHours || Number.isNaN(hours) || hours < 0.5 || hours > 24) {
       toast.error('Please enter valid hours (0.5–24)');
       return;
     }

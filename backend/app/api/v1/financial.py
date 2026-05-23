@@ -3,7 +3,7 @@ Financial Management API endpoints
 Handles income sources, bank accounts, expenses, utilities, and budget calculations
 """
 
-from typing import Optional
+from typing import Annotated, Optional
 from datetime import date
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
@@ -63,8 +63,8 @@ router = APIRouter(prefix="/financial", tags=["financial"])
 @router.post("/income", response_model=IncomeSourceResponse)
 async def create_income_source(
     income_data: IncomeSourceCreate,
-    current_user: User = Depends(require_permission("financial:write")),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(require_permission("financial:write"))],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Create a new income source
@@ -90,10 +90,10 @@ async def create_income_source(
 
 @router.get("/income", response_model=IncomeSourceListResponse)
 async def list_income_sources(
-    limit: int = Query(100, ge=1, le=500),
-    offset: int = Query(0, ge=0),
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    limit: Annotated[int, Query(100, ge=1, le=500)],
+    offset: Annotated[int, Query(0, ge=0)],
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """List all income sources"""
     income_sources = IncomeSourceService.list_income_sources(
@@ -123,8 +123,8 @@ async def list_income_sources(
 @router.get("/income/{income_id}", response_model=IncomeSourceResponse)
 async def get_income_source(
     income_id: int,
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Get a specific income source"""
     income = IncomeSourceService.get_income_source(db, income_id)
@@ -143,8 +143,8 @@ async def get_income_source(
 async def update_income_source(
     income_id: int,
     income_data: IncomeSourceUpdate,
-    current_user: User = Depends(require_permission("financial:write")),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(require_permission("financial:write"))],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Update an income source"""
     income = IncomeSourceService.update_income_source(
@@ -168,8 +168,8 @@ async def update_income_source(
 @router.delete("/income/{income_id}")
 async def delete_income_source(
     income_id: int,
-    current_user: User = Depends(require_permission("financial:write")),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(require_permission("financial:write"))],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Delete an income source"""
     IncomeSourceService.delete_income_source(db, income_id)
@@ -181,8 +181,8 @@ async def delete_income_source(
 @router.post("/budget/calculate", response_model=BudgetCalculationResponse)
 async def calculate_budget(
     request: BudgetCalculationRequest,
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Calculate budget transfers for specified pay frequency
@@ -196,8 +196,8 @@ async def calculate_budget(
 
 @router.get("/budget/summary", response_model=BudgetSummaryResponse)
 async def get_budget_summary(
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Get monthly budget summary for dashboard
@@ -213,8 +213,8 @@ async def get_budget_summary(
 @router.post("/utilities", response_model=UtilityResponse)
 async def create_utility(
     utility_data: UtilityCreate,
-    current_user: User = Depends(require_permission("financial:write")),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(require_permission("financial:write"))],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Create a new utility entry
@@ -241,13 +241,13 @@ async def create_utility(
 
 @router.get("/utilities", response_model=UtilityListResponse)
 async def list_utilities(
-    utility_type: Optional[UtilityType] = Query(None),
-    start_date: Optional[date] = Query(None),
-    end_date: Optional[date] = Query(None),
-    limit: int = Query(100, ge=1, le=500),
-    offset: int = Query(0, ge=0),
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    utility_type: Annotated[Optional[UtilityType], Query(None)],
+    start_date: Annotated[Optional[date], Query(None)],
+    end_date: Annotated[Optional[date], Query(None)],
+    limit: Annotated[int, Query(100, ge=1, le=500)],
+    offset: Annotated[int, Query(0, ge=0)],
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """List utility entries with optional filters"""
     utilities = UtilityService.list_utilities(
@@ -270,8 +270,8 @@ async def list_utilities(
 @router.get("/utilities/{utility_id}", response_model=UtilityResponse)
 async def get_utility(
     utility_id: int,
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Get a specific utility entry"""
     utility = UtilityService.get_utility(db, utility_id)
@@ -283,8 +283,8 @@ async def get_utility(
 async def update_utility(
     utility_id: int,
     utility_data: UtilityUpdate,
-    current_user: User = Depends(require_permission("financial:write")),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(require_permission("financial:write"))],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Update a utility entry"""
     utility = UtilityService.update_utility(
@@ -309,8 +309,8 @@ async def update_utility(
 @router.delete("/utilities/{utility_id}")
 async def delete_utility(
     utility_id: int,
-    current_user: User = Depends(require_permission("financial:write")),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(require_permission("financial:write"))],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Delete a utility entry"""
     UtilityService.delete_utility(db, utility_id)
@@ -321,10 +321,10 @@ async def delete_utility(
 @router.get("/utilities/stats/{utility_type}", response_model=UtilityStatsResponse)
 async def get_utility_stats(
     utility_type: UtilityType,
-    start_date: Optional[date] = Query(None),
-    end_date: Optional[date] = Query(None),
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    start_date: Annotated[Optional[date], Query(None)],
+    end_date: Annotated[Optional[date], Query(None)],
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Get statistics for a utility type
@@ -344,10 +344,10 @@ async def get_utility_stats(
 @router.get("/utilities/graphs/{utility_type}", response_model=UtilityGraphsResponse)
 async def get_utility_graphs(
     utility_type: UtilityType,
-    start_date: Optional[date] = Query(None),
-    end_date: Optional[date] = Query(None),
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    start_date: Annotated[Optional[date], Query(None)],
+    end_date: Annotated[Optional[date], Query(None)],
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Get graph data for a utility type
@@ -371,8 +371,8 @@ async def get_utility_graphs(
 @router.post("/bank-accounts", response_model=BankAccountResponse)
 async def create_bank_account(
     account_data: BankAccountCreate,
-    current_user: User = Depends(require_permission("financial:write")),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(require_permission("financial:write"))],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Create a new bank account
@@ -398,10 +398,10 @@ async def create_bank_account(
 
 @router.get("/bank-accounts", response_model=BankAccountListResponse)
 async def list_bank_accounts(
-    limit: int = Query(100, ge=1, le=500),
-    offset: int = Query(0, ge=0),
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    limit: Annotated[int, Query(100, ge=1, le=500)],
+    offset: Annotated[int, Query(0, ge=0)],
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """List all bank accounts"""
     accounts = BankAccountService.list_bank_accounts(
@@ -431,8 +431,8 @@ async def list_bank_accounts(
 @router.get("/bank-accounts/{account_id}", response_model=BankAccountResponse)
 async def get_bank_account(
     account_id: int,
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Get a specific bank account"""
     account = BankAccountService.get_bank_account(db, account_id)
@@ -451,8 +451,8 @@ async def get_bank_account(
 async def update_bank_account(
     account_id: int,
     account_data: BankAccountUpdate,
-    current_user: User = Depends(require_permission("financial:write")),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(require_permission("financial:write"))],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Update a bank account"""
     account = BankAccountService.update_bank_account(
@@ -476,8 +476,8 @@ async def update_bank_account(
 @router.delete("/bank-accounts/{account_id}")
 async def delete_bank_account(
     account_id: int,
-    current_user: User = Depends(require_permission("financial:write")),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(require_permission("financial:write"))],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Delete a bank account"""
     BankAccountService.delete_bank_account(db, account_id)
@@ -489,8 +489,8 @@ async def delete_bank_account(
 @router.post("/expense-categories", response_model=ExpenseCategoryResponse)
 async def create_expense_category(
     category_data: ExpenseCategoryCreate,
-    current_user: User = Depends(require_permission("financial:write")),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(require_permission("financial:write"))],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Create a new expense category
@@ -516,11 +516,11 @@ async def create_expense_category(
 
 @router.get("/expense-categories", response_model=ExpenseCategoryListResponse)
 async def list_expense_categories(
-    bank_account_id: Optional[int] = Query(None),
-    limit: int = Query(100, ge=1, le=500),
-    offset: int = Query(0, ge=0),
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    bank_account_id: Annotated[Optional[int], Query(None)],
+    limit: Annotated[int, Query(100, ge=1, le=500)],
+    offset: Annotated[int, Query(0, ge=0)],
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """List expense categories with optional bank account filter"""
     categories = ExpenseCategoryService.list_expense_categories(
@@ -551,8 +551,8 @@ async def list_expense_categories(
 @router.get("/expense-categories/{category_id}", response_model=ExpenseCategoryResponse)
 async def get_expense_category(
     category_id: int,
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Get a specific expense category"""
     category = ExpenseCategoryService.get_expense_category(db, category_id)
@@ -571,8 +571,8 @@ async def get_expense_category(
 async def update_expense_category(
     category_id: int,
     category_data: ExpenseCategoryUpdate,
-    current_user: User = Depends(require_permission("financial:write")),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(require_permission("financial:write"))],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Update an expense category"""
     category = ExpenseCategoryService.update_expense_category(
@@ -596,8 +596,8 @@ async def update_expense_category(
 @router.delete("/expense-categories/{category_id}")
 async def delete_expense_category(
     category_id: int,
-    current_user: User = Depends(require_permission("financial:write")),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(require_permission("financial:write"))],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Delete an expense category"""
     ExpenseCategoryService.delete_expense_category(db, category_id)
@@ -609,8 +609,8 @@ async def delete_expense_category(
 @router.post("/expenses", response_model=ExpenseResponse)
 async def create_expense(
     expense_data: ExpenseCreate,
-    current_user: User = Depends(require_permission("financial:write")),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(require_permission("financial:write"))],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Create a new expense
@@ -640,11 +640,11 @@ async def create_expense(
 
 @router.get("/expenses", response_model=ExpenseListResponse)
 async def list_expenses(
-    category_id: Optional[int] = Query(None),
-    limit: int = Query(100, ge=1, le=500),
-    offset: int = Query(0, ge=0),
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    category_id: Annotated[Optional[int], Query(None)],
+    limit: Annotated[int, Query(100, ge=1, le=500)],
+    offset: Annotated[int, Query(0, ge=0)],
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """List expenses with optional category filter"""
     expenses = ExpenseService.list_expenses(
@@ -677,8 +677,8 @@ async def list_expenses(
 @router.get("/expenses/{expense_id}", response_model=ExpenseResponse)
 async def get_expense(
     expense_id: int,
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Get a specific expense"""
     expense = ExpenseService.get_expense(db, expense_id)
@@ -699,8 +699,8 @@ async def get_expense(
 async def update_expense(
     expense_id: int,
     expense_data: ExpenseUpdate,
-    current_user: User = Depends(require_permission("financial:write")),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(require_permission("financial:write"))],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Update an expense"""
     expense = ExpenseService.update_expense(
@@ -728,8 +728,8 @@ async def update_expense(
 @router.delete("/expenses/{expense_id}")
 async def delete_expense(
     expense_id: int,
-    current_user: User = Depends(require_permission("financial:write")),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(require_permission("financial:write"))],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Delete an expense"""
     ExpenseService.delete_expense(db, expense_id)

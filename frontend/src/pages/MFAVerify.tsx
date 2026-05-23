@@ -86,7 +86,7 @@ export default function MFAVerify() {
                 type="text"
                 placeholder="000000"
                 value={code}
-                onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))} // NOSONAR
                 required
                 minLength={6}
                 maxLength={6}

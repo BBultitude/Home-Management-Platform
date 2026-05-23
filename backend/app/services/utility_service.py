@@ -3,7 +3,7 @@ Utility Service
 Handles CRUD operations and statistics for utility cost tracking
 """
 
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from decimal import Decimal
 from typing import Optional
 from sqlalchemy.orm import Session
@@ -11,6 +11,12 @@ from sqlalchemy import func, and_, extract, literal
 from fastapi import HTTPException, status
 
 from app.models.utility import Utility, UtilityType
+
+
+def _apply_optional_update(model, field_name: str, value) -> None:
+    """Apply a field update only if value is not None."""
+    if value is not None:
+        setattr(model, field_name, value)
 
 
 class UtilityService:
@@ -147,17 +153,10 @@ class UtilityService:
         """Update a utility entry"""
         utility = UtilityService.get_utility(db, utility_id)
 
-        if utility_type is not None:
-            utility.utility_type = utility_type
-
-        if provider is not None:
-            utility.provider = provider
-
-        if billing_period_start is not None:
-            utility.billing_period_start = billing_period_start
-
-        if billing_period_end is not None:
-            utility.billing_period_end = billing_period_end
+        _apply_optional_update(utility, "utility_type", utility_type)
+        _apply_optional_update(utility, "provider", provider)
+        _apply_optional_update(utility, "billing_period_start", billing_period_start)
+        _apply_optional_update(utility, "billing_period_end", billing_period_end)
 
         if usage is not None:
             if usage <= 0:
@@ -167,8 +166,7 @@ class UtilityService:
                 )
             utility.usage = usage
 
-        if unit is not None:
-            utility.unit = unit
+        _apply_optional_update(utility, "unit", unit)
 
         if cost is not None:
             if cost <= 0:
@@ -185,10 +183,8 @@ class UtilityService:
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Solar feed-in is only applicable to electricity utilities"
                 )
-            if solar_feed_in is not None:
-                utility.solar_feed_in = solar_feed_in
-            if solar_feed_in_credit is not None:
-                utility.solar_feed_in_credit = solar_feed_in_credit
+            _apply_optional_update(utility, "solar_feed_in", solar_feed_in)
+            _apply_optional_update(utility, "solar_feed_in_credit", solar_feed_in_credit)
 
         # Recalculate cost per unit if usage or cost changed (only if usage is not None)
         if (usage is not None or cost is not None) and utility.usage is not None:
@@ -197,13 +193,10 @@ class UtilityService:
             # Fixed-cost utility - no cost per unit
             utility.cost_per_unit = None
 
-        if attachment_id is not None:
-            utility.attachment_id = attachment_id
+        _apply_optional_update(utility, "attachment_id", attachment_id)
+        _apply_optional_update(utility, "notes", notes)
 
-        if notes is not None:
-            utility.notes = notes
-
-        utility.updated_at = datetime.utcnow()
+        utility.updated_at = datetime.now(timezone.utc)
 
         db.commit()
         db.refresh(utility)

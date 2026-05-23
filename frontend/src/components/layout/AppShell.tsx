@@ -4,9 +4,9 @@ import { Header } from './Header';
 import { Breadcrumbs } from './Breadcrumbs';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 
-interface AppShellProps {
+type AppShellProps = Readonly<{
   children: React.ReactNode;
-}
+}>
 
 export function AppShell({ children }: AppShellProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);

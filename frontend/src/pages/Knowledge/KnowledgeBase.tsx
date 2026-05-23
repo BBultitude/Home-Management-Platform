@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   BookOpen,
   Search,
@@ -177,6 +177,98 @@ export default function KnowledgeBase() {
     }
   };
 
+  let articlesContent: React.ReactNode;
+  if (loading) {
+    articlesContent = (
+      <div className="text-center py-12">
+        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <p className="mt-4 text-muted-foreground">Loading articles...</p>
+      </div>
+    );
+  } else if (articles.length === 0) {
+    articlesContent = (
+      <div className="text-center py-12 border-2 border-dashed rounded-lg">
+        <BookOpen className="h-12 w-12 mx-auto text-muted-foreground" />
+        <h3 className="mt-4 text-lg font-semibold">No Articles Found</h3>
+        <p className="text-muted-foreground mt-2">
+          {searchQuery ? 'Try adjusting your search terms' : 'Get started by creating your first article'}
+        </p>
+        {!searchQuery && (
+          <Button onClick={handleCreateArticle} className="mt-4">
+            <Plus className="h-4 w-4 mr-2" />
+            Create Article
+          </Button>
+        )}
+      </div>
+    );
+  } else {
+    articlesContent = (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {articles.map((article) => {
+          const config = ARTICLE_TYPE_CONFIG[article.article_type];
+          const Icon = config.icon;
+
+          return (
+            <div
+              key={article.id}
+              className="border rounded-lg p-4 hover:shadow-lg transition-shadow bg-white dark:bg-white"
+            >
+              <div className="flex items-start justify-between mb-3">
+                <div className={`p-2 rounded-lg ${config.color}`}>
+                  <Icon className="h-5 w-5" />
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleEditArticle(article)}
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDeleteClick(article)}
+                  >
+                    <Trash2 className="h-4 w-4 text-red-500" />
+                  </Button>
+                </div>
+              </div>
+
+              <h3 className="font-semibold text-lg mb-2 line-clamp-2">{article.title}</h3>
+              <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+                {getArticleSummary(article)}
+              </p>
+
+              <div className="flex flex-wrap gap-2 mb-3">
+                {article.tags.slice(0, 3).map((tag) => (
+                  <Badge key={tag} variant="secondary" className="text-xs">
+                    {tag}
+                  </Badge>
+                ))}
+                {article.tags.length > 3 && (
+                  <Badge variant="secondary" className="text-xs">
+                    +{article.tags.length - 3} more
+                  </Badge>
+                )}
+              </div>
+
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <span>{config.label}</span>
+                {article.attachment_count > 0 && (
+                  <div className="flex items-center gap-1">
+                    <FileText className="h-3 w-3" />
+                    <span>{article.attachment_count}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -219,90 +311,7 @@ export default function KnowledgeBase() {
       </div>
 
       {/* Articles Grid */}
-      {loading ? (
-        <div className="text-center py-12">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          <p className="mt-4 text-muted-foreground">Loading articles...</p>
-        </div>
-      ) : articles.length === 0 ? (
-        <div className="text-center py-12 border-2 border-dashed rounded-lg">
-          <BookOpen className="h-12 w-12 mx-auto text-muted-foreground" />
-          <h3 className="mt-4 text-lg font-semibold">No Articles Found</h3>
-          <p className="text-muted-foreground mt-2">
-            {searchQuery ? 'Try adjusting your search terms' : 'Get started by creating your first article'}
-          </p>
-          {!searchQuery && (
-            <Button onClick={handleCreateArticle} className="mt-4">
-              <Plus className="h-4 w-4 mr-2" />
-              Create Article
-            </Button>
-          )}
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {articles.map((article) => {
-            const config = ARTICLE_TYPE_CONFIG[article.article_type];
-            const Icon = config.icon;
-
-            return (
-              <div
-                key={article.id}
-                className="border rounded-lg p-4 hover:shadow-lg transition-shadow bg-white dark:bg-white"
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <div className={`p-2 rounded-lg ${config.color}`}>
-                    <Icon className="h-5 w-5" />
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleEditArticle(article)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDeleteClick(article)}
-                    >
-                      <Trash2 className="h-4 w-4 text-red-500" />
-                    </Button>
-                  </div>
-                </div>
-
-                <h3 className="font-semibold text-lg mb-2 line-clamp-2">{article.title}</h3>
-                <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                  {getArticleSummary(article)}
-                </p>
-
-                <div className="flex flex-wrap gap-2 mb-3">
-                  {article.tags.slice(0, 3).map((tag) => (
-                    <Badge key={tag} variant="secondary" className="text-xs">
-                      {tag}
-                    </Badge>
-                  ))}
-                  {article.tags.length > 3 && (
-                    <Badge variant="secondary" className="text-xs">
-                      +{article.tags.length - 3} more
-                    </Badge>
-                  )}
-                </div>
-
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>{config.label}</span>
-                  {article.attachment_count > 0 && (
-                    <div className="flex items-center gap-1">
-                      <FileText className="h-3 w-3" />
-                      <span>{article.attachment_count}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+      {articlesContent}
 
       {/* Article Form Dialog */}
       <ArticleForm

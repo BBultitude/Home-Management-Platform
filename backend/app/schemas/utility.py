@@ -52,14 +52,14 @@ class UtilityResponse(BaseModel):
     provider: str
     billing_period_start: date
     billing_period_end: date
-    usage: Optional[float]  # None for fixed-cost utilities
-    unit: Optional[str]  # None for fixed-cost utilities
+    usage: Optional[float] = None  # None for fixed-cost utilities
+    unit: Optional[str] = None  # None for fixed-cost utilities
     cost: float
-    cost_per_unit: Optional[float]  # None for fixed-cost utilities
-    solar_feed_in: Optional[float]  # Electricity fed to grid (kWh)
-    solar_feed_in_credit: Optional[float]  # Credit for solar feed-in ($)
-    attachment_id: Optional[int]
-    notes: Optional[str]
+    cost_per_unit: Optional[float] = None  # None for fixed-cost utilities
+    solar_feed_in: Optional[float] = None  # Electricity fed to grid (kWh)
+    solar_feed_in_credit: Optional[float] = None  # Credit for solar feed-in ($)
+    attachment_id: Optional[int] = None
+    notes: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 

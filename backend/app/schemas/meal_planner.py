@@ -138,13 +138,13 @@ class WeekPlanResponse(BaseModel):
     """Schema for week plan response"""
     id: str
     week_starting: str
-    monday_meal_id: Optional[str]
-    tuesday_meal_id: Optional[str]
-    wednesday_meal_id: Optional[str]
-    thursday_meal_id: Optional[str]
-    friday_meal_id: Optional[str]
-    saturday_meal_id: Optional[str]
-    sunday_meal_id: Optional[str]
+    monday_meal_id: Optional[str] = None
+    tuesday_meal_id: Optional[str] = None
+    wednesday_meal_id: Optional[str] = None
+    thursday_meal_id: Optional[str] = None
+    friday_meal_id: Optional[str] = None
+    saturday_meal_id: Optional[str] = None
+    sunday_meal_id: Optional[str] = None
     created_at: str
     updated_at: str
 
@@ -154,8 +154,8 @@ class WeekPlanResponse(BaseModel):
 class MealAssignment(BaseModel):
     """Schema for a meal assignment with recipe details"""
     day: str = Field(..., description="Day of week")
-    meal_id: Optional[str]
-    meal_name: Optional[str]
+    meal_id: Optional[str] = None
+    meal_name: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 

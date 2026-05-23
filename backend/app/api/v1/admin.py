@@ -10,7 +10,7 @@ import subprocess
 import tempfile
 import zipfile
 from datetime import datetime, timezone
-from typing import Optional
+from typing import Annotated, Optional
 from urllib.parse import urlparse
 from uuid import UUID
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
@@ -43,13 +43,13 @@ router = APIRouter(prefix="/admin", tags=["admin"])
 
 @router.get("/users", response_model=UserListResponse)
 async def list_users(
-    search: Optional[str] = Query(None, description="Search by username, email, or name"),
-    role: Optional[str] = Query(None, description="Filter by role: admin, editor, reader"),
-    is_active: Optional[bool] = Query(None, description="Filter by active status"),
-    limit: int = Query(100, ge=1, le=500),
-    offset: int = Query(0, ge=0),
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db)
+    search: Annotated[Optional[str], Query(None, description="Search by username, email, or name")],
+    role: Annotated[Optional[str], Query(None, description="Filter by role: admin, editor, reader")],
+    is_active: Annotated[Optional[bool], Query(None, description="Filter by active status")],
+    limit: Annotated[int, Query(100, ge=1, le=500)],
+    offset: Annotated[int, Query(0, ge=0)],
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     List all users with optional filtering (admin only)
@@ -99,8 +99,8 @@ async def list_users(
 @router.get("/users/{user_id}", response_model=UserDetailResponse)
 async def get_user(
     user_id: UUID,
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """Get user details by ID (admin only)"""
     user = AdminService.get_user_by_id(db, user_id)
@@ -123,8 +123,8 @@ async def get_user(
 async def update_user(
     user_id: UUID,
     user_data: UserUpdateRequest,
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Update user details (admin only)
@@ -159,8 +159,8 @@ async def update_user(
 async def update_user_role(
     user_id: UUID,
     role_data: UserRoleUpdateRequest,
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Update user role (admin only)
@@ -194,8 +194,8 @@ async def update_user_role(
 async def toggle_user_active(
     user_id: UUID,
     active_data: UserActiveUpdateRequest,
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Activate or deactivate user (admin only)
@@ -228,8 +228,8 @@ async def toggle_user_active(
 @router.delete("/users/{user_id}")
 async def delete_user(
     user_id: UUID,
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Delete user (admin only)
@@ -248,8 +248,8 @@ async def delete_user(
 @router.post("/users/{user_id}/reset-mfa", response_model=MFAResetResponse)
 async def reset_user_mfa(
     user_id: UUID,
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Reset user's MFA setup (admin only)
@@ -266,8 +266,8 @@ async def reset_user_mfa(
 
 @router.get("/stats", response_model=SystemStatsResponse)
 async def get_system_stats(
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Get system-wide statistics (admin only)
@@ -282,8 +282,8 @@ async def get_system_stats(
 @router.get("/users/{user_id}/stats", response_model=UserStatisticsResponse)
 async def get_user_statistics(
     user_id: UUID,
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Get statistics for a specific user (admin only)
@@ -300,12 +300,12 @@ async def get_user_statistics(
 @router.get("/audit/users/{user_id}", response_model=AuditLogListResponse)
 async def get_user_audit_logs(
     user_id: UUID,
-    module: Optional[str] = Query(None, description="Filter by module"),
-    action: Optional[str] = Query(None, description="Filter by action"),
-    limit: int = Query(100, ge=1, le=1000),
-    offset: int = Query(0, ge=0),
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db)
+    module: Annotated[Optional[str], Query(None, description="Filter by module")],
+    action: Annotated[Optional[str], Query(None, description="Filter by action")],
+    limit: Annotated[int, Query(100, ge=1, le=1000)],
+    offset: Annotated[int, Query(0, ge=0)],
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Get audit logs for a specific user (admin only)
@@ -334,12 +334,12 @@ async def get_user_audit_logs(
 @router.get("/audit/modules/{module}", response_model=AuditLogListResponse)
 async def get_module_audit_logs(
     module: str,
-    action: Optional[str] = Query(None, description="Filter by action"),
-    user_id: Optional[str] = Query(None, description="Filter by user"),
-    limit: int = Query(100, ge=1, le=1000),
-    offset: int = Query(0, ge=0),
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db)
+    action: Annotated[Optional[str], Query(None, description="Filter by action")],
+    user_id: Annotated[Optional[str], Query(None, description="Filter by user")],
+    limit: Annotated[int, Query(100, ge=1, le=1000)],
+    offset: Annotated[int, Query(0, ge=0)],
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Get audit logs for a specific module (admin only)
@@ -368,12 +368,12 @@ async def get_module_audit_logs(
 @router.get("/audit/actions/{action}", response_model=AuditLogListResponse)
 async def get_action_audit_logs(
     action: str,
-    module: Optional[str] = Query(None, description="Filter by module"),
-    user_id: Optional[str] = Query(None, description="Filter by user"),
-    limit: int = Query(100, ge=1, le=1000),
-    offset: int = Query(0, ge=0),
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db)
+    module: Annotated[Optional[str], Query(None, description="Filter by module")],
+    user_id: Annotated[Optional[str], Query(None, description="Filter by user")],
+    limit: Annotated[int, Query(100, ge=1, le=1000)],
+    offset: Annotated[int, Query(0, ge=0)],
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Get audit logs for a specific action (admin only)
@@ -403,8 +403,8 @@ async def get_action_audit_logs(
 
 @router.get("/backup/download")
 async def download_backup(
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db)
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)]
 ):
     """
     Download a full backup as a ZIP archive (admin only).
@@ -493,9 +493,9 @@ async def download_backup(
 
 @router.post("/backup/restore")
 async def restore_backup(
-    file: UploadFile = File(...),
-    current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db),
+    file: Annotated[UploadFile, File(...)],
+    current_user: Annotated[User, Depends(require_admin)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """
     Restore database and files from a backup ZIP (admin only).

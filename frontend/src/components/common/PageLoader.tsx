@@ -1,8 +1,8 @@
 import { Spinner } from '@/components/ui/spinner';
 
-interface PageLoaderProps {
+type PageLoaderProps = Readonly<{
   message?: string;
-}
+}>
 
 export function PageLoader({ message = 'Loading...' }: PageLoaderProps) {
   return (

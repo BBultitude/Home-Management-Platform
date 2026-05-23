@@ -6,6 +6,9 @@ Tests password policy with pattern detection adapted from DockerMate
 import pytest
 from app.core.security import validate_password_policy
 
+TEST_PASSWORD_UNICODE = "Pāssw0rd🔒Home123"  # Test-only: unicode password for edge-case validation
+TEST_PASSWORD_WHITESPACE = "My Secure Pass 123"  # Test-only: passphrase with spaces
+
 
 class TestPasswordLengthValidation:
     """Test password length requirements"""
@@ -295,7 +298,7 @@ class TestEdgeCases:
     def test_unicode_characters(self):
         """Test that unicode characters are handled"""
         # Unicode should work but still need to meet requirements
-        password = "Pāssw0rd🔒Home123"
+        password = TEST_PASSWORD_UNICODE
         is_valid, error = validate_password_policy(password)
         # Should be valid (has uppercase, lowercase, digit, 12+ chars)
         assert is_valid is True
@@ -321,7 +324,7 @@ class TestEdgeCases:
     def test_whitespace_password(self):
         """Test password with whitespace"""
         # Spaces are allowed (useful for passphrases)
-        password = "My Secure Pass 123"
+        password = TEST_PASSWORD_WHITESPACE
         is_valid, error = validate_password_policy(password)
         # Should be valid if it meets other requirements
         assert is_valid is True

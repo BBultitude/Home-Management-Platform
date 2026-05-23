@@ -3,7 +3,7 @@ Project Service
 Handles CRUD operations for home improvement projects
 """
 
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from decimal import Decimal
 from typing import Optional
 from uuid import UUID
@@ -132,7 +132,7 @@ class ProjectService:
         if notes is not None:
             project.notes = notes
 
-        project.updated_at = datetime.utcnow()
+        project.updated_at = datetime.now(timezone.utc)
 
         db.commit()
         db.refresh(project)

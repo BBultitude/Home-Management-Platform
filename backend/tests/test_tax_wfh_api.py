@@ -36,7 +36,7 @@ class TestCreateWFHEntry:
         assert response.status_code == 200
         data = response.json()
         assert data["date"] == "2024-01-15"
-        assert data["hours"] == 8.0
+        assert data["hours"] == pytest.approx(8.0)
         assert data["notes"] == "Full day from home"
         assert data["deduction_amount"] == pytest.approx(5.36, rel=0.01)  # 8 * 0.67
 
@@ -194,7 +194,7 @@ class TestGetWFHEntry:
         data = response.json()
         assert data["id"] == entry.id
         assert data["date"] == "2024-01-15"
-        assert data["hours"] == 8.0
+        assert data["hours"] == pytest.approx(8.0)
 
     def test_get_entry_not_found(self, client: TestClient, test_user: User):
         """Get non-existent entry returns 404"""
@@ -236,7 +236,7 @@ class TestUpdateWFHEntry:
         assert response.status_code == 200
 
         data = response.json()
-        assert data["hours"] == 6.5
+        assert data["hours"] == pytest.approx(6.5)
         assert data["notes"] == "Updated notes"
 
 

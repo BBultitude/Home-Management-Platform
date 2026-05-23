@@ -34,7 +34,7 @@ class BankAccountResponse(BaseModel):
     id: int
     account_name: str
     account_type: str
-    current_balance: Optional[float]
+    current_balance: Optional[float] = None
     created_at: datetime
     updated_at: datetime
 

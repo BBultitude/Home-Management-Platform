@@ -79,15 +79,15 @@ export default function DocumentsTab() {
   const handleDownloadInsuranceDoc = async (policy: InsurancePolicy) => {
     if (!policy.document_id) return;
     try {
-      const blob = await fileService.download(parseInt(policy.document_id));
-      const url = window.URL.createObjectURL(blob);
+      const blob = await fileService.download(Number.parseInt(policy.document_id));
+      const url = globalThis.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
       a.download = `${policy.provider}_${policy.policy_type}.pdf`;
       document.body.appendChild(a);
       a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
+      a.remove();
+      globalThis.URL.revokeObjectURL(url);
     } catch {
       toast.error('Failed to download file');
     }
@@ -144,7 +144,7 @@ export default function DocumentsTab() {
         tags: tags.length > 0 ? tags : undefined,
         uploaded_date: formUploadedDate ? format(formUploadedDate, 'yyyy-MM-dd') : undefined,
         expiry_date: formExpiryDate ? format(formExpiryDate, 'yyyy-MM-dd') : undefined,
-        file_id: parseInt(formFileId),
+        file_id: Number.parseInt(formFileId),
       };
 
       if (editingDocument) {
@@ -322,7 +322,7 @@ export default function DocumentsTab() {
             <div className="text-3xl font-bold">
               {documents.filter(d => {
                 if (!d.expiry_date) return false;
-                const days = Math.floor((new Date(d.expiry_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+                const days = Math.floor((new Date(d.expiry_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
                 return days >= 0 && days <= 30;
               }).length}
             </div>
@@ -601,7 +601,7 @@ export default function DocumentsTab() {
 
             <FileUploadInput
               category="ASSET"
-              fileId={formFileId ? parseInt(formFileId) : null}
+              fileId={formFileId ? Number.parseInt(formFileId) : null}
               onUploadSuccess={(id) => setFormFileId(id.toString())}
               onDelete={() => setFormFileId('')}
               label="Document File"

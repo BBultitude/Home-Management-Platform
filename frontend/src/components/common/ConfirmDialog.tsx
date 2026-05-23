@@ -9,7 +9,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
-interface ConfirmDialogProps {
+type ConfirmDialogProps = Readonly<{
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: () => void | Promise<void>;
@@ -18,7 +18,7 @@ interface ConfirmDialogProps {
   confirmText?: string;
   cancelText?: string;
   variant?: 'default' | 'destructive';
-}
+}>
 
 export function ConfirmDialog({
   open,

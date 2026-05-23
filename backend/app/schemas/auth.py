@@ -51,7 +51,7 @@ class UserResponse(BaseModel):
     is_active: bool
     mfa_enabled: bool
     created_at: datetime
-    last_login: Optional[datetime]
+    last_login: Optional[datetime] = None
 
     class Config:
         from_attributes = True

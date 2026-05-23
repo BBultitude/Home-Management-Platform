@@ -4,7 +4,7 @@ Tests audit logging functionality and query methods
 """
 
 import pytest
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from app.services.audit_service import AuditService
 from app.models.audit_log import EventType, Severity, AuditLog
@@ -391,7 +391,7 @@ class TestAuditLogCleanup:
         log = AuditService.log_login_success(test_db, test_user, "192.168.1.1", "Mozilla/5.0")
 
         # Manually set timestamp to 3 years ago
-        log.timestamp = datetime.utcnow() - timedelta(days=1095)
+        log.timestamp = datetime.now(timezone.utc) - timedelta(days=1095)
         test_db.commit()
 
         # Cleanup logs older than 2 years
@@ -404,7 +404,7 @@ class TestAuditLogCleanup:
         log = AuditService.log_tax_wfh_create(
             test_db, test_user, "192.168.1.1", "Mozilla/5.0", 123, {}
         )
-        log.timestamp = datetime.utcnow() - timedelta(days=1095)  # 3 years ago
+        log.timestamp = datetime.now(timezone.utc) - timedelta(days=1095)  # 3 years ago
         test_db.commit()
 
         # Regular cleanup (2 years) should NOT delete tax logs
@@ -421,7 +421,7 @@ class TestAuditLogCleanup:
         log = AuditService.log_tax_wfh_create(
             test_db, test_user, "192.168.1.1", "Mozilla/5.0", 123, {}
         )
-        log.timestamp = datetime.utcnow() - timedelta(days=2000)  # ~5.5 years
+        log.timestamp = datetime.now(timezone.utc) - timedelta(days=2000)  # ~5.5 years
         test_db.commit()
 
         # Cleanup tax logs older than 5 years
@@ -434,7 +434,7 @@ class TestAuditLogCleanup:
         log = AuditService.log_tax_wfh_create(
             test_db, test_user, "192.168.1.1", "Mozilla/5.0", 123, {}
         )
-        log.timestamp = datetime.utcnow() - timedelta(days=1460)  # 4 years
+        log.timestamp = datetime.now(timezone.utc) - timedelta(days=1460)  # 4 years
         test_db.commit()
 
         # Should NOT be deleted (still within 5 years)

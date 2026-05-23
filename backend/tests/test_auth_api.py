@@ -9,6 +9,15 @@ from sqlalchemy.orm import Session
 from app.models.user import User, UserRole
 from app.services.auth_service import AuthService
 
+TEST_PASSWORD = "TestPassword123"  # Test-only credential
+TEST_PASSWORD_OLD = "OldPassword123"  # Test-only credential (change-password tests)
+TEST_PASSWORD_NEW = "NewPassword456"  # Test-only credential (change-password tests)
+TEST_PASSWORD_WRONG = "WrongPassword"  # Test-only: intentionally incorrect password
+TEST_PASSWORD_NONEXISTENT = "SomePassword123"  # Test-only: password for non-existent user
+TEST_PASSWORD_REGISTER = "NewPassword123"  # Test-only credential (registration tests)
+TEST_PASSWORD_TOO_SHORT = "Short1"  # Test-only: intentionally invalid (too short) password
+TEST_PASSWORD_WEAK = "Password123"  # Test-only: intentionally weak password
+
 
 class TestAuthAPI:
     """Test suite for authentication API endpoints"""
@@ -20,7 +29,7 @@ class TestAuthAPI:
             db=db_session,
             username="testuser",
             email="test@example.com",
-            password="TestPassword123",
+            password=TEST_PASSWORD,
             full_name="Test User",
             role=UserRole.READER
         )
@@ -28,7 +37,7 @@ class TestAuthAPI:
         # Login
         response = client.post(
             "/api/v1/auth/login",
-            json={"username": "testuser", "password": "TestPassword123"}
+            json={"username": "testuser", "password": TEST_PASSWORD}
         )
 
         assert response.status_code == 200
@@ -49,7 +58,7 @@ class TestAuthAPI:
             db=db_session,
             username="testuser",
             email="test@example.com",
-            password="TestPassword123",
+            password=TEST_PASSWORD,
             full_name="Test User",
             role=UserRole.READER
         )
@@ -57,7 +66,7 @@ class TestAuthAPI:
         # Try to login with wrong password
         response = client.post(
             "/api/v1/auth/login",
-            json={"username": "testuser", "password": "WrongPassword"}
+            json={"username": "testuser", "password": TEST_PASSWORD_WRONG}
         )
 
         assert response.status_code == 401
@@ -67,7 +76,7 @@ class TestAuthAPI:
         """Test login with nonexistent user"""
         response = client.post(
             "/api/v1/auth/login",
-            json={"username": "nonexistent", "password": "SomePassword123"}
+            json={"username": "nonexistent", "password": TEST_PASSWORD_NONEXISTENT}
         )
 
         assert response.status_code == 401
@@ -80,14 +89,14 @@ class TestAuthAPI:
             db=db_session,
             username="testuser",
             email="test@example.com",
-            password="TestPassword123",
+            password=TEST_PASSWORD,
             full_name="Test User",
             role=UserRole.READER
         )
 
         login_response = client.post(
             "/api/v1/auth/login",
-            json={"username": "testuser", "password": "TestPassword123"}
+            json={"username": "testuser", "password": TEST_PASSWORD}
         )
 
         # Get current user
@@ -118,7 +127,7 @@ class TestAuthAPI:
             json={
                 "username": "newuser",
                 "email": "new@example.com",
-                "password": "NewPassword123",
+                "password": TEST_PASSWORD_REGISTER,
                 "full_name": "New User",
                 "role": "Editor"
             }
@@ -138,7 +147,7 @@ class TestAuthAPI:
             db=db_session,
             username="testuser",
             email="test@example.com",
-            password="TestPassword123",
+            password=TEST_PASSWORD,
             full_name="Test User",
             role=UserRole.READER
         )
@@ -152,7 +161,7 @@ class TestAuthAPI:
             json={
                 "username": "newuser",
                 "email": "new@example.com",
-                "password": "NewPassword123",
+                "password": TEST_PASSWORD_REGISTER,
                 "full_name": "New User",
                 "role": "Reader"
             }
@@ -168,7 +177,7 @@ class TestAuthAPI:
             db=db_session,
             username="testuser",
             email="test@example.com",
-            password="TestPassword123",
+            password=TEST_PASSWORD,
             full_name="Test User",
             role=UserRole.READER
         )
@@ -183,7 +192,7 @@ class TestAuthAPI:
             json={
                 "username": "testuser",
                 "email": "different@example.com",
-                "password": "NewPassword123",
+                "password": TEST_PASSWORD_REGISTER,
                 "full_name": "Different User",
                 "role": "Reader"
             }
@@ -199,14 +208,14 @@ class TestAuthAPI:
             db=db_session,
             username="testuser",
             email="test@example.com",
-            password="TestPassword123",
+            password=TEST_PASSWORD,
             full_name="Test User",
             role=UserRole.READER
         )
 
         client.post(
             "/api/v1/auth/login",
-            json={"username": "testuser", "password": "TestPassword123"}
+            json={"username": "testuser", "password": TEST_PASSWORD}
         )
 
         # Logout
@@ -224,22 +233,22 @@ class TestAuthAPI:
             db=db_session,
             username="testuser",
             email="test@example.com",
-            password="OldPassword123",
+            password=TEST_PASSWORD_OLD,
             full_name="Test User",
             role=UserRole.READER
         )
 
         client.post(
             "/api/v1/auth/login",
-            json={"username": "testuser", "password": "OldPassword123"}
+            json={"username": "testuser", "password": TEST_PASSWORD_OLD}
         )
 
         # Change password
         response = client.post(
             "/api/v1/auth/change-password",
             json={
-                "current_password": "OldPassword123",
-                "new_password": "NewPassword456"
+                "current_password": TEST_PASSWORD_OLD,
+                "new_password": TEST_PASSWORD_NEW
             }
         )
 
@@ -250,7 +259,7 @@ class TestAuthAPI:
         client.post("/api/v1/auth/logout")
         login_response = client.post(
             "/api/v1/auth/login",
-            json={"username": "testuser", "password": "NewPassword456"}
+            json={"username": "testuser", "password": TEST_PASSWORD_NEW}
         )
 
         assert login_response.status_code == 200
@@ -262,22 +271,22 @@ class TestAuthAPI:
             db=db_session,
             username="testuser",
             email="test@example.com",
-            password="OldPassword123",
+            password=TEST_PASSWORD_OLD,
             full_name="Test User",
             role=UserRole.READER
         )
 
         client.post(
             "/api/v1/auth/login",
-            json={"username": "testuser", "password": "OldPassword123"}
+            json={"username": "testuser", "password": TEST_PASSWORD_OLD}
         )
 
         # Try to change password with wrong current password
         response = client.post(
             "/api/v1/auth/change-password",
             json={
-                "current_password": "WrongPassword",
-                "new_password": "NewPassword456"
+                "current_password": TEST_PASSWORD_WRONG,
+                "new_password": TEST_PASSWORD_NEW
             }
         )
 
@@ -296,7 +305,7 @@ class TestAuthAPI:
             json={
                 "username": "newuser",
                 "email": "new@example.com",
-                "password": "Short1",  # Only 6 characters
+                "password": TEST_PASSWORD_TOO_SHORT,  # Only 6 characters
                 "full_name": "New User",
                 "role": "Reader"
             }
@@ -317,7 +326,7 @@ class TestAuthAPI:
             json={
                 "username": "ab",  # Only 2 characters
                 "email": "new@example.com",
-                "password": "Password123",
+                "password": TEST_PASSWORD_WEAK,
                 "full_name": "New User",
                 "role": "Reader"
             }

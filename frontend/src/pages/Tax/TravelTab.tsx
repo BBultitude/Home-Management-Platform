@@ -17,9 +17,9 @@ import type { TravelEntry, TravelEntryCreate } from '@/services/taxService';
 import { getErrorMessage } from '@/lib/errorMessages';
 import { toast } from 'sonner';
 
-interface TravelTabProps {
+type TravelTabProps = Readonly<{
   financialYear: string;
-}
+}>
 
 export function TravelTab({ financialYear }: TravelTabProps) {
   const [entries, setEntries] = useState<TravelEntry[]>([]);
@@ -102,8 +102,8 @@ export function TravelTab({ financialYear }: TravelTabProps) {
       return;
     }
 
-    const distance = parseFloat(formDistanceKm);
-    if (isNaN(distance) || distance <= 0 || distance > 10000) {
+    const distance = Number.parseFloat(formDistanceKm);
+    if (Number.isNaN(distance) || distance <= 0 || distance > 10000) {
       toast.error('Distance must be between 0 and 10,000 km');
       return;
     }

@@ -44,7 +44,7 @@ class UserDetailResponse(BaseModel):
     mfa_enabled: bool
     created_at: str
     updated_at: str
-    last_login: Optional[str]
+    last_login: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -100,7 +100,7 @@ class UserActivityStats(BaseModel):
     updates: int
     deletes: int
     logins: int
-    last_login: Optional[str]
+    last_login: Optional[str] = None
 
 
 class UserAccountInfo(BaseModel):

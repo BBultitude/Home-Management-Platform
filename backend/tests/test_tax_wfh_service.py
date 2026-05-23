@@ -12,6 +12,8 @@ from app.services.tax_wfh_service import TaxWFHService
 from app.models.tax_wfh import TaxWFHEntry
 from app.models.user import User, UserRole
 
+TEST_HASHED_PASSWORD = "hashed"  # Test-only placeholder for hashed_password field
+
 
 class TestCreateEntry:
     """Test creating WFH entries"""
@@ -164,7 +166,7 @@ class TestUpdateEntry:
         other_user = User(
             username="otheruser",
             email="other@example.com",
-            hashed_password="hashed",
+            hashed_password=TEST_HASHED_PASSWORD,
             full_name="Other User",
             role=UserRole.READER
         )
@@ -217,7 +219,7 @@ class TestDeleteEntry:
         other_user = User(
             username="otheruser",
             email="other@example.com",
-            hashed_password="hashed",
+            hashed_password=TEST_HASHED_PASSWORD,
             full_name="Other User",
             role=UserRole.READER
         )
@@ -320,7 +322,7 @@ class TestFYSummary:
 
         assert summary["financial_year"] == 2024
         assert summary["total_days"] == 3
-        assert summary["total_hours"] == 21.5  # 8 + 6.5 + 7
+        assert summary["total_hours"] == pytest.approx(21.5)  # 8 + 6.5 + 7
         assert summary["total_deduction"] == pytest.approx(14.405, rel=0.01)  # 21.5 * 0.67
 
     def test_fy_summary_excludes_other_years(self, test_db: Session, test_user: User):
@@ -349,7 +351,7 @@ class TestFYSummary:
         )
 
         assert summary["total_days"] == 1
-        assert summary["total_hours"] == 6.0
+        assert summary["total_hours"] == pytest.approx(6.0)
 
     def test_get_current_fy_year(self):
         """Get current FY year correctly"""

@@ -51,15 +51,15 @@ class InsurancePolicyResponse(BaseModel):
     id: str
     policy_type: str
     provider: str
-    policy_number: Optional[str]
-    coverage_amount: Optional[float]
+    policy_number: Optional[str] = None
+    coverage_amount: Optional[float] = None
     premium: float
     premium_frequency: str
-    excess: Optional[float]
+    excess: Optional[float] = None
     renewal_date: str
-    coverage_notes: Optional[str]
-    document_id: Optional[str]
-    vehicle_id: Optional[str]
+    coverage_notes: Optional[str] = None
+    document_id: Optional[str] = None
+    vehicle_id: Optional[str] = None
     created_at: str
     updated_at: str
     days_until_renewal: Optional[int] = None

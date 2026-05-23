@@ -30,12 +30,12 @@ class NotificationResponse(BaseModel):
     category: str
     title: str
     message: str
-    action_url: Optional[str]
-    action_label: Optional[str]
+    action_url: Optional[str] = None
+    action_label: Optional[str] = None
     is_read: bool
     is_dismissed: bool
     created_at: str
-    read_at: Optional[str]
+    read_at: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -76,7 +76,7 @@ class ProjectsWidget(BaseModel):
 
 class MealPlanWidget(BaseModel):
     """Schema for meal plan widget"""
-    current_week: Optional[dict]
+    current_week: Optional[dict] = None
 
 
 class FinancialWidget(BaseModel):
