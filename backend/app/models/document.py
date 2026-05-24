@@ -35,7 +35,7 @@ class Document(Base):
     title = Column(String(255), nullable=False)
     description = Column(Text, nullable=True)
     category = Column(String(100), nullable=True)
-    tags = Column(ARRAY(String), nullable=True, default=[])
+    tags = Column(ARRAY(String), nullable=True, default=None)
     uploaded_date = Column(Date, default=date.today, nullable=False)
     expiry_date = Column(Date, nullable=True)
     file_id = Column(Integer, ForeignKey("files.id", ondelete="CASCADE"), nullable=False)

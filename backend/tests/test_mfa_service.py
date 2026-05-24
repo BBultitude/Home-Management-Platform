@@ -237,7 +237,7 @@ class TestTrustedDevices:
             user_id=test_user.id,
             device_name="My Phone",
             device_fingerprint="unique-fingerprint-123",
-            ip_address="192.168.1.100",
+            ip_address="192.168.1.100",  # NOSONAR
             user_agent="Mozilla/5.0"
         )
 
@@ -247,7 +247,7 @@ class TestTrustedDevices:
         assert device.device_fingerprint == "unique-fingerprint-123"
         assert device.is_active is True
         assert device.device_token is not None
-        assert device.expires_at > datetime.now(timezone.utc)
+        assert device.expires_at > datetime.now(timezone.utc).replace(tzinfo=None)
 
     def test_verify_trusted_device_success(self, test_db, test_user):
         """Test verifying a valid trusted device"""

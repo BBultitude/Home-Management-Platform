@@ -5,7 +5,6 @@ Aggregates data from all modules for dashboard widgets
 
 from datetime import date, datetime, timedelta
 from typing import Optional
-from uuid import UUID
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 
@@ -23,7 +22,7 @@ class DashboardService:
     """Service for dashboard data aggregation"""
 
     @staticmethod
-    def get_dashboard_summary(db: Session, user_id: UUID) -> dict:
+    def get_dashboard_summary(db: Session, user_id: int) -> dict:
         """
         Get comprehensive dashboard summary
 
@@ -149,9 +148,9 @@ class DashboardService:
             "active_projects": [
                 {
                     "id": str(p.id),
-                    "name": p.name,
-                    "status": p.status.value,
-                    "estimated_cost": float(p.estimated_cost) if p.estimated_cost else None,
+                    "name": p.project_name,
+                    "status": p.status,
+                    "estimated_cost": float(p.budget) if p.budget else None,
                     "created_at": p.created_at.isoformat()
                 }
                 for p in active_projects
@@ -213,29 +212,25 @@ class DashboardService:
         """
         # Get this month's expenses
         today = date.today()
-        month_start = date(today.year, today.month, 1)
-        next_month = month_start + timedelta(days=32)
-        month_end = date(next_month.year, next_month.month, 1) - timedelta(days=1)
 
-        # Monthly expenses total
-        monthly_expenses = db.query(func.sum(Expense.amount)).filter(
-            Expense.expense_date.between(month_start, month_end)
-        ).scalar() or 0
+        # Monthly expenses total (Expense records are recurring — no per-transaction date)
+        monthly_expenses = db.query(func.sum(Expense.amount)).scalar() or 0
 
         # Upcoming insurance premiums (next 30 days)
         threshold_30 = today + timedelta(days=30)
-        upcoming_premiums = db.query(func.sum(InsurancePolicy.premium_amount)).filter(
+        upcoming_premiums = db.query(func.sum(InsurancePolicy.premium)).filter(
             InsurancePolicy.renewal_date.between(today, threshold_30)
         ).scalar() or 0
 
         return {
             "monthly_expenses": float(monthly_expenses),
+            "utility_costs_this_month": 0.0,
             "upcoming_insurance_premiums": float(upcoming_premiums),
             "month": today.strftime("%B %Y")
         }
 
     @staticmethod
-    def get_notifications_widget(db: Session, user_id: UUID, limit: int = 5) -> dict:
+    def get_notifications_widget(db: Session, user_id: int, limit: int = 5) -> dict:
         """
         Get recent notifications widget
 
@@ -276,7 +271,7 @@ class DashboardService:
         }
 
     @staticmethod
-    def get_quick_stats(db: Session, user_id: UUID) -> dict:
+    def get_quick_stats(db: Session, user_id: int) -> dict:
         """
         Get quick statistics for dashboard header
 
@@ -294,7 +289,7 @@ class DashboardService:
                 Project.status.in_([ProjectStatus.APPROVED, ProjectStatus.IN_PROGRESS])
             ).count(),
             "priority_items_count": db.query(PriorityItem).filter(
-                PriorityItem.status == PriorityStatus.IDENTIFIED
+                PriorityItem.status == PriorityStatus.PENDING.value
             ).count(),
             "insurance_policies_count": db.query(InsurancePolicy).count(),
             "unread_notifications_count": db.query(Notification).filter(
@@ -314,8 +309,7 @@ class DashboardService:
         """
         from app.models.tax_wfh import TaxWFHEntry
         from app.models.tax_travel import TaxTravelEntry
-        from app.services.tax_wfh_service import TaxWFHService
-        from app.services.tax_travel_service import TaxTravelService
+        from decimal import Decimal
 
         # Get current FY dates
         today = date.today()
@@ -330,13 +324,13 @@ class DashboardService:
         wfh_entries = db.query(TaxWFHEntry).filter(
             TaxWFHEntry.date.between(fy_start, fy_end)
         ).all()
-        wfh_total = TaxWFHService._calculate_ato_total(wfh_entries)
+        wfh_total = sum(entry.deduction_amount for entry in wfh_entries)
 
         # Get Travel summary
         travel_entries = db.query(TaxTravelEntry).filter(
             TaxTravelEntry.date.between(fy_start, fy_end)
         ).all()
-        travel_total = sum(entry.distance_km for entry in travel_entries) * TaxTravelService.ATO_RATE_PER_KM
+        travel_total = sum(entry.distance_km for entry in travel_entries) * Decimal("0.85")
 
         return {
             "financial_year": f"{fy_start.year}-{fy_end.year}",

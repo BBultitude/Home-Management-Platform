@@ -132,7 +132,7 @@ class TestTaxOwnershipAndReadAccess:
         request = Mock(spec=Request)
         request.path_params = {"tax_id": 123}
 
-        result = await checker(
+        result = checker(
             request=request,
             current_user=admin_user,
             db=test_db
@@ -167,7 +167,7 @@ class TestTaxOwnershipAndReadAccess:
         request = Mock(spec=Request)
         request.path_params = {"wfh_id": 456}
 
-        result = await checker(
+        result = checker(
             request=request,
             current_user=admin_user,
             db=test_db
@@ -183,7 +183,7 @@ class TestTaxOwnershipAndReadAccess:
         request = Mock(spec=Request)
         request.path_params = {"tax_id": 789}
 
-        result = await checker(
+        result = checker(
             request=request,
             current_user=admin_user,
             db=test_db

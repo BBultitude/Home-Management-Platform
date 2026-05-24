@@ -4,8 +4,10 @@ Pytest configuration and shared fixtures
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, ARRAY
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.compiler import compiles
+from sqlalchemy.dialects.postgresql import JSONB, TSVECTOR
 
 from app.main import app
 from app.db.database import Base, get_db
@@ -13,6 +15,24 @@ from app.models.user import User, UserRole
 from app.services.auth_service import AuthService
 from app.services.mfa_service import MFAService
 import pyotp
+
+# SQLite cannot render PostgreSQL-specific column types. Register TEXT fallbacks so
+# that Base.metadata.create_all() succeeds against the in-process test database.
+# Production (PostgreSQL) behaviour is completely unchanged.
+@compiles(JSONB, "sqlite")
+def _jsonb_sqlite(type_, compiler, **kw):
+    return "TEXT"
+
+
+@compiles(TSVECTOR, "sqlite")
+def _tsvector_sqlite(type_, compiler, **kw):
+    return "TEXT"
+
+
+@compiles(ARRAY, "sqlite")
+def _array_sqlite(type_, compiler, **kw):
+    return "TEXT"
+
 
 # Test database URL (SQLite for testing)
 import os

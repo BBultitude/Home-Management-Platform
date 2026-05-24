@@ -18,7 +18,7 @@ class NotificationService:
     @staticmethod
     def create_notification(
         db: Session,
-        user_id: UUID,
+        user_id: int,
         title: str,
         message: str,
         type: NotificationType = NotificationType.INFO,
@@ -77,7 +77,7 @@ class NotificationService:
     @staticmethod
     def list_notifications(
         db: Session,
-        user_id: UUID,
+        user_id: int,
         unread_only: bool = False,
         category: Optional[NotificationCategory] = None,
         limit: int = 50,
@@ -227,7 +227,7 @@ class NotificationService:
                         db=db,
                         user_id=user.id,
                         title=title,
-                        message=f"{policy.policy_type.value} policy '{policy.policy_name}' renews on {policy.renewal_date.strftime('%B %d, %Y')}",
+                        message=f"{policy.policy_type} policy with {policy.provider} (#{policy.policy_number}) renews on {policy.renewal_date.strftime('%B %d, %Y')}",
                         type=notification_type,
                         category=NotificationCategory.ASSETS,
                         action_url=f"/assets/insurance/{policy.id}",
@@ -284,7 +284,7 @@ class NotificationService:
                         db=db,
                         user_id=user.id,
                         title=title,
-                        message=f"{doc.document_type.value} '{doc.title}' expires on {doc.expiry_date.strftime('%B %d, %Y')}",
+                        message=f"{doc.document_type} '{doc.title}' expires on {doc.expiry_date.strftime('%B %d, %Y')}",
                         type=notification_type,
                         category=NotificationCategory.ASSETS,
                         action_url=f"/assets/documents/{doc.id}",
@@ -314,14 +314,14 @@ class NotificationService:
         for user in users:
             threshold_date = date.today() + timedelta(days=14)
             quotes = db.query(Quote).filter(
-                Quote.expires_at.isnot(None),
-                Quote.expires_at <= threshold_date,
-                Quote.expires_at >= date.today(),
-                Quote.is_selected == False  # Only notify on non-selected quotes
+                Quote.expiry_date.isnot(None),
+                Quote.expiry_date <= threshold_date,
+                Quote.expiry_date >= date.today(),
+                Quote.selected == False  # Only notify on non-selected quotes
             ).all()
 
             for quote in quotes:
-                days = (quote.expires_at - date.today()).days
+                days = (quote.expiry_date - date.today()).days
 
                 existing = db.query(Notification).filter(
                     Notification.user_id == user.id,
@@ -337,7 +337,7 @@ class NotificationService:
                         db=db,
                         user_id=user.id,
                         title=f"Quote expires in {days} days",
-                        message=f"Quote from {quote.contractor_name} ({quote.contractor_email}) expires on {quote.expires_at.strftime('%B %d, %Y')}",
+                        message=f"Quote from {quote.contractor_name} ({quote.contact_email}) expires on {quote.expiry_date.strftime('%B %d, %Y')}",
                         type=notification_type,
                         category=NotificationCategory.PROJECTS,
                         action_url=f"/projects/quotes/{quote.id}",

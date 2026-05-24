@@ -172,7 +172,7 @@ class TestNotificationService:
             message="Message 1"
         )
 
-        n2 = NotificationService.create_notification(
+        NotificationService.create_notification(
             db=db_session,
             user_id=test_user.id,
             title="Test 2",
@@ -301,12 +301,11 @@ class TestNotificationService:
 
         # Create insurance policy with upcoming renewal
         policy = InsurancePolicy(
-            policy_name="Test Policy",
             policy_type=PolicyType.HOME,
             provider="Test Provider",
             policy_number="TEST123",
-            premium_amount=1000.00,
-            premium_frequency=PremiumFrequency.YEARLY,
+            premium=1000.00,
+            premium_frequency=PremiumFrequency.ANNUALLY,
             renewal_date=date.today() + timedelta(days=15)
         )
         db_session.add(policy)
@@ -330,12 +329,27 @@ class TestNotificationService:
     def test_generate_document_expiry_notifications(self, db_session, test_user):
         """Test generating document expiry notifications"""
         from datetime import date
+        from app.models.file import File, FileCategory
+
+        # Create file record required by Document FK
+        file_record = File(
+            uploaded_by=test_user.id,
+            filename="test.pdf",
+            original_filename="test.pdf",
+            file_path="/uploads/other/test_doc.pdf",
+            mime_type="application/pdf",
+            file_size=1024,
+            category=FileCategory.OTHER
+        )
+        db_session.add(file_record)
+        db_session.flush()
 
         # Create document with upcoming expiry
         doc = Document(
             title="Test Document",
             document_type=DocumentType.CONTRACT,
-            expiry_date=date.today() + timedelta(days=20)
+            expiry_date=date.today() + timedelta(days=20),
+            file_id=file_record.id
         )
         db_session.add(doc)
         db_session.commit()
@@ -348,14 +362,24 @@ class TestNotificationService:
     def test_generate_quote_expiry_notifications(self, db_session, test_user):
         """Test generating quote expiry notifications"""
         from datetime import date
+        from app.models.project import Project
+
+        # Create project required by Quote FK
+        project = Project(
+            project_name="Test Project for Quote"
+        )
+        db_session.add(project)
+        db_session.flush()
 
         # Create quote with upcoming expiry
         quote = Quote(
+            project_id=project.id,
             contractor_name="Test Contractor",
-            contractor_email="test@example.com",
-            amount=5000.00,
-            expires_at=date.today() + timedelta(days=10),
-            is_selected=False
+            contact_email="test@example.com",
+            quote_amount=5000.00,
+            quote_date=date.today(),
+            expiry_date=date.today() + timedelta(days=10),
+            selected=False
         )
         db_session.add(quote)
         db_session.commit()

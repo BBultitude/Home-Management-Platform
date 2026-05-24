@@ -11,9 +11,10 @@ from sqlalchemy import func, or_
 from fastapi import HTTPException, status
 
 from app.models.user import User, UserRole
-from app.models.audit_log import AuditLog, AuditAction, AuditModule
+from app.models.audit_log import AuditLog, EventType, Severity
 from app.services.audit_service import AuditService
 from app.services.mfa_service import MFAService
+from app.core.security import encrypt_mfa_secret
 
 
 class AdminService:
@@ -165,14 +166,14 @@ class AdminService:
         db.commit()
         db.refresh(user)
 
-        # Audit log
-        AuditService.log(
+        AuditService.log_event(
             db=db,
+            event_type=EventType.USER_UPDATE,
             user_id=admin_user.id,
-            action=AuditAction.UPDATE,
-            module=AuditModule.USERS,
-            details=f"Admin updated user {user.username}",
-            metadata={
+            username=admin_user.username,
+            resource_type="user",
+            resource_id=user.id,
+            details={
                 "target_user_id": str(user_id),
                 "updated_fields": [k for k, v in {
                     "username": username,
@@ -236,14 +237,14 @@ class AdminService:
         db.commit()
         db.refresh(user)
 
-        # Audit log
-        AuditService.log(
+        AuditService.log_event(
             db=db,
+            event_type=EventType.USER_UPDATE,
             user_id=admin_user.id,
-            action=AuditAction.UPDATE,
-            module=AuditModule.USERS,
-            details=f"Changed role for user {user.username} from {old_role.value} to {new_role.value}",
-            metadata={
+            username=admin_user.username,
+            resource_type="user",
+            resource_id=user.id,
+            details={
                 "target_user_id": str(user_id),
                 "old_role": old_role.value,
                 "new_role": new_role.value
@@ -303,18 +304,15 @@ class AdminService:
         db.commit()
         db.refresh(user)
 
-        # Audit log
         action_text = "activated" if is_active else "deactivated"
-        AuditService.log(
+        AuditService.log_event(
             db=db,
+            event_type=EventType.USER_UPDATE,
             user_id=admin_user.id,
-            action=AuditAction.UPDATE,
-            module=AuditModule.USERS,
-            details=f"Admin {action_text} user {user.username}",
-            metadata={
-                "target_user_id": str(user_id),
-                "is_active": is_active
-            }
+            username=admin_user.username,
+            resource_type="user",
+            resource_id=user.id,
+            details={"target_user_id": str(user_id), "is_active": is_active, "action": action_text}
         )
 
         return user
@@ -361,18 +359,15 @@ class AdminService:
 
         username = user.username
 
-        # Audit log before deletion
-        AuditService.log(
+        AuditService.log_event(
             db=db,
+            event_type=EventType.USER_DELETE,
             user_id=admin_user.id,
-            action=AuditAction.DELETE,
-            module=AuditModule.USERS,
-            details=f"Admin deleted user {username}",
-            metadata={
-                "target_user_id": str(user_id),
-                "username": username,
-                "role": user.role.value
-            }
+            username=admin_user.username,
+            resource_type="user",
+            resource_id=user.id,
+            details={"target_user_id": str(user_id), "username": username, "role": user.role.value},
+            severity=Severity.WARNING
         )
 
         db.delete(user)
@@ -401,26 +396,24 @@ class AdminService:
         user = AdminService.get_user_by_id(db, user_id)
 
         # Generate new MFA secret
-        secret, qr_code = MFAService.generate_secret(user.username)
+        secret = MFAService.generate_mfa_secret()
+        qr_code = MFAService.generate_qr_code(user, secret)
 
         # Save encrypted secret
-        user.mfa_secret = MFAService.encrypt_secret(secret)
+        user.mfa_secret = encrypt_mfa_secret(secret)
         user.mfa_enabled = False  # User must re-enable after scanning
         user.updated_at = datetime.now(timezone.utc)
 
         db.commit()
 
-        # Audit log
-        AuditService.log(
+        AuditService.log_event(
             db=db,
+            event_type=EventType.USER_MFA_RESET,
             user_id=admin_user.id,
-            action=AuditAction.UPDATE,
-            module=AuditModule.AUTH,
-            details=f"Admin reset MFA for user {user.username}",
-            metadata={
-                "target_user_id": str(user_id),
-                "mfa_reset": True
-            }
+            username=admin_user.username,
+            resource_type="user",
+            resource_id=user.id,
+            details={"target_user_id": str(user_id), "mfa_reset": True}
         )
 
         return {
@@ -461,8 +454,8 @@ class AdminService:
         from datetime import timedelta
         seven_days_ago = datetime.now(timezone.utc) - timedelta(days=7)
         recent_logins = db.query(AuditLog).filter(
-            AuditLog.action == AuditAction.LOGIN,
-            AuditLog.created_at >= seven_days_ago
+            AuditLog.event_type == EventType.LOGIN_SUCCESS,
+            AuditLog.timestamp >= seven_days_ago
         ).count()
 
         total_audit_logs = db.query(AuditLog).count()
@@ -507,31 +500,31 @@ class AdminService:
 
         create_count = db.query(AuditLog).filter(
             AuditLog.user_id == user_id,
-            AuditLog.action == AuditAction.CREATE
+            AuditLog.event_type.like("%CREATE%")
         ).count()
 
         update_count = db.query(AuditLog).filter(
             AuditLog.user_id == user_id,
-            AuditLog.action == AuditAction.UPDATE
+            AuditLog.event_type.like("%UPDATE%")
         ).count()
 
         delete_count = db.query(AuditLog).filter(
             AuditLog.user_id == user_id,
-            AuditLog.action == AuditAction.DELETE
+            AuditLog.event_type.like("%DELETE%")
         ).count()
 
         login_count = db.query(AuditLog).filter(
             AuditLog.user_id == user_id,
-            AuditLog.action == AuditAction.LOGIN
+            AuditLog.event_type == EventType.LOGIN_SUCCESS
         ).count()
 
         # Last login
         last_login_log = db.query(AuditLog).filter(
             AuditLog.user_id == user_id,
-            AuditLog.action == AuditAction.LOGIN
-        ).order_by(AuditLog.created_at.desc()).first()
+            AuditLog.event_type == EventType.LOGIN_SUCCESS
+        ).order_by(AuditLog.timestamp.desc()).first()
 
-        last_login = last_login_log.created_at if last_login_log else None
+        last_login = last_login_log.timestamp if last_login_log else None
 
         return {
             "user_id": str(user_id),

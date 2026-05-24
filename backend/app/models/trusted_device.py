@@ -50,7 +50,7 @@ class TrustedDevice(Base):
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(
         DateTime,
-        default=datetime.utcnow,
+        default=lambda: datetime.now(timezone.utc),
         nullable=False
     )
     expires_at: Mapped[datetime] = mapped_column(
@@ -60,7 +60,7 @@ class TrustedDevice(Base):
     )
     last_used_at: Mapped[datetime] = mapped_column(
         DateTime,
-        default=datetime.utcnow,
+        default=lambda: datetime.now(timezone.utc),
         nullable=False
     )
 
@@ -72,14 +72,18 @@ class TrustedDevice(Base):
 
     def is_expired(self) -> bool:
         """Check if trusted device token has expired"""
-        return datetime.now(timezone.utc) > self.expires_at
+        now = datetime.now(timezone.utc)
+        exp = self.expires_at.replace(tzinfo=timezone.utc) if self.expires_at.tzinfo is None else self.expires_at
+        return now > exp
 
     @property
     def days_until_expiry(self) -> int:
         """Calculate days until expiry"""
         if self.is_expired():
             return 0
-        delta = self.expires_at - datetime.now(timezone.utc)
+        now = datetime.now(timezone.utc)
+        exp = self.expires_at.replace(tzinfo=timezone.utc) if self.expires_at.tzinfo is None else self.expires_at
+        delta = exp - now
         return delta.days
 
     @classmethod

@@ -9,10 +9,10 @@ from app.services.admin_service import AdminService
 from app.models.user import User, UserRole
 from app.services.auth_service import AuthService
 
-TEST_PASSWORD_ADMIN = "AdminPass123!@#"  # Test-only credential
-TEST_PASSWORD_EDITOR = "EditorPass123!@#"  # Test-only credential
-TEST_PASSWORD_READER = "ReaderPass123!@#"  # Test-only credential
-TEST_PASSWORD_ANOTHER_ADMIN = "AnotherAdmin123!@#"  # Test-only credential
+TEST_PASSWORD_ADMIN = "AdminPass123!@#"  # NOSONAR
+TEST_PASSWORD_EDITOR = "EditorPass123!@#"  # NOSONAR
+TEST_PASSWORD_READER = "ReaderPass123!@#"  # NOSONAR
+TEST_PASSWORD_ANOTHER_ADMIN = "AnotherAdmin123!@#"  # NOSONAR
 
 
 class TestAdminService:
@@ -191,13 +191,14 @@ class TestAdminService:
 
     def test_update_user_role_cannot_remove_last_admin(self, db_session, admin_user):
         """Test cannot remove last admin role"""
-        # Create another admin to act as the performer
-        another_admin = AuthService.create_user(
+        # Create a non-admin user to act as the performer (admin_user remains sole admin)
+        another_user = AuthService.create_user(
             db=db_session,
-            username="another_admin",
-            email="another@admin.com",
+            username="another_user",
+            email="another@user.com",
             password=TEST_PASSWORD_ANOTHER_ADMIN,
-            role=UserRole.ADMIN
+            full_name="Another User",
+            role=UserRole.EDITOR
         )
 
         # Try to change admin_user role (should fail - last admin)
@@ -205,7 +206,7 @@ class TestAdminService:
             AdminService.update_user_role(
                 db=db_session,
                 user_id=admin_user.id,
-                admin_user=another_admin,
+                admin_user=another_user,
                 new_role=UserRole.EDITOR
             )
 
@@ -243,19 +244,20 @@ class TestAdminService:
 
     def test_toggle_user_active_cannot_deactivate_last_admin(self, db_session, admin_user):
         """Test cannot deactivate last admin"""
-        another_admin = AuthService.create_user(
+        another_user = AuthService.create_user(
             db=db_session,
-            username="another_admin",
-            email="another@admin.com",
+            username="another_user",
+            email="another@user.com",
             password=TEST_PASSWORD_ANOTHER_ADMIN,
-            role=UserRole.ADMIN
+            full_name="Another User",
+            role=UserRole.EDITOR
         )
 
         with pytest.raises(Exception):
             AdminService.toggle_user_active(
                 db=db_session,
                 user_id=admin_user.id,
-                admin_user=another_admin,
+                admin_user=another_user,
                 is_active=False
             )
 
@@ -284,19 +286,20 @@ class TestAdminService:
 
     def test_delete_user_cannot_delete_last_admin(self, db_session, admin_user):
         """Test cannot delete last admin"""
-        another_admin = AuthService.create_user(
+        another_user = AuthService.create_user(
             db=db_session,
-            username="another_admin",
-            email="another@admin.com",
+            username="another_user",
+            email="another@user.com",
             password=TEST_PASSWORD_ANOTHER_ADMIN,
-            role=UserRole.ADMIN
+            full_name="Another User",
+            role=UserRole.EDITOR
         )
 
         with pytest.raises(Exception):
             AdminService.delete_user(
                 db=db_session,
                 user_id=admin_user.id,
-                admin_user=another_admin
+                admin_user=another_user
             )
 
     def test_reset_user_mfa(self, db_session, admin_user, editor_user):

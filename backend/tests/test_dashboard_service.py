@@ -36,12 +36,11 @@ class TestDashboardService:
         """Test getting alerts widget"""
         # Create insurance policy with upcoming renewal
         policy = InsurancePolicy(
-            policy_name="Test Policy",
             policy_type=PolicyType.HOME,
             provider="Test Provider",
             policy_number="TEST123",
-            premium_amount=1000.00,
-            premium_frequency=PremiumFrequency.YEARLY,
+            premium=1000.00,
+            premium_frequency=PremiumFrequency.ANNUALLY,
             renewal_date=date.today() + timedelta(days=5)
         )
         db_session.add(policy)
@@ -59,15 +58,17 @@ class TestDashboardService:
     def test_get_priorities_widget(self, db_session):
         """Test getting priorities widget"""
         # Create priority items
+        scores = PriorityItem.calculate_scores(1000.0, 5, 5)
         p1 = PriorityItem(
-            name="High Priority",
-            description="Test",
+            description="High Priority",
             severity=5,
             frequency=5,
-            estimated_cost=1000.00,
-            status=PriorityStatus.IDENTIFIED
+            cost=1000.0,
+            status=PriorityStatus.PENDING.value,
+            benefit_score=scores["benefit_score"],
+            cost_score=scores["cost_score"],
+            net_score=scores["net_score"]
         )
-        PriorityItem.calculate_scores(p1)
         db_session.add(p1)
         db_session.commit()
 
@@ -84,10 +85,10 @@ class TestDashboardService:
         """Test getting projects widget"""
         # Create project
         project = Project(
-            name="Test Project",
+            project_name="Test Project",
             description="Test description",
             status=ProjectStatus.IN_PROGRESS,
-            estimated_cost=5000.00
+            budget=5000.00
         )
         db_session.add(project)
         db_session.commit()
@@ -97,7 +98,7 @@ class TestDashboardService:
         assert "status_counts" in widget
         assert "active_projects" in widget
 
-        assert widget["status_counts"]["in_progress"] >= 1
+        assert widget["status_counts"]["InProgress"] >= 1
 
     def test_get_meal_plan_widget_no_plan(self, db_session):
         """Test getting meal plan widget when no plan exists"""
@@ -180,15 +181,16 @@ class TestDashboardService:
 
         assert stats["recipes_count"] >= 1
 
-    def test_get_tax_summary_widget(self, db_session):
+    def test_get_tax_summary_widget(self, db_session, test_user):
         """Test getting tax summary widget"""
         from app.models.tax_wfh import TaxWFHEntry
 
         # Create a WFH entry
         today = date.today()
         entry = TaxWFHEntry(
+            user_id=test_user.id,
             date=today,
-            hours_worked=8.0
+            hours=8.0
         )
         db_session.add(entry)
         db_session.commit()

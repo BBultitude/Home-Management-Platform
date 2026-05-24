@@ -4,7 +4,7 @@ User notifications for alerts, reminders, and system messages
 """
 
 from datetime import datetime
-from sqlalchemy import Column, String, Boolean, DateTime, Text, Enum as SQLEnum
+from sqlalchemy import Column, String, Boolean, DateTime, Text, Integer, Enum as SQLEnum
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 import uuid
@@ -38,7 +38,7 @@ class Notification(Base):
     __tablename__ = "notifications"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), nullable=False)  # No FK - notifications can exist without user
+    user_id = Column(Integer, nullable=False)  # No FK - notifications can exist without user
 
     type = Column(SQLEnum(NotificationType), nullable=False, default=NotificationType.INFO)
     category = Column(SQLEnum(NotificationCategory), nullable=False, default=NotificationCategory.SYSTEM)

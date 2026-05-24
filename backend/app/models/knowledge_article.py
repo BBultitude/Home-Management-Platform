@@ -33,7 +33,7 @@ class KnowledgeArticle(Base):
     article_type = Column(String(50), nullable=False)
     title = Column(String(255), nullable=False)
     data = Column(JSONB, nullable=False)
-    tags = Column(ARRAY(String), nullable=True, default=[])
+    tags = Column(ARRAY(String), nullable=True, default=None)
     search_vector = Column(TSVECTOR, nullable=True)
     created_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
