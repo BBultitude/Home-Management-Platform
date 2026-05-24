@@ -32,6 +32,9 @@ jobs:
           JWT_SECRET: ci_test_jwt_secret_must_be_at_least_32_characters_long
           MFA_ENCRYPTION_KEY: dV1FtheOSRTWaLyXn3CjInEruQA0rtfHeI5AntCCVnw=
 
+      - name: Fix coverage paths for SonarQube
+        run: sed -i 's|filename="app/|filename="backend/app/|g' backend/coverage.xml
+
       - uses: SonarSource/sonarqube-scan-action@v6
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
