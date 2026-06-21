@@ -32,10 +32,16 @@ export default defineConfig({
     minify: 'esbuild',
     rollupOptions: {
       output: {
-        manualChunks: {
-          // Vendor chunk splitting for better caching
-          vendor: ['react', 'react-dom', 'react-router-dom'],
-          ui: ['@tanstack/react-query', 'zustand'],
+        manualChunks: (id) => {
+          if (id.includes('node_modules/react') ||
+              id.includes('node_modules/react-dom') ||
+              id.includes('node_modules/react-router-dom')) {
+            return 'vendor';
+          }
+          if (id.includes('node_modules/@tanstack/react-query') ||
+              id.includes('node_modules/zustand')) {
+            return 'ui';
+          }
         },
       },
     },

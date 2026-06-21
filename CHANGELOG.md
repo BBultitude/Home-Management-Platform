@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **Vite 8 frontend build failure**: PR #10 bumped Vite 7→8 which switched to rolldown
+  as its bundler. rolldown requires `manualChunks` to be a function — the object form
+  is no longer accepted. Converted `vite.config.ts` `manualChunks` from object to
+  function form (`(id) => { ... }`).
 - **Docker secrets permission error on Pi**: Backend container crashed on startup with
   `PermissionError: [Errno 13] Permission denied: /run/secrets/db_password`. Docker
   secrets are bind-mounted with host file permissions (`0400 root:root`), making them
