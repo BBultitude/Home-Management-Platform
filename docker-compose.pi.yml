@@ -41,11 +41,11 @@ services:
     environment:
       # Database connection (internal network) - uses service name 'database'
       DATABASE_URL: postgresql+psycopg://homeuser@database:5432/homedb
-      DB_PASSWORD_FILE: /run/secrets/db_password
+      DB_PASSWORD_FILE: /tmp/secrets/db_password
 
       # Security secrets
-      JWT_SECRET_FILE: /run/secrets/jwt_secret
-      MFA_ENCRYPTION_KEY_FILE: /run/secrets/mfa_encryption_key
+      JWT_SECRET_FILE: /tmp/secrets/jwt_secret
+      MFA_ENCRYPTION_KEY_FILE: /tmp/secrets/mfa_encryption_key
 
       # Application settings
       ENVIRONMENT: development
