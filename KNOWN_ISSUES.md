@@ -505,6 +505,29 @@ Additionally, the "Trust this device for 30 days" trusted device feature was pre
 
 ---
 
-**Last Updated:** 2026-02-25
+### DEPLOY-001: Docker secrets unreadable by non-root backend user (Resolved)
+
+**Status:** ✅ Resolved — 2026-06-21
+**Reported:** 2026-06-21
+**Affects:** Pi deployment (`docker-compose.pi.yml`), backend container startup
+
+**Description:**
+Backend crashed immediately on startup with `PermissionError: [Errno 13] Permission
+denied: /run/secrets/db_password`. `Dockerfile.prod` ran uvicorn as `appuser` (non-root),
+but Docker Compose secrets inherit host file permissions — secret files on the Pi were
+owned by root (`0400`), so `appuser` could not read them. This cascaded to the frontend
+failing as its `depends_on: backend healthy` was never satisfied.
+
+**Resolution:**
+Added `backend/docker-entrypoint.sh`: runs as root, widens `/run/secrets/*` to `o+r`,
+then uses `gosu` to drop to `appuser` before exec-ing uvicorn. Added `gosu` to the
+`Dockerfile.prod` apt-get install block. Removed `USER appuser` from Dockerfile
+(privilege drop now handled by entrypoint).
+
+**Files changed:** `backend/Dockerfile.prod`, `backend/docker-entrypoint.sh` (new)
+
+---
+
+**Last Updated:** 2026-06-21
 **Next Review:** After each sprint
 

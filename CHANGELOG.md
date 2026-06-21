@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Docker secrets permission error on Pi**: Backend container crashed on startup with
+  `PermissionError: [Errno 13] Permission denied: /run/secrets/db_password`. Docker
+  secrets are bind-mounted with host file permissions (`0400 root:root`), making them
+  unreadable by the non-root `appuser`. Fixed by adding a `docker-entrypoint.sh` that
+  runs as root, widens secret permissions to `o+r`, then drops to `appuser` via `gosu`
+  before exec-ing uvicorn. `gosu` added to `Dockerfile.prod` apt-get block.
+
+---
+
 ### Planned for v1.1
 - Email notifications (SMTP integration)
 - Automated backups to cloud storage

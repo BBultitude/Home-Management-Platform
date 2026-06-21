@@ -14,6 +14,7 @@ ENV PYTHONUNBUFFERED=1 \
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     curl \
+    gosu \
     postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
@@ -39,11 +40,15 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
-# Create and use non-root user
+# Create non-root user (privilege drop is handled by entrypoint via gosu)
 RUN addgroup --system appgroup && \
     adduser --system --ingroup appgroup --no-create-home appuser && \
     chown -R appuser:appgroup /app/uploads
-USER appuser
+
+# Entrypoint: fixes Docker secret permissions then drops to appuser
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
+ENTRYPOINT ["/docker-entrypoint.sh"]
 
 # Run application (production mode - no --reload)
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
