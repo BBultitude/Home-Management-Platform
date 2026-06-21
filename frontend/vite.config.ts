@@ -29,7 +29,7 @@ export default defineConfig({
     // Production build configuration
     outDir: 'dist',
     sourcemap: false,
-    minify: 'esbuild',
+    minify: true,
     rollupOptions: {
       output: {
         manualChunks: (id) => {
