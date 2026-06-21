@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+- **`cryptography` 46.0.7 → 48.0.1** (`backend/requirements.txt`): picks up security
+  patches across the 47.x and 48.x series for Fernet/JWT crypto operations.
+- **`@babel/core` pinned to `^7.29.6`** (`frontend/package.json`): fixes CVE where
+  compiling maliciously crafted source code could allow reading arbitrary source map
+  files from the build machine. Also resolved `ajv` and `brace-expansion` moderate
+  advisories via `npm audit fix`.
+
 ### Fixed
 - **Frontend unreachable on Pi**: `docker-compose.pi.yml` mapped `8001:80` but
   `nginx.conf` listens on port 8080 — nothing answered on port 80. Fixed port

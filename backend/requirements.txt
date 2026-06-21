@@ -18,7 +18,7 @@ passlib[argon2]==1.7.4  # Password hashing with Argon2
 python-jose[cryptography]==3.4.0  # JWT tokens
 pyotp==2.9.0  # TOTP for MFA
 qrcode[pil]==7.4.2  # QR code generation for MFA setup
-cryptography==46.0.7  # Fernet encryption for MFA secrets
+cryptography==48.0.1  # Fernet encryption for MFA secrets
 
 # Validation & Serialization
 pydantic==2.10.5
