@@ -95,14 +95,14 @@ services:
     ports:
       # ONLY frontend is exposed to host/internet
       # Using port 8001 (port 80 was already in use)
-      - "8001:80"
+      - "8001:8080"
       # For HTTPS (when Cloudflare/Let's Encrypt is configured)
       # - "443:443"
     depends_on:
       backend:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/"]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/"]
       interval: 30s
       timeout: 10s
       retries: 3

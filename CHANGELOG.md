@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **Frontend unreachable on Pi**: `docker-compose.pi.yml` mapped `8001:80` but
+  `nginx.conf` listens on port 8080 — nothing answered on port 80. Fixed port
+  mapping to `8001:8080` and health check URL to `http://localhost:8080/`.
 - **Vite 8 frontend build failures (2)**: PR #10 bumped Vite 7→8 which switched to
   rolldown as its bundler, introducing two breaking changes:
   (1) `manualChunks` object form no longer accepted — converted to function form
