@@ -1,7 +1,7 @@
 # ============================================
 # Stage 1: Build Frontend (React + Vite)
 # ============================================
-FROM node:20-alpine AS frontend-builder
+FROM node:24-alpine AS frontend-builder
 
 WORKDIR /frontend
 
@@ -21,7 +21,7 @@ RUN npm run build
 # ============================================
 # Stage 2: Production Backend + Frontend
 # ============================================
-FROM python:3.12-slim
+FROM python:3.13-slim
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \

@@ -21,7 +21,7 @@ This guide covers deploying the Home Management Platform to a Raspberry Pi using
 - **Development (Your Machine):** AMD64 architecture
 - **Production (Raspberry Pi):** ARM64 architecture
 
-The same Docker Compose configuration and Dockerfiles work on both architectures because we use multi-arch base images (`python:3.12-slim` and `postgres:16-alpine`).
+The same Docker Compose configuration and Dockerfiles work on both architectures because we use multi-arch base images (`python:3.13-slim` and `postgres:16-alpine`).
 
 ### Container Architecture
 

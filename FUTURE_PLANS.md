@@ -297,6 +297,7 @@ This document outlines planned features, enhancements, and long-term vision for 
 - [ ] **Login throttling not implemented** — Design-v1 specifies 10 attempts/min + 15-min lockout per IP+username; `MAX_LOGIN_ATTEMPTS_PER_MINUTE` / `LOGIN_LOCKOUT_MINUTES` are never read. Apply to `/auth/login` and `/auth/mfa/verify` (KNOWN_ISSUES.md wrongly says this exists)
 - [ ] **SPA fallback path traversal** — `main.py` `serve_spa` serves `STATIC_DIR / full_path` without checking it stays inside `STATIC_DIR` (affects the single-container `Dockerfile` / `docker-compose.dockermate.yml`). Resolve the path and require `is_relative_to(STATIC_DIR)`
 - [ ] **Password change / logout don't invalidate existing JWTs** — tokens stay valid up to 8h. Add `password_changed_at` to User and reject tokens with an older `iat`
+- [ ] **Replace python-jose with PyJWT** — python-jose 3.5.0 (latest) and its dependency ecdsa 0.19.2 still have known advisories with no fixed release (PYSEC-2026-4298, PYSEC-2026-1325). Only `core/security.py` uses it (`jwt.encode` / `jwt.decode`, HS256); PyJWT drops ecdsa and pyasn1 entirely
 - [ ] **Audit-log client IP is spoofable** — `get_client_ip` and three copies of `get_client_info` (`files.py`, `tax_wfh.py`, `tax_travel.py`) take the first `X-Forwarded-For` entry, which the client controls. Keep one helper that uses nginx's `X-Real-IP`
 
 **Correctness (🟡 Medium):**

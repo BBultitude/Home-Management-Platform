@@ -127,7 +127,7 @@ Detailed installation instructions will be provided in the project wiki after v1
 ## Technology Stack
 
 ### Backend
-- **Framework:** FastAPI (Python 3.12)
+- **Framework:** FastAPI (Python 3.13)
 - **Database:** PostgreSQL 16
 - **Authentication:** FastAPI-Users + PyOTP (MFA)
 - **ORM:** SQLAlchemy 2.0
