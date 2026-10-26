@@ -35,9 +35,9 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
-# Create and use non-root user
-RUN addgroup --system appgroup && \
-    adduser --system --ingroup appgroup --no-create-home appuser && \
+# Create and use non-root user; uid/gid 1000 match the host owner of the ./backend bind mount
+RUN addgroup --system --gid 1000 appgroup && \
+    adduser --system --uid 1000 --ingroup appgroup --no-create-home appuser && \
     chown -R appuser:appgroup /app/uploads
 USER appuser
 

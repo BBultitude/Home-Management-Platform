@@ -282,6 +282,41 @@ This document outlines planned features, enhancements, and long-term vision for 
 
 ---
 
+### 10. Security & Correctness Fixes (Repo Audit 2026-10-27)
+
+**Priority:** 🔴 High (security items) / 🟡 Medium (rest)
+**Category:** Security / Correctness / Code Quality
+**Effort:** 1-2 weeks
+
+**Description:**
+- Findings from a full-repo audit on 2026-10-27 that were not fixed at the time
+- Already fixed in the same session: `mfa_pending` token accepted as a session token, Pi deploy running in development mode, exception text returned to clients, admin per-user routes typed as UUID instead of int
+
+**Security (🔴 High):**
+- [ ] **Trusted device is a User-Agent hash** — `core/security.py` `generate_device_fingerprint`. Any browser with the same User-Agent skips MFA for 30 days. Store the random `device_token` in an httpOnly cookie and verify it at login instead
+- [ ] **Login throttling not implemented** — Design-v1 specifies 10 attempts/min + 15-min lockout per IP+username; `MAX_LOGIN_ATTEMPTS_PER_MINUTE` / `LOGIN_LOCKOUT_MINUTES` are never read. Apply to `/auth/login` and `/auth/mfa/verify` (KNOWN_ISSUES.md wrongly says this exists)
+- [ ] **SPA fallback path traversal** — `main.py` `serve_spa` serves `STATIC_DIR / full_path` without checking it stays inside `STATIC_DIR` (affects the single-container `Dockerfile` / `docker-compose.dockermate.yml`). Resolve the path and require `is_relative_to(STATIC_DIR)`
+- [ ] **Password change / logout don't invalidate existing JWTs** — tokens stay valid up to 8h. Add `password_changed_at` to User and reject tokens with an older `iat`
+- [ ] **Audit-log client IP is spoofable** — `get_client_ip` and three copies of `get_client_info` (`files.py`, `tax_wfh.py`, `tax_travel.py`) take the first `X-Forwarded-For` entry, which the client controls. Keep one helper that uses nginx's `X-Real-IP`
+
+**Correctness (🟡 Medium):**
+- [ ] **Uploads over 1 MB rejected by nginx** — `frontend/nginx.conf` has no `client_max_body_size`; backend allows 20 MB. Add `client_max_body_size 21m;` to `location /api/`
+- [ ] **Dashboard tax widget sums all users** — `dashboard_service.get_tax_summary_widget` has no `user_id` filter; Design-v1 says "own tax summary"
+- [ ] **ATO rates hard-coded and stale** — 0.85 $/km (tax_travel_service x3, api/v1/tax_travel.py, dashboard_service) and 0.67 $/hr (tax_wfh_service). FY2024-25 onward rates are 0.88 and 0.70. Keep one per-FY rate table
+- [ ] **Budget frequency multipliers rounded and defined 3 times** — `budget_service.py` (two identical dicts) and `frontend/src/lib/frequencyUtils.ts`. Use exact fractions (e.g. `Decimal(52) / 12`) in one backend place
+- [ ] **File delete removes disk file before DB row and swallows errors** — `file_service.delete_file`. Commit the DB delete first, then unlink and log failures
+
+**Tests:**
+- [ ] API-level tests for remaining admin per-user routes (update, role, activate, delete, reset MFA)
+- [ ] Frontend tests (see item 8)
+
+**Lean-up (~200 lines):**
+- [ ] Config that does nothing: `MAX_FILE_SIZE_MB`, `MAX_STORAGE_PER_USER_MB`, `ALLOWED_FILE_TYPES` (FileService hard-codes its own), `AUDIT_LOG_RETENTION_*`, `ENABLE_*` flags, `LOCALE`, `DATE_FORMAT`. Wire up FileService to settings; delete the rest
+- [ ] `require_tax_ownership` / `allow_tax_read` in `api/dependencies.py` check nothing and are only used by tests. Delete them and their tests
+- [ ] Unused: `create_trusted_device_token` (unless reused for the trusted-device fix), legacy `finance:*` / `insurance:*` permission keys, `require_editor`, `require_authenticated`
+
+---
+
 ## v1.2 - UX Enhancements (6-9 Months Post-v1.0)
 
 ### 1. Email Notifications (SMTP Integration)

@@ -3,7 +3,6 @@ Tests for Admin Service
 """
 
 import pytest
-from uuid import uuid4
 
 from app.services.admin_service import AdminService
 from app.models.user import User, UserRole
@@ -112,7 +111,7 @@ class TestAdminService:
     def test_get_user_by_id_not_found(self, db_session):
         """Test getting non-existent user raises error"""
         with pytest.raises(Exception):
-            AdminService.get_user_by_id(db=db_session, user_id=uuid4())
+            AdminService.get_user_by_id(db=db_session, user_id=999999)
 
     def test_update_user(self, db_session, admin_user, editor_user):
         """Test updating user details"""

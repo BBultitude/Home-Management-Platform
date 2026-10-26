@@ -52,7 +52,8 @@ def get_current_user(
 
     # Decode token
     payload = decode_access_token(token)
-    if not payload:
+    # Only full session tokens; mfa_pending tokens must not bypass MFA
+    if not payload or payload.get("type") != "access":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired token",

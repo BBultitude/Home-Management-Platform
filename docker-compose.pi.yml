@@ -48,7 +48,7 @@ services:
       MFA_ENCRYPTION_KEY_FILE: /tmp/secrets/mfa_encryption_key
 
       # Application settings
-      ENVIRONMENT: development
+      ENVIRONMENT: production
       DEBUG: "false"
 
       # CORS - allow frontend container, Pi's IP, and Cloudflare domain

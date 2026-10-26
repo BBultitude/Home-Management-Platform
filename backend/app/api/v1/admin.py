@@ -14,7 +14,6 @@ import zipfile
 from datetime import datetime, timezone
 from typing import Annotated, Optional
 from urllib.parse import urlparse
-from uuid import UUID
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
@@ -101,7 +100,7 @@ async def list_users(
 
 @router.get("/users/{user_id}", response_model=UserDetailResponse)
 async def get_user(
-    user_id: UUID,
+    user_id: int,
     current_user: Annotated[User, Depends(require_admin)],
     db: Annotated[Session, Depends(get_db)]
 ):
@@ -124,7 +123,7 @@ async def get_user(
 
 @router.put("/users/{user_id}", response_model=UserDetailResponse)
 async def update_user(
-    user_id: UUID,
+    user_id: int,
     user_data: UserUpdateRequest,
     current_user: Annotated[User, Depends(require_admin)],
     db: Annotated[Session, Depends(get_db)]
@@ -160,7 +159,7 @@ async def update_user(
 
 @router.put("/users/{user_id}/role", response_model=UserDetailResponse)
 async def update_user_role(
-    user_id: UUID,
+    user_id: int,
     role_data: UserRoleUpdateRequest,
     current_user: Annotated[User, Depends(require_admin)],
     db: Annotated[Session, Depends(get_db)]
@@ -195,7 +194,7 @@ async def update_user_role(
 
 @router.put("/users/{user_id}/active", response_model=UserDetailResponse)
 async def toggle_user_active(
-    user_id: UUID,
+    user_id: int,
     active_data: UserActiveUpdateRequest,
     current_user: Annotated[User, Depends(require_admin)],
     db: Annotated[Session, Depends(get_db)]
@@ -230,7 +229,7 @@ async def toggle_user_active(
 
 @router.delete("/users/{user_id}")
 async def delete_user(
-    user_id: UUID,
+    user_id: int,
     current_user: Annotated[User, Depends(require_admin)],
     db: Annotated[Session, Depends(get_db)]
 ):
@@ -250,7 +249,7 @@ async def delete_user(
 
 @router.post("/users/{user_id}/reset-mfa", response_model=MFAResetResponse)
 async def reset_user_mfa(
-    user_id: UUID,
+    user_id: int,
     current_user: Annotated[User, Depends(require_admin)],
     db: Annotated[Session, Depends(get_db)]
 ):
@@ -284,7 +283,7 @@ async def get_system_stats(
 
 @router.get("/users/{user_id}/stats", response_model=UserStatisticsResponse)
 async def get_user_statistics(
-    user_id: UUID,
+    user_id: int,
     current_user: Annotated[User, Depends(require_admin)],
     db: Annotated[Session, Depends(get_db)]
 ):
@@ -302,7 +301,7 @@ async def get_user_statistics(
 
 @router.get("/audit/users/{user_id}", response_model=AuditLogListResponse)
 async def get_user_audit_logs(
-    user_id: UUID,
+    user_id: int,
     module: Annotated[Optional[str], Query(description="Filter by module")] = None,
     action: Annotated[Optional[str], Query(description="Filter by action")] = None,
     limit: Annotated[int, Query(ge=1, le=1000)] = 100,
@@ -339,7 +338,7 @@ async def get_user_audit_logs(
 async def get_module_audit_logs(
     module: str,
     action: Annotated[Optional[str], Query(description="Filter by action")] = None,
-    user_id: Annotated[Optional[str], Query(description="Filter by user")] = None,
+    user_id: Annotated[Optional[int], Query(description="Filter by user")] = None,
     limit: Annotated[int, Query(ge=1, le=1000)] = 100,
     offset: Annotated[int, Query(ge=0)] = 0,
     *,
@@ -357,7 +356,7 @@ async def get_module_audit_logs(
         query = query.filter(AuditLog.action == AuditAction(action))
 
     if user_id:
-        query = query.filter(AuditLog.user_id == UUID(user_id))
+        query = query.filter(AuditLog.user_id == user_id)
 
     total = query.count()
     logs = query.order_by(AuditLog.created_at.desc()).limit(limit).offset(offset).all()
@@ -374,7 +373,7 @@ async def get_module_audit_logs(
 async def get_action_audit_logs(
     action: str,
     module: Annotated[Optional[str], Query(description="Filter by module")] = None,
-    user_id: Annotated[Optional[str], Query(description="Filter by user")] = None,
+    user_id: Annotated[Optional[int], Query(description="Filter by user")] = None,
     limit: Annotated[int, Query(ge=1, le=1000)] = 100,
     offset: Annotated[int, Query(ge=0)] = 0,
     *,
@@ -392,7 +391,7 @@ async def get_action_audit_logs(
         query = query.filter(AuditLog.module == AuditModule(module))
 
     if user_id:
-        query = query.filter(AuditLog.user_id == UUID(user_id))
+        query = query.filter(AuditLog.user_id == user_id)
 
     total = query.count()
     logs = query.order_by(AuditLog.created_at.desc()).limit(limit).offset(offset).all()

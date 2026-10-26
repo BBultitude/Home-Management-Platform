@@ -5,7 +5,6 @@ Administrative functions for user management, system maintenance, and oversight
 
 from datetime import datetime, timezone
 from typing import Optional
-from uuid import UUID
 from sqlalchemy.orm import Session
 from sqlalchemy import func, or_
 from fastapi import HTTPException, status
@@ -97,7 +96,7 @@ class AdminService:
         return query.scalar()
 
     @staticmethod
-    def get_user_by_id(db: Session, user_id: UUID) -> User:
+    def get_user_by_id(db: Session, user_id: int) -> User:
         """Get user by ID"""
         user = db.query(User).filter(User.id == user_id).first()
 
@@ -112,7 +111,7 @@ class AdminService:
     @staticmethod
     def update_user(
         db: Session,
-        user_id: UUID,
+        user_id: int,
         admin_user: User,
         username: Optional[str] = None,
         email: Optional[str] = None,
@@ -188,7 +187,7 @@ class AdminService:
     @staticmethod
     def update_user_role(
         db: Session,
-        user_id: UUID,
+        user_id: int,
         admin_user: User,
         new_role: UserRole
     ) -> User:
@@ -256,7 +255,7 @@ class AdminService:
     @staticmethod
     def toggle_user_active(
         db: Session,
-        user_id: UUID,
+        user_id: int,
         admin_user: User,
         is_active: bool
     ) -> User:
@@ -320,7 +319,7 @@ class AdminService:
     @staticmethod
     def delete_user(
         db: Session,
-        user_id: UUID,
+        user_id: int,
         admin_user: User
     ) -> None:
         """
@@ -376,7 +375,7 @@ class AdminService:
     @staticmethod
     def reset_user_mfa(
         db: Session,
-        user_id: UUID,
+        user_id: int,
         admin_user: User
     ) -> dict:
         """
@@ -482,7 +481,7 @@ class AdminService:
         }
 
     @staticmethod
-    def get_user_statistics(db: Session, user_id: UUID) -> dict:
+    def get_user_statistics(db: Session, user_id: int) -> dict:
         """
         Get statistics for a specific user
 

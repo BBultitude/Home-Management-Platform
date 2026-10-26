@@ -52,7 +52,8 @@ async def global_exception_handler(request: Request, exc: Exception):
     return JSONResponse(
         status_code=500,
         content={
-            "detail": f"{type(exc).__name__}: {str(exc)}",
+            # Exception text can contain SQL or data; only expose it in development
+            "detail": f"{type(exc).__name__}: {str(exc)}" if is_development() else "Internal server error",
             "path": request.url.path,
             "method": request.method
         }

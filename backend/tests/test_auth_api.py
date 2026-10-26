@@ -333,3 +333,22 @@ class TestAuthAPI:
         )
 
         assert response.status_code == 422  # Validation error
+
+    def test_mfa_pending_token_rejected_as_session(self, client: TestClient, admin_user: User):
+        """An mfa_pending token must not grant access to protected endpoints"""
+        token = AuthService.create_mfa_pending_token(admin_user)
+
+        response = client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {token}"})
+        assert response.status_code == 401
+
+        client.cookies.set("access_token", token)
+        response = client.get("/api/v1/auth/me")
+        assert response.status_code == 401
+
+    def test_admin_get_user_by_int_id(self, client: TestClient, admin_user: User):
+        """Admin per-user routes accept integer user IDs"""
+        client.cookies.set("access_token", AuthService.create_session_token(admin_user))
+
+        response = client.get(f"/api/v1/admin/users/{admin_user.id}")
+        assert response.status_code == 200
+        assert response.json()["username"] == "admin"
